@@ -79,19 +79,14 @@
 </div>
 
 <!--
-  Config: in production, /js/config.js is served by the Cloudflare Pages
-  Function in /functions/js/config.js.js using the GOOGLE_MAPS_API_KEY
-  secret. config.example.js loads first as a fallback for local dev.
+  Config: in production, /js/config.js is served dynamically by the Cloudflare
+  Worker (_worker.js) using the GOOGLE_MAPS_API_KEY secret. Loaded synchronously
+  here so window.APP_CONFIG is populated before any other script runs.
+  config.example.js loads first as a fallback for local dev (where /js/config.js
+  may not be intercepted by the Worker).
 -->
 <script src="./js/config.example.js"></script>
-<script>
-  (function() {
-    var s = document.createElement('script');
-    s.src = './js/config.js';
-    s.onerror = function(){};
-    document.head.appendChild(s);
-  })();
-</script>
+<script src="./js/config.js"></script>
 
 <!-- Core modules -->
 <script src="./js/utils.js"></script>
