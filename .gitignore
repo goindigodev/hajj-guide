@@ -1,0 +1,29 @@
+# API keys & secrets
+js/config.js
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Build artefacts (none currently, but for future)
+node_modules/
+dist/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local audio downloads (these get cached client-side anyway)
+audio/*.mp3
+audio/*.m4a
+!audio/.gitkeep
+
+# Wrangler local dev secrets (used by `wrangler pages dev`)
+.dev.vars
+.wrangler/

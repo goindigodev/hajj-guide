@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Template structure for a personalised Hajj itinerary. Days are referenced by Hijri date or by an offset from the user's outbound flight. The renderer maps these to actual Gregorian dates from user input."
+  },
+  "phases": [
+    {
+      "id": "departure",
+      "title": "Departure",
+      "anchor": "outbound_flight_date",
+      "duration_days": 1,
+      "description": "Travel from your home country to Madinah or Jeddah."
+    },
+    {
+      "id": "madinah",
+      "title": "Madinah",
+      "anchor": "outbound_flight_date+1",
+      "duration_days": 3,
+      "configurable_duration": true,
+      "description": "Stay in Madinah, visit Masjid an-Nabawi, perform ziyarat."
+    },
+    {
+      "id": "makkah-pre-hajj",
+      "title": "Makkah (Pre-Hajj)",
+      "anchor": "after_madinah",
+      "duration_days": 2,
+      "configurable_duration": true,
+      "description": "Travel to Makkah, perform Umrah, rest before Hajj begins."
+    },
+    {
+      "id": "hajj-days",
+      "title": "The Five Days of Hajj",
+      "anchor": "8_dhul_hijjah",
+      "duration_days": 5,
+      "fixed": true,
+      "days": [
+        {
+          "hijri": "8 Dhul Hijjah",
+          "name": "Yawm at-Tarwiyah",
+          "location": "Mina",
+          "summary": "Enter Ihram for Hajj from your accommodation. Travel to Mina after Fajr. Spend the day and night in Mina performing the five prayers (Dhuhr through Fajr of the 9th)."
+        },
+        {
+          "hijri": "9 Dhul Hijjah",
+          "name": "Yawm Arafah",
+          "location": "Arafah & Muzdalifah",
+          "summary": "Travel to Arafah after sunrise. Perform Wuquf from Zawal until sunset. Travel to Muzdalifah after sunset. Pray Maghrib and Isha combined. Spend the night."
+        },
+        {
+          "hijri": "10 Dhul Hijjah",
+          "name": "Yawm an-Nahr (Eid al-Adha)",
+          "location": "Muzdalifah → Mina → Makkah → Mina",
+          "summary": "Pray Fajr at Muzdalifah. Travel to Mina. Stone Jamarah al-Aqabah (7 pebbles). Sacrifice (or arrange via your operator). Halq or Taqsir. Travel to Makkah for Tawaf al-Ziyarah and Sa'i. Return to Mina."
+        },
+        {
+          "hijri": "11 Dhul Hijjah",
+          "name": "First Day of Tashreeq",
+          "location": "Mina",
+          "summary": "Stay in Mina. Stone all three Jamarat after Zawal (7 pebbles each, in order: small, middle, large)."
+        },
+        {
+          "hijri": "12 Dhul Hijjah",
+          "name": "Second Day of Tashreeq",
+          "location": "Mina (→ Makkah for Nafr Awwal)",
+          "summary": "Stone all three Jamarat after Zawal. To leave Mina early (Nafr Awwal), depart before sunset. Otherwise, stay one more night."
+        }
+      ]
+    },
+    {
+      "id": "makkah-post-hajj",
+      "title": "Makkah (Post-Hajj)",
+      "anchor": "after_hajj",
+      "duration_days": 4,
+      "configurable_duration": true,
+      "description": "Rest, perform additional Umrah/Tawaf, visit historical sites, prepare for departure."
+    },
+    {
+      "id": "wada",
+      "title": "Tawaf al-Wada",
+      "anchor": "return_flight_date-1",
+      "duration_days": 1,
+      "description": "Perform the Farewell Tawaf as the final ritual before leaving Makkah."
+    },
+    {
+      "id": "return",
+      "title": "Return Home",
+      "anchor": "return_flight_date",
+      "duration_days": 1,
+      "description": "Travel from Jeddah back to your home country."
+    }
+  ]
+}

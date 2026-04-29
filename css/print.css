@@ -1,0 +1,142 @@
+/* =============================================================
+   PRINT STYLESHEET
+   Each major section can be printed individually via window.print()
+   after activating the print mode.
+   ============================================================= */
+
+@media print {
+  @page {
+    margin: 18mm 16mm;
+    size: A4;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Hide UI chrome */
+  .site-header,
+  .tab-nav,
+  .notes-fab,
+  .notes-panel,
+  .btn,
+  .fontsize-control,
+  .madhab-bar,
+  .audio-controls,
+  .onboarding__nav,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  /* Show only the active tab when printing */
+  .tab-content { display: none !important; }
+  .tab-content.is-active.is-printing { display: block !important; }
+  .tab-content.is-active.is-printing * { display: revert; }
+  .tab-content.is-active.is-printing .day-card__body { display: block !important; }
+
+  /* Force-expand all collapsibles */
+  .day-card__body { display: block !important; }
+  .day-card { page-break-inside: avoid; border: 1px solid #999 !important; }
+
+  /* Fix layout for print */
+  main, .container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; }
+  h2 { font-size: 18pt !important; border-bottom: 1px solid #000; padding-bottom: 4pt; }
+  h3 { font-size: 14pt !important; }
+
+  /* Ensure Arabic prints */
+  .arabic {
+    color: #000 !important;
+    font-size: 16pt !important;
+    background: #f8f8f8 !important;
+    border: 1px solid #ccc;
+    padding: 6pt 10pt !important;
+  }
+
+  .transliteration {
+    color: #333 !important;
+    font-style: italic;
+  }
+
+  .dua-card,
+  .ruling-card,
+  .card,
+  .checklist-section {
+    page-break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    margin-bottom: 8pt !important;
+  }
+
+  .callout {
+    border-left: 2px solid #000 !important;
+    background: #f5f5f5 !important;
+    color: #000 !important;
+  }
+
+  /* Print headers/footers */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 12pt;
+    padding-bottom: 8pt;
+    border-bottom: 1px solid #000;
+  }
+
+  .print-header__title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16pt;
+    margin: 0 0 4pt;
+  }
+
+  .print-header__sub {
+    font-size: 10pt;
+    color: #666;
+    font-style: italic;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+
+  /* Prevent orphaned headings */
+  .day-card__header { background: #f5f5f5 !important; }
+
+  /* Show the user's personalized info clearly */
+  .print-summary {
+    border: 2px solid #000;
+    padding: 8pt 12pt;
+    margin-bottom: 12pt;
+  }
+
+  /* Checklist items in print */
+  .checklist-item input[type="checkbox"] {
+    border: 1px solid #000;
+  }
+  .checklist-item.is-done label {
+    text-decoration: line-through;
+  }
+
+  /* Map embeds — replace with text */
+  .map-embed iframe { display: none; }
+  .map-embed::after {
+    content: "🗺  Map: " attr(data-place-name) " — view on phone";
+    display: block;
+    padding: 12pt;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+}
+
+/* Hidden by default — only shown in print */
+.print-header { display: none; }

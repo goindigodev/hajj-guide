@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e6">
+
+<title>Your Guide · Hajj Guide</title>
+<meta name="description" content="Your personalised Hajj guide.">
+
+<link rel="canonical" href="https://hajjguide.net/app.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hajjguide.net/app.html">
+<meta property="og:title" content="Hajj Guide · A personalised companion for pilgrims">
+<meta property="og:description" content="Itinerary, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+<meta property="og:image" content="https://hajjguide.net/icons/icon-512.png">
+<meta property="og:site_name" content="Hajj Guide">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="./css/print.css" media="print">
+</head>
+<body class="app-page">
+
+<header class="site-header no-print">
+  <div class="site-header__inner">
+    <a href="./index.html" class="site-header__brand" aria-label="Home">
+      <span class="site-header__mark">ﷺ</span>
+      <span class="site-header__title">Hajj <em>Guide</em></span>
+    </a>
+    <div class="site-header__actions">
+      <div id="fontsize-host" aria-label="Text size"></div>
+      <button class="btn btn--icon" id="btn-print" aria-label="Print this section" title="Print this section">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="tab-nav no-print" id="tab-nav">
+  <div class="tab-nav__inner" role="tablist">
+    <!-- Buttons injected by app.js -->
+  </div>
+</nav>
+
+<main>
+  <div class="container container-wide">
+
+    <!-- Empty state shown if user navigated here without onboarding -->
+    <div id="needs-onboarding" class="hidden" style="text-align: center; padding: var(--space-8) var(--space-4);">
+      <h2 class="display-1" style="font-size: var(--fs-2xl);">Let's set up your trip first.</h2>
+      <p class="text-mute" style="margin: var(--space-3) 0 var(--space-5); font-size: var(--fs-base);">
+        Answer a few short questions and your guide will appear here, personalised to your journey.
+      </p>
+      <a class="btn btn--primary btn--lg" href="./index.html">Begin Setup →</a>
+    </div>
+
+    <!-- Tab content panels — rendered by guide.js -->
+    <div id="content-host"></div>
+
+  </div>
+</main>
+
+<!-- Loading -->
+<div id="boot-loader" style="position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:9999;font-family:'Cormorant Garamond',serif;color:var(--ink-mute);">
+  <div style="text-align:center;">
+    <div style="font-size:32px;color:var(--brass);">۞</div>
+    <div style="margin-top:8px;font-style:italic;">Preparing your guide…</div>
+  </div>
+</div>
+
+<!--
+  Config: in production, /js/config.js is served by the Cloudflare Pages
+  Function in /functions/js/config.js.js using the GOOGLE_MAPS_API_KEY
+  secret. config.example.js loads first as a fallback for local dev.
+-->
+<script src="./js/config.example.js"></script>
+<script>
+  (function() {
+    var s = document.createElement('script');
+    s.src = './js/config.js';
+    s.onerror = function(){};
+    document.head.appendChild(s);
+  })();
+</script>
+
+<!-- Core modules -->
+<script src="./js/utils.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/maps.js"></script>
+<script src="./js/audio.js"></script>
+<script src="./js/notes.js"></script>
+<script src="./js/fontsize.js"></script>
+<script src="./js/print.js"></script>
+<script src="./js/guide.js"></script>
+<script src="./js/app.js"></script>
+
+</body>
+</html>

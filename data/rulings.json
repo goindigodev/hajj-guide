@@ -1,0 +1,189 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "disclaimer": "These rulings reflect commonly-accepted positions within each school. Individual scholars may differ. Always verify with a qualified scholar from your madhab before relying on these for ritual decisions.",
+    "schools": ["hanafi", "shafi", "maliki", "hanbali"]
+  },
+  "rulings": [
+    {
+      "id": "tawaf-wudu",
+      "topic": "Wudu (ritual purity) for Tawaf",
+      "category": "tawaf",
+      "hanafi": "Wajib (necessary). If wudu breaks during Tawaf, it should be resumed after renewing wudu. Performing Tawaf without wudu is sinful but the Tawaf is valid; a dam (sacrifice) becomes obligatory.",
+      "shafi": "Fard (essential pillar). Tawaf is invalid without wudu and must be repeated.",
+      "maliki": "Fard (essential pillar). Tawaf is invalid without wudu and must be repeated.",
+      "hanbali": "Fard (essential pillar). Tawaf is invalid without wudu and must be repeated."
+    },
+    {
+      "id": "tawaf-ziyarah-deadline",
+      "topic": "Deadline for Tawaf al-Ziyarah (Tawaf al-Ifadah)",
+      "category": "tawaf",
+      "hanafi": "Must be performed within the days of Nahr (10th, 11th, or 12th of Dhul Hijjah, before sunset of the 12th). Delaying past this incurs a dam.",
+      "shafi": "Begins after midnight of the 10th. No final deadline — remains valid even if delayed for years, though delaying without excuse is disliked.",
+      "maliki": "Must be performed within the days of Tashreeq (up to sunset of the 13th). Delaying beyond incurs a dam.",
+      "hanbali": "No fixed deadline — remains valid even if delayed, though doing it within the days of Hajj is preferred."
+    },
+    {
+      "id": "rami-timing-11-12",
+      "topic": "Time for stoning (Rami) on the 11th and 12th of Dhul Hijjah",
+      "category": "rami",
+      "hanafi": "Must be after Zawal (true noon). Stoning before Zawal on these days is not valid and must be repeated.",
+      "shafi": "Must be after Zawal (true noon). Stoning before Zawal on these days is not valid.",
+      "maliki": "Must be after Zawal (true noon). Stoning before Zawal on these days is not valid.",
+      "hanbali": "Preferably after Zawal, but some Hanbali scholars permit stoning before Zawal on the 12th and 13th if leaving Mina early."
+    },
+    {
+      "id": "combining-prayers-arafah",
+      "topic": "Combining Dhuhr and Asr at Arafah",
+      "category": "salah",
+      "hanafi": "Combining is only valid when prayed behind the Imam at Masjid Namirah in congregation. Otherwise, each prayer is offered at its own time.",
+      "shafi": "Combining is sunnah at Arafah for all pilgrims, whether in congregation or alone. Dhuhr and Asr are joined at Dhuhr time (jam' taqdeem).",
+      "maliki": "Combining is sunnah at Arafah for all pilgrims, joined at Dhuhr time.",
+      "hanbali": "Combining is sunnah at Arafah for all pilgrims, joined at Dhuhr time."
+    },
+    {
+      "id": "combining-prayers-muzdalifah",
+      "topic": "Combining Maghrib and Isha at Muzdalifah",
+      "category": "salah",
+      "hanafi": "Wajib to delay Maghrib and pray it together with Isha at Isha's time at Muzdalifah. Praying Maghrib before reaching Muzdalifah requires repetition.",
+      "shafi": "Sunnah to combine at Isha's time (jam' ta'kheer). Praying separately is permitted but contrary to sunnah.",
+      "maliki": "Sunnah to combine at Isha's time at Muzdalifah.",
+      "hanbali": "Sunnah to combine at Isha's time at Muzdalifah."
+    },
+    {
+      "id": "qasr-traveler",
+      "topic": "Shortening prayers (Qasr) for travelers",
+      "category": "salah",
+      "hanafi": "Wajib (obligatory) for travelers — four-rakah prayers must be shortened to two. A traveler who intends to stay 15 days or more in one place becomes a resident.",
+      "shafi": "Permissible (rukhsah). Either shortening or praying in full is valid. Threshold for becoming resident is 4 days (excluding day of arrival/departure).",
+      "maliki": "Strongly recommended (sunnah mu'akkadah). Threshold for becoming resident is 4 days.",
+      "hanbali": "Recommended (sunnah). Threshold for becoming resident is more than 4 days."
+    },
+    {
+      "id": "tawaf-wada",
+      "topic": "Tawaf al-Wada (Farewell Tawaf)",
+      "category": "tawaf",
+      "hanafi": "Wajib for non-residents of Makkah. Skipping it incurs a dam. Menstruating women are exempt.",
+      "shafi": "Wajib for all pilgrims (including residents in some opinions). Skipping it incurs a dam. Menstruating women are exempt.",
+      "maliki": "Sunnah, not wajib. No dam if skipped.",
+      "hanbali": "Wajib for all non-residents. Skipping incurs a dam. Menstruating women are exempt."
+    },
+    {
+      "id": "taqsir-length",
+      "topic": "Length of hair to cut for Taqsir (shortening)",
+      "category": "halq-taqsir",
+      "hanafi": "At least one fingertip-length (~2.5cm) cut from at least one quarter of the head.",
+      "shafi": "Cutting any three hairs is sufficient as a minimum, though more is preferred.",
+      "maliki": "Must shorten across the entire head, not just a portion.",
+      "hanbali": "Must shorten across the entire head, not just a portion."
+    },
+    {
+      "id": "halq-preferred",
+      "topic": "Halq (full shaving) vs Taqsir (shortening) for men",
+      "category": "halq-taqsir",
+      "hanafi": "Halq is preferred (afdal). Taqsir is permitted but yields lesser reward.",
+      "shafi": "Halq is preferred. Taqsir is permitted.",
+      "maliki": "Halq is preferred. Taqsir is permitted.",
+      "hanbali": "Halq is preferred. Taqsir is permitted."
+    },
+    {
+      "id": "rami-order-day-10",
+      "topic": "Order of rituals on 10th Dhul Hijjah",
+      "category": "rami",
+      "hanafi": "The order is wajib: Rami of Jamarat al-Aqabah → Sacrifice (if applicable) → Halq/Taqsir → Tawaf al-Ziyarah. Doing them out of order incurs a dam.",
+      "shafi": "The order is sunnah, not wajib. Performing out of order is permitted with no penalty.",
+      "maliki": "The order is sunnah. Performing out of order is permitted.",
+      "hanbali": "The order is sunnah. No penalty for variation."
+    },
+    {
+      "id": "leaving-mina-12th",
+      "topic": "Leaving Mina early (Nafr Awwal) on the 12th",
+      "category": "mina",
+      "hanafi": "Must depart before sunset of the 12th. If sunset arrives while still in Mina, staying for the 13th and stoning becomes obligatory.",
+      "shafi": "Must depart before sunset of the 12th. If caught by sunset, staying for the 13th becomes obligatory.",
+      "maliki": "Must depart before sunset of the 12th. If caught by sunset, staying for the 13th becomes obligatory.",
+      "hanbali": "Must depart before sunset of the 12th. If caught by sunset, staying for the 13th becomes obligatory."
+    },
+    {
+      "id": "takbir-tashreeq",
+      "topic": "Takbir at-Tashreeq after fard prayers",
+      "category": "salah",
+      "hanafi": "Wajib once after every fard prayer from Fajr of the 9th to Asr of the 13th of Dhul Hijjah (23 prayers total). Recited audibly by men, silently by women.",
+      "shafi": "Sunnah after every prayer from Maghrib of the 9th to Asr of the 13th. Some opinions extend it.",
+      "maliki": "Sunnah after fard prayers from Dhuhr of the 10th to Fajr of the 13th.",
+      "hanbali": "Sunnah after fard prayers from Fajr of the 9th to Asr of the 13th."
+    },
+    {
+      "id": "ihram-women-face",
+      "topic": "Covering the face for women in Ihram",
+      "category": "ihram",
+      "hanafi": "Cloth must not touch the face. Covering with a face-veil supported by a cap or frame (so it doesn't touch the skin) is permitted and recommended in front of non-mahram men.",
+      "shafi": "The face must remain uncovered during Ihram. Covering with anything that touches the face invalidates the state until removed.",
+      "maliki": "Face must be uncovered. May lower a cloth in front of non-mahram men if it doesn't directly touch the face.",
+      "hanbali": "Face must be uncovered. May lower a cloth in front of non-mahram men if it doesn't directly touch the face."
+    },
+    {
+      "id": "sa-i-direction",
+      "topic": "Starting Sa'i at Safa",
+      "category": "sa-i",
+      "hanafi": "Must start at Safa. Starting at Marwah invalidates the first lap, which must be repeated.",
+      "shafi": "Must start at Safa. Starting at Marwah invalidates that lap.",
+      "maliki": "Must start at Safa. Starting at Marwah invalidates that lap.",
+      "hanbali": "Must start at Safa. Starting at Marwah invalidates that lap."
+    },
+    {
+      "id": "wuquf-arafah-time",
+      "topic": "Time required at Arafah (Wuquf)",
+      "category": "arafah",
+      "hanafi": "Any portion of time between Zawal of the 9th and Fajr of the 10th. Even a moment counts. Combining day and night is sunnah.",
+      "shafi": "Any portion between Zawal of the 9th and Fajr of the 10th. Combining day and night is sunnah.",
+      "maliki": "Must include some portion of the night between the 9th and 10th. Day-only Wuquf without night is invalid and incurs a dam.",
+      "hanbali": "Any portion between Fajr of the 9th and Fajr of the 10th. Combining day and night is preferred."
+    },
+    {
+      "id": "muzdalifah-overnight",
+      "topic": "Staying overnight at Muzdalifah",
+      "category": "muzdalifah",
+      "hanafi": "Wajib to stop at Muzdalifah, even briefly, between Fajr time and sunrise of the 10th. Skipping incurs a dam.",
+      "shafi": "Wajib to stop at Muzdalifah for any portion of the second half of the night.",
+      "maliki": "Wajib to stop and pray Maghrib and Isha there. Brief stop after the prayers is sufficient.",
+      "hanbali": "Wajib to stop until at least midnight or until Fajr."
+    },
+    {
+      "id": "sacrifice-tamattu-qiran",
+      "topic": "Sacrifice (Hady) for Tamattu' and Qiran pilgrims",
+      "category": "sacrifice",
+      "hanafi": "Wajib. If unable, must fast 3 days during Hajj and 7 after returning home (10 total).",
+      "shafi": "Wajib. Same fasting alternative if unable.",
+      "maliki": "Wajib. Same fasting alternative if unable.",
+      "hanbali": "Wajib. Same fasting alternative if unable."
+    },
+    {
+      "id": "tawaf-rumal-idtiba",
+      "topic": "Ramal (brisk walking) and Idtiba (uncovering shoulder) in Tawaf",
+      "category": "tawaf",
+      "hanafi": "Sunnah for men in the first three of seven circuits of Tawaf al-Qudum and Tawaf following Sa'i. Idtiba is sunnah throughout that Tawaf.",
+      "shafi": "Sunnah for men in the same circumstances. Idtiba is sunnah throughout.",
+      "maliki": "Sunnah for men. Practiced similarly.",
+      "hanbali": "Sunnah for men. Practiced similarly."
+    },
+    {
+      "id": "menses-tawaf",
+      "topic": "Menstruating women and Tawaf",
+      "category": "tawaf",
+      "hanafi": "Forbidden to perform Tawaf while menstruating. Must wait until pure. Tawaf al-Wada is waived. If Tawaf al-Ziyarah is delayed past the deadline due to menses, dam becomes obligatory but does not invalidate Hajj.",
+      "shafi": "Forbidden. Must wait. Tawaf al-Wada is waived. No deadline pressure for Tawaf al-Ziyarah.",
+      "maliki": "Forbidden. Must wait. Tawaf al-Wada is waived (and not wajib in this school anyway).",
+      "hanbali": "Forbidden. Must wait. Tawaf al-Wada is waived."
+    },
+    {
+      "id": "ihram-niyyah-place",
+      "topic": "Place of intention (Niyyah) for Ihram",
+      "category": "ihram",
+      "hanafi": "Must enter the state of Ihram at or before the Miqat. Crossing the Miqat without Ihram requires returning to it or paying a dam.",
+      "shafi": "Same — Ihram at or before the Miqat. Crossing without Ihram requires return or dam.",
+      "maliki": "Same — Ihram at or before the Miqat. Crossing without Ihram requires return or dam.",
+      "hanbali": "Same — Ihram at or before the Miqat. Crossing without Ihram requires return or dam."
+    }
+  ]
+}

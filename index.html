@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e6">
+
+<title>Hajj Guide · A personalised companion for pilgrims</title>
+<meta name="description" content="A free, personalised Hajj companion. Itinerary built around your flight dates, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+
+<!-- Canonical -->
+<link rel="canonical" href="https://hajjguide.net/">
+
+<!-- Open Graph / WhatsApp / Facebook / iMessage -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hajjguide.net/">
+<meta property="og:title" content="Hajj Guide · A personalised companion for pilgrims">
+<meta property="og:description" content="A free, personalised Hajj companion. Itinerary, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+<meta property="og:image" content="https://hajjguide.net/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:locale" content="en_GB">
+<meta property="og:site_name" content="Hajj Guide">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hajj Guide · A personalised companion for pilgrims">
+<meta name="twitter:description" content="Itinerary built around your flight dates, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline. Free.">
+<meta name="twitter:image" content="https://hajjguide.net/icons/icon-512.png">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="./css/print.css" media="print">
+</head>
+<body class="onboarding-page">
+
+<header class="site-header no-print">
+  <div class="site-header__inner">
+    <a href="./index.html" class="site-header__brand">
+      <span class="site-header__mark">ﷺ</span>
+      <span class="site-header__title">Hajj <em>Guide</em></span>
+    </a>
+    <div class="site-header__actions">
+      <div id="fontsize-host" aria-label="Text size"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- Pre-onboarding intro (hidden once user clicks Begin) -->
+    <section id="intro" class="intro">
+      <div class="intro__inner">
+        <span class="eyebrow">A planning aid for the pilgrim</span>
+        <h1 class="display-1">A companion<br><em>for the journey of a lifetime.</em></h1>
+        <p class="lead">
+          A personalised guide to your Hajj — built around your dates, your flights, your madhab, your accommodation. Comprehensive duas with audio, day-by-day itinerary, packing checklist and notes. Everything works offline once loaded.
+        </p>
+
+        <div class="ornament" aria-hidden="true"><span class="ornament__symbol">۞</span></div>
+
+        <div class="feature-grid">
+          <div class="feature">
+            <span class="feature__num">i.</span>
+            <h3 class="feature__title">Personalised</h3>
+            <p class="feature__body">Your flights, hotels and operator details — woven through every section of the guide.</p>
+          </div>
+          <div class="feature">
+            <span class="feature__num">ii.</span>
+            <h3 class="feature__title">Madhab-aware</h3>
+            <p class="feature__body">Rulings reflect your school — Hanafi, Shafi'i, Maliki or Hanbali — with side-by-side comparison available.</p>
+          </div>
+          <div class="feature">
+            <span class="feature__num">iii.</span>
+            <h3 class="feature__title">Works offline</h3>
+            <p class="feature__body">Once loaded, everything works without signal. Audio downloads on demand and is saved for the journey.</p>
+          </div>
+          <div class="feature">
+            <span class="feature__num">iv.</span>
+            <h3 class="feature__title">Private</h3>
+            <p class="feature__body">All your data stays on your device. Nothing is sent anywhere, ever.</p>
+          </div>
+        </div>
+
+        <div class="intro__actions">
+          <button class="btn btn--primary btn--lg" id="btn-begin">Begin Setup →</button>
+          <button class="btn btn--ghost" id="btn-skip-onboarding">Or skip and explore the guide</button>
+        </div>
+
+        <p class="text-mute italic text-center" style="margin-top: 32px; font-size: var(--fs-sm);">
+          Takes 3 minutes. You can change anything later.
+        </p>
+
+        <div class="callout callout--info" style="margin-top: var(--space-7); max-width: 600px; margin-left: auto; margin-right: auto;">
+          <p style="margin: 0;">
+            <strong>A note on what follows:</strong> This is a planning aid, not a fatwa. Always confirm rulings with a qualified scholar of your madhab. May Allah accept your Hajj.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Onboarding wizard (shown after Begin) -->
+    <section id="onboarding-host" class="onboarding hidden"></section>
+
+  </div>
+</main>
+
+<footer class="site-footer no-print">
+  <div class="container">
+    <p class="text-mute" style="font-size: var(--fs-xs);">
+      Hajj Guide · An open companion for pilgrims · 
+      <a href="#" id="reset-link">Reset all my data</a>
+    </p>
+  </div>
+</footer>
+
+<!--
+  Config: in production, /js/config.js is generated by the Cloudflare
+  Pages Function in /functions/js/config.js.js using the GOOGLE_MAPS_API_KEY
+  secret. In local dev (without `wrangler pages dev`), config.example.js
+  is loaded first as a fallback so the site still works.
+-->
+<script src="./js/config.example.js"></script>
+<script>
+  // Try to load the real config — silently fall back if absent.
+  (function() {
+    var s = document.createElement('script');
+    s.src = './js/config.js';
+    s.onerror = function(){ /* config.js absent — using example */ };
+    document.head.appendChild(s);
+  })();
+</script>
+
+<!-- Core modules -->
+<script src="./js/utils.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/maps.js"></script>
+<script src="./js/fontsize.js"></script>
+<script src="./js/onboarding.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  // Initialise font-size first (applies stored scale immediately)
+  FontSize.init();
+
+  // Render font-size control in header
+  FontSize.renderControl(document.getElementById('fontsize-host'));
+
+  // Initialise Maps (loads Places API if key configured)
+  if (window.Maps && Maps.init) Maps.init();
+
+  // If user already onboarded, allow them to go straight to the app
+  if (Store.isOnboarded()) {
+    var skipBtn = document.getElementById('btn-skip-onboarding');
+    skipBtn.textContent = 'Continue to your guide →';
+    skipBtn.classList.remove('btn--ghost');
+    skipBtn.classList.add('btn--secondary');
+
+    var beginBtn = document.getElementById('btn-begin');
+    beginBtn.textContent = 'Edit my setup';
+  }
+
+  // Begin → show wizard
+  document.getElementById('btn-begin').addEventListener('click', function() {
+    document.getElementById('intro').classList.add('hidden');
+    var host = document.getElementById('onboarding-host');
+    host.classList.remove('hidden');
+    Onboarding.init(host);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Skip → straight to app
+  document.getElementById('btn-skip-onboarding').addEventListener('click', function() {
+    Store.set({ onboarded: true });
+    window.location.href = './app.html';
+  });
+
+  // Reset
+  document.getElementById('reset-link').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (confirm('This will clear all your saved data — flights, notes, packing list, downloaded audio. Continue?')) {
+      Store.reset();
+      // Also clear caches if available
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(k) { caches.delete(k); });
+        });
+      }
+      window.location.reload();
+    }
+  });
+
+  // Register service worker (offline)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./js/sw.js').catch(function(err) {
+        console.log('SW registration failed:', err);
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

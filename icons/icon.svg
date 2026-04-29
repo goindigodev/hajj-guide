@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6f1e6"/>
+      <stop offset="100%" stop-color="#ede4d3"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Decorative outer ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#a87833" stroke-width="3" opacity="0.6"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#a87833" stroke-width="1" opacity="0.4"/>
+  <!-- Crescent of arrival -->
+  <path d="M 256 110 a 146 146 0 1 0 100 250 a 120 120 0 1 1 -100 -250 z" fill="#2c4a3a"/>
+  <!-- Inner ornament -->
+  <text x="256" y="295" font-family="Cormorant Garamond, Georgia, serif" font-size="160" font-weight="500" fill="#a87833" text-anchor="middle" font-style="italic">ﷺ</text>
+  <!-- Decorative dots -->
+  <circle cx="256" cy="60" r="4" fill="#a87833"/>
+  <circle cx="256" cy="452" r="4" fill="#a87833"/>
+  <circle cx="60" cy="256" r="4" fill="#a87833"/>
+  <circle cx="452" cy="256" r="4" fill="#a87833"/>
+</svg>
