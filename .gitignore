@@ -27,3 +27,8 @@ audio/*.m4a
 # Wrangler local dev secrets (used by `wrangler pages dev`)
 .dev.vars
 .wrangler/
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
