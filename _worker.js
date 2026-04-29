@@ -16,6 +16,11 @@ export default {
     const url = new URL(request.url);
 
     // Dynamic config endpoint — serves window.APP_CONFIG with the API key
+
+    console.log('env keys:', env ? Object.keys(env) : 'env is null');
+    console.log('GOOGLE_MAPS_API_KEY type:', typeof env?.GOOGLE_MAPS_API_KEY);
+    console.log('GOOGLE_MAPS_API_KEY length:', env?.GOOGLE_MAPS_API_KEY?.length);
+
     if (url.pathname === '/js/config.js') {
       const apiKey = (env && env.GOOGLE_MAPS_API_KEY) || '';
 
