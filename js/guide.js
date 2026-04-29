@@ -188,13 +188,286 @@
         // Still show generic structure
       }
 
-      // Build the day list
+      // v2: Journey map hero (Option 1) — geographic infographic of the entire trip
+      wrap.appendChild(this.renderJourneyMapHero());
+
+      // v2: Sticky strip (Option 2) — quick navigation between locations
+      wrap.appendChild(this.renderJourneyStrip());
+
+      // Build the day list. We attach data-day-index for scroll-spy.
       const days = this.buildItineraryDays();
       days.forEach((day, i) => {
-        wrap.appendChild(this.renderDayCard(day, i));
+        const card = this.renderDayCard(day, i);
+        card.setAttribute('data-day-index', String(i));
+        // Tag with the location so the strip can correlate
+        const stop = this.classifyDayLocation(day);
+        if (stop) card.setAttribute('data-stop', stop);
+        wrap.appendChild(card);
       });
 
+      // Wire strip <-> day card scroll-spy AFTER paint
+      requestAnimationFrame(() => this.wireJourneyStripObserver(wrap));
+
       return wrap;
+    },
+
+    /**
+     * v2: Hero journey map (Option 1) — stylised geographic infographic
+     * showing the entire trip on one image. Static SVG, personalised with
+     * the user's hotel names where useful. Approximate geography by design —
+     * the scientific value of accuracy is low next to the narrative value
+     * of clarity.
+     */
+    renderJourneyMapHero() {
+      const cfg = this.config || {};
+      const madinahHotelName = (cfg.madinahHotel && cfg.madinahHotel.name) || 'Masjid an-Nabawi';
+      const makkahHotelName  = (cfg.makkahHotel && cfg.makkahHotel.name)  || 'Masjid al-Haram';
+
+      const host = el('div', { class: 'journey-hero' });
+
+      // The SVG itself, hand-tuned so the geography reads as map-like
+      // (Madinah top-right, Makkah cluster bottom-left, Hajj sites east).
+      // viewBox is fixed; the host scales responsively.
+      host.innerHTML = `
+        <div class="journey-hero__inner">
+          <svg viewBox="0 0 680 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the Hajj journey from Madinah to Makkah and the holy sites">
+            <defs>
+              <pattern id="hd-dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+                <circle cx="7" cy="7" r="0.4" fill="#d8cfb8"/>
+              </pattern>
+            </defs>
+            <rect x="0" y="0" width="680" height="460" fill="url(#hd-dots)" opacity="0.5"/>
+            <text x="32" y="34" class="jh-title">From Madinah to Makkah · your journey</text>
+            <line x1="32" y1="42" x2="200" y2="42" stroke="#b8954a" stroke-width="0.5"/>
+
+            <!-- Madinah cluster -->
+            <circle cx="540" cy="100" r="60" fill="#4a5d4a" opacity="0.05"/>
+            <text x="540" y="50" class="jh-region" text-anchor="middle">Madinah</text>
+            <text x="540" y="65" class="jh-region-sub" text-anchor="middle">DAYS 1–4</text>
+            <g transform="translate(540, 105)">
+              <circle r="14" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
+              <path d="M -7 4 L -7 -2 Q -7 -8 -3 -9 Q 0 -11 3 -9 Q 7 -8 7 -2 L 7 4 Z" fill="#2f3d2f"/>
+              <circle cx="0" cy="-12" r="1.2" fill="#b8954a"/>
+            </g>
+            <text x="540" y="138" class="jh-pin-sub" text-anchor="middle">Masjid an-Nabawi</text>
+
+            <!-- Travel path Madinah → Makkah -->
+            <path d="M 510 130 Q 380 230 240 240" fill="none" stroke="#b8954a" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>
+            <text x="380" y="200" class="jh-path-label" text-anchor="middle">~440 km · Day 5</text>
+
+            <!-- Makkah cluster -->
+            <circle cx="180" cy="280" r="120" fill="#4a5d4a" opacity="0.04"/>
+            <text x="80" y="220" class="jh-region">Makkah</text>
+            <text x="80" y="234" class="jh-region-sub">DAYS 5–14</text>
+
+            <g transform="translate(180, 280)">
+              <circle r="18" fill="#fff" stroke="#2f3d2f" stroke-width="1.5"/>
+              <rect x="-7" y="-7" width="14" height="14" fill="#1a1d1a"/>
+              <line x1="-7" y1="-2" x2="7" y2="-2" stroke="#b8954a" stroke-width="1"/>
+            </g>
+            <text x="180" y="322" class="jh-pin" text-anchor="middle">Masjid al-Haram</text>
+            <text x="180" y="336" class="jh-pin-sub" text-anchor="middle">Day 5: Umrah · Day 13: Wada</text>
+
+            <g transform="translate(290, 250)">
+              <circle r="11" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
+              <path d="M -5 4 L 0 -5 L 5 4 Z" fill="#2f3d2f"/>
+              <line x1="-5" y1="4" x2="5" y2="4" stroke="#2f3d2f" stroke-width="0.5"/>
+            </g>
+            <text x="290" y="232" class="jh-pin" text-anchor="middle">Mina</text>
+            <text x="290" y="280" class="jh-pin-sub" text-anchor="middle">Days 8 · 10 · 11 · 12</text>
+
+            <g transform="translate(380, 290)">
+              <circle r="9" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
+              <circle cx="-3" cy="0" r="1" fill="#2f3d2f"/>
+              <circle cx="0" cy="0" r="1" fill="#2f3d2f"/>
+              <circle cx="3" cy="0" r="1" fill="#2f3d2f"/>
+            </g>
+            <text x="380" y="313" class="jh-pin" text-anchor="middle">Muzdalifah</text>
+            <text x="380" y="325" class="jh-pin-sub" text-anchor="middle">Night of 9th</text>
+
+            <g transform="translate(490, 320)">
+              <circle r="13" fill="#fff" stroke="#2f3d2f" stroke-width="1.5"/>
+              <path d="M -7 4 L -3 -4 L 0 -2 L 3 -5 L 7 4 Z" fill="#2f3d2f"/>
+            </g>
+            <text x="490" y="345" class="jh-pin" text-anchor="middle">Arafah</text>
+            <text x="490" y="358" class="jh-pin-sub" text-anchor="middle">Day 9 · Wuquf</text>
+
+            <g transform="translate(310, 234)">
+              <circle r="6" fill="#b8954a"/>
+              <circle r="3" fill="#fff"/>
+            </g>
+            <text x="335" y="225" class="jh-pin-sub" font-style="italic">Jamarat</text>
+
+            <!-- Hajj day path -->
+            <path d="M 200 270 Q 250 258 280 252" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 300 250 Q 380 270 478 318" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 478 318 Q 430 305 388 292" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2"/>
+            <path d="M 372 286 Q 340 268 300 252" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M 280 250 Q 230 260 198 268" fill="none" stroke="#a85d3c" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="1 3" opacity="0.6"/>
+
+            <!-- Day-number medallions along the ritual path -->
+            <g class="jh-day">
+              <circle cx="248" cy="262" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
+              <text x="248" y="266" text-anchor="middle">8</text>
+              <circle cx="395" cy="288" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
+              <text x="395" y="292" text-anchor="middle">9</text>
+              <circle cx="335" cy="280" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
+              <text x="335" y="284" text-anchor="middle">10</text>
+            </g>
+
+            <!-- Legend -->
+            <g transform="translate(32, 400)">
+              <text class="jh-legend-title">LEGEND</text>
+              <line x1="0" y1="14" x2="200" y2="14" stroke="#ede4d3" stroke-width="0.5"/>
+              <line x1="0" y1="28" x2="20" y2="28" stroke="#b8954a" stroke-width="1" stroke-dasharray="3 4"/>
+              <text x="26" y="32" class="jh-legend">Inter-city travel</text>
+              <line x1="0" y1="44" x2="20" y2="44" stroke="#a85d3c" stroke-width="1.2"/>
+              <text x="26" y="48" class="jh-legend">Hajj rituals path</text>
+              <circle cx="220" cy="28" r="6" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
+              <text x="220" y="31" class="jh-legend-day" text-anchor="middle">9</text>
+              <text x="232" y="32" class="jh-legend">Day of Dhul Hijjah</text>
+            </g>
+          </svg>
+        </div>
+        <p class="journey-hero__caption">
+          From <em>${this.escapeHtmlSafe(madinahHotelName)}</em> to <em>${this.escapeHtmlSafe(makkahHotelName)}</em>, with the five days of Hajj at the eastern sites. Geography is stylised — the real Mina is just minutes from the Haram by foot.
+        </p>
+      `;
+      return host;
+    },
+
+    /**
+     * v2: Sticky journey strip (Option 2) — pinned navigation across
+     * the major locations. Click a pin to jump to that section's first
+     * day card; intersection observer highlights the active stop as
+     * the user scrolls.
+     */
+    renderJourneyStrip() {
+      const stops = [
+        { id: 'madinah',     label: 'Madinah',    sub: 'Days 1–4' },
+        { id: 'makkah',      label: 'Makkah',     sub: 'Day 5' },
+        { id: 'hajj',        label: '5 Days',     sub: 'Mina · Arafah · Muzdalifah' },
+        { id: 'makkah-post', label: 'Makkah',     sub: 'Tawaf al-Wada' },
+      ];
+
+      const strip = el('nav', {
+        class: 'journey-strip',
+        'aria-label': 'Journey navigation',
+      });
+
+      const inner = el('div', { class: 'journey-strip__inner' });
+      stops.forEach((stop, i) => {
+        const btn = el('button', {
+          type: 'button',
+          class: 'journey-strip__pin',
+          'data-stop': stop.id,
+        });
+        btn.appendChild(el('span', { class: 'journey-strip__label' }, stop.label));
+        btn.appendChild(el('span', { class: 'journey-strip__sub' }, stop.sub));
+        btn.addEventListener('click', () => this._scrollToStop(stop.id));
+        inner.appendChild(btn);
+        if (i < stops.length - 1) {
+          inner.appendChild(el('span', { class: 'journey-strip__sep', 'aria-hidden': 'true' }, '·'));
+        }
+      });
+      strip.appendChild(inner);
+      return strip;
+    },
+
+    /**
+     * Map a day object to one of the strip's stops. Reads the day's
+     * dateLabel/title/location to figure out which segment of the trip
+     * it belongs to. Returns null if a day shouldn't trigger highlighting
+     * (e.g. flight days).
+     */
+    classifyDayLocation(day) {
+      if (!day) return null;
+      const t = (day.title || '').toLowerCase();
+      const loc = (day.location || '').toLowerCase();
+
+      // Hajj days share the "5 Days" segment — keyed off Hijri label
+      if (/dhul hijjah|tarwiyah|arafah|nahr|tashreeq/i.test(t)) return 'hajj';
+      if (loc.includes('mina') || loc.includes('arafah') || loc.includes('muzdalifah')) return 'hajj';
+
+      if (t.startsWith('arrive in madinah') || t.startsWith('in madinah')) return 'madinah';
+      if (t.includes('travel to makkah') || t.startsWith('umrah')) return 'makkah';
+      if (t.startsWith('rest in makkah')) return 'makkah';
+      if (t.startsWith('recovery in makkah') || t.startsWith('in makkah') ||
+          t.includes('tawaf al-wada')) return 'makkah-post';
+
+      // Departure / Return don't get highlighted in the strip
+      return null;
+    },
+
+    /**
+     * Wire intersection observer between strip pins and day cards.
+     * As the user scrolls, the strip pin matching the most-visible
+     * day card gets the .is-active class.
+     */
+    wireJourneyStripObserver(rootEl) {
+      const strip = rootEl.querySelector('.journey-strip');
+      if (!strip || typeof IntersectionObserver === 'undefined') return;
+
+      const cards = rootEl.querySelectorAll('.day-card[data-stop]');
+      if (!cards.length) return;
+
+      const setActive = (stopId) => {
+        strip.querySelectorAll('.journey-strip__pin').forEach((p) => {
+          p.classList.toggle('is-active', p.getAttribute('data-stop') === stopId);
+        });
+      };
+
+      // Set initial active to first stop
+      setActive(cards[0].getAttribute('data-stop'));
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Find the entry closest to the top of the viewport that is intersecting
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) {
+            const stop = visible.target.getAttribute('data-stop');
+            if (stop) setActive(stop);
+          }
+        },
+        {
+          // Trigger when a card crosses ~30% from the top of the viewport
+          rootMargin: '-30% 0px -60% 0px',
+          threshold: 0,
+        }
+      );
+
+      cards.forEach((c) => observer.observe(c));
+
+      // Save reference for cleanup if the tab unmounts later
+      this._journeyObserver = observer;
+    },
+
+    /**
+     * Scroll to the first day card matching a stop, opening it.
+     */
+    _scrollToStop(stopId) {
+      const card = document.querySelector(
+        `.day-card[data-stop="${stopId}"]`
+      );
+      if (!card) return;
+      // Account for sticky tab nav height + strip height
+      const navOffset = 130;
+      const top = card.getBoundingClientRect().top + window.pageYOffset - navOffset;
+      window.scrollTo({ top, behavior: 'smooth' });
+      // Open the card
+      card.classList.add('is-open');
+    },
+
+    /** Tiny helper: HTML-escape user-controlled strings before innerHTML use. */
+    escapeHtmlSafe(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     },
 
     tabHajjDays() {

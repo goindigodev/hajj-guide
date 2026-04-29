@@ -238,12 +238,20 @@ section + section {
 }
 
 /* Tab nav (within main app) */
+/* =============================================================
+   TAB NAVIGATION
+   v2: more visible — larger Inter text, better contrast,
+   subtle pill background on active, scroll-edge fades on overflow.
+   ============================================================= */
+
 .tab-nav {
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
   position: sticky;
   top: 57px;
   z-index: 90;
+  /* The strip below will read this for sticky offset */
+  --tab-nav-height: 56px;
 }
 
 .tab-nav__inner {
@@ -251,10 +259,25 @@ section + section {
   margin: 0 auto;
   padding: 0 var(--space-2);
   display: flex;
-  gap: 0;
+  gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Edge fade hints there's more content to scroll */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
 }
 
 .tab-nav__inner::-webkit-scrollbar { display: none; }
@@ -263,24 +286,52 @@ section + section {
   flex: 0 0 auto;
   background: transparent;
   border: none;
-  padding: var(--space-3) var(--space-4);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: var(--fs-base);
-  color: var(--ink-mute);
+  padding: 14px 16px;
+  /* Switched from Cormorant Garamond → Inter for crispness at this size */
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
   border-bottom: 2px solid transparent;
   white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-  letter-spacing: 0.01em;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  letter-spacing: 0.005em;
+  border-radius: 6px 6px 0 0;
+  min-height: 48px;
+  position: relative;
 }
 
 .tab-nav__btn:hover {
   color: var(--ink);
+  background: rgba(74, 93, 74, 0.04);
 }
 
 .tab-nav__btn.is-active {
   color: var(--green-deep);
-  border-bottom-color: var(--brass);
   font-weight: 600;
+  background: rgba(74, 93, 74, 0.06);
+  border-bottom-color: var(--brass);
+}
+
+/* Active tab gets a slightly thicker underline for emphasis */
+.tab-nav__btn.is-active::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--brass);
+  border-radius: 2px 2px 0 0;
+}
+
+/* On mobile: keep all tabs comfortable and fingers-friendly */
+@media (max-width: 720px) {
+  .tab-nav__btn {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+  }
 }
 
 /* =============================================================
@@ -525,27 +576,42 @@ section + section {
    ORNAMENTAL ELEMENTS
    ============================================================= */
 
+/* =============================================================
+   ORNAMENTS
+   v2: calligraphic SVG flourish replaces text symbol.
+   Backwards-compatible: existing markup
+     <div class="ornament"><span class="ornament__symbol">۞</span></div>
+   still works — the inner span is hidden, the flourish renders via SVG.
+   New simpler markup is just <div class="ornament"></div>.
+   ============================================================= */
+
 .ornament {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: var(--space-6) 0;
-  color: var(--brass);
+  display: block;
+  position: relative;
+  height: 28px;
+  margin: var(--space-6) auto;
+  max-width: 480px;
+  /* Calligraphic flourish drawn as inline SVG background.
+     Sage rules left and right, gold central lozenge, stroke caps.
+     Encoded for cross-browser data-URI safety. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 28' preserveAspectRatio='xMidYMid meet'><g fill='none' stroke='%23b8954a' stroke-linecap='round'><path d='M 12 14 Q 110 14 175 14 Q 205 14 215 11 Q 222 7 226 14 Q 229 17 234 12' stroke-width='0.9'/><path d='M 468 14 Q 370 14 305 14 Q 275 14 265 11 Q 258 7 254 14 Q 251 17 246 12' stroke-width='0.9'/></g><g fill='%23b8954a' stroke='%23b8954a' stroke-linejoin='round'><path d='M 240 4 L 250 14 L 240 24 L 230 14 Z' fill='none' stroke-width='1'/><circle cx='240' cy='14' r='1.8'/><circle cx='222' cy='14' r='1'/><circle cx='258' cy='14' r='1'/></g></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
-.ornament::before,
-.ornament::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--rule);
-}
-
+/* Hide any legacy text symbol inside .ornament — the SVG carries the design */
 .ornament__symbol {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: var(--fs-xl);
-  font-style: italic;
-  color: var(--brass-deep);
+  display: none;
+}
+
+/* Subtle variant — a single thin gold rule with a tiny lozenge.
+   Use between paragraphs within a section, when the full flourish is too much. */
+.ornament--mini {
+  height: 14px;
+  max-width: 280px;
+  margin: var(--space-5) auto;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 14'><g fill='none' stroke='%23d8cfb8' stroke-width='0.5'><line x1='8' y1='7' x2='128' y2='7'/><line x1='152' y1='7' x2='272' y2='7'/></g><path d='M 140 3 L 144 7 L 140 11 L 136 7 Z' fill='%23b8954a' stroke='%23b8954a' stroke-width='0.6'/></svg>");
 }
 
 hr.rule {
@@ -709,6 +775,188 @@ hr.rule {
 }
 
 /* =============================================================
+   JOURNEY MAP (v2)
+   Hero infographic at the top of the Itinerary tab + sticky strip
+   for quick navigation between major locations.
+   ============================================================= */
+
+.journey-hero {
+  margin: var(--space-5) 0 var(--space-3);
+}
+.journey-hero__inner {
+  background: #fdfbf6;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-5) var(--space-4);
+}
+.journey-hero__inner svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.journey-hero__caption {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: var(--space-3) auto 0;
+  max-width: 560px;
+}
+.journey-hero__caption em {
+  color: var(--ink);
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* SVG-internal text classes used by renderJourneyMapHero() */
+.jh-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  fill: #2d322d;
+}
+.jh-region {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  fill: #1a1d1a;
+}
+.jh-region-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  fill: #8a8d85;
+  letter-spacing: 0.1em;
+}
+.jh-pin {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  fill: #1a1d1a;
+}
+.jh-pin-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  fill: #8a8d85;
+}
+.jh-path-label {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  fill: #8c6f33;
+}
+.jh-day text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 11px;
+  font-style: italic;
+  fill: #a85d3c;
+}
+.jh-legend-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  fill: var(--ink-soft);
+}
+.jh-legend {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  fill: var(--ink-soft);
+}
+.jh-legend-day {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 9px;
+  font-style: italic;
+  fill: #a85d3c;
+}
+
+/* ---- Sticky journey strip ---- */
+.journey-strip {
+  position: sticky;
+  top: calc(57px + 56px);  /* site header + tab nav */
+  z-index: 80;
+  background: var(--paper);
+  border-top: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
+  margin: 0 calc(-1 * var(--space-2)) var(--space-4);
+  padding: 0 var(--space-2);
+}
+.journey-strip__inner {
+  max-width: var(--maxw-wide);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 8px 4px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+}
+.journey-strip__inner::-webkit-scrollbar { display: none; }
+
+.journey-strip__pin {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+.journey-strip__pin:hover {
+  background: rgba(74, 93, 74, 0.05);
+}
+.journey-strip__pin.is-active {
+  background: rgba(184, 149, 74, 0.08);
+  border-color: var(--brass);
+}
+.journey-strip__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.journey-strip__sub {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-style: italic;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.journey-strip__pin.is-active .journey-strip__label {
+  color: var(--brass-deep);
+}
+.journey-strip__sep {
+  flex: 0 0 auto;
+  color: var(--ink-mute);
+  font-size: 14px;
+  user-select: none;
+  padding: 0 2px;
+}
+
+@media (max-width: 720px) {
+  .journey-strip {
+    /* Slightly tighter to fit on narrow screens */
+    top: calc(57px + 44px);
+  }
+  .journey-strip__pin {
+    padding: 5px 8px;
+  }
+  .journey-strip__label { font-size: 11px; }
+  .journey-strip__sub { display: none; }   /* hide subtitle on mobile to save space */
+  .journey-hero__inner { padding: var(--space-3) var(--space-2); }
+}
+
+/* =============================================================
    ITINERARY (DAY CARDS)
    ============================================================= */
 
@@ -774,15 +1022,35 @@ hr.rule {
 }
 
 .day-card__body {
-  padding: 0 var(--space-5) var(--space-5);
-  display: none;
-  border-top: 1px solid var(--rule-soft);
+  display: grid;
+  grid-template-rows: 0fr;
+  border-top: 1px solid transparent;
   margin-top: 0;
-  padding-top: var(--space-5);
+  transition:
+    grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease;
+}
+.day-card__body > .day-card__inner {
+  overflow: hidden;
+  padding: 0 var(--space-5);
+  min-height: 0;
 }
 
 .day-card.is-open .day-card__body {
-  display: block;
+  grid-template-rows: 1fr;
+  border-top-color: var(--rule-soft);
+}
+.day-card.is-open .day-card__inner {
+  padding: var(--space-5);
+}
+
+/* Chevron rotation for open state */
+.day-card__chevron {
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+.day-card.is-open .day-card__chevron {
+  transform: rotate(180deg);
 }
 
 .timeline {
@@ -1241,17 +1509,41 @@ hr.rule {
   text-transform: uppercase;
 }
 
+/* v2: soft pulse on the live "seconds" number — confirms the countdown is alive
+   without being distracting. The seconds unit gets data-unit="seconds" set in JS. */
+@keyframes countdownPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.countdown__unit[data-unit="seconds"] .countdown__num {
+  animation: countdownPulse 1s ease-in-out infinite;
+  color: var(--brass-deep);
+}
+
 /* =============================================================
    TAB CONTENT
+   v2: smoother fade-in with a subtle slide-up.
    ============================================================= */
 
 .tab-content {
   display: none;
-  animation: fadeIn 0.2s ease;
 }
 
 .tab-content.is-active {
   display: block;
+  animation: tabIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tabIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =============================================================
