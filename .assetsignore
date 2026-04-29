@@ -1,0 +1,13 @@
+# Files in this list will NOT be uploaded as static assets
+# (so they don't appear at e.g. https://hajjguide.net/_worker.js)
+_worker.js
+wrangler.jsonc
+.assetsignore
+.gitignore
+.git/**
+node_modules/**
+.DS_Store
+**/.DS_Store
+README.md
+LICENSE
+functions/**

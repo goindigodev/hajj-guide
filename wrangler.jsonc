@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hajj-guide",
+  "main": "_worker.js",
+  "compatibility_date": "2026-04-29",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

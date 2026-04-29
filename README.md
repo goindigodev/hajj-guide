@@ -32,9 +32,15 @@ All data stays on the user's device. Nothing is sent anywhere.
 ## Project structure
 
 ```
+/_worker.js              ← Cloudflare Worker entry point
+/wrangler.jsonc          ← Worker configuration
+/.assetsignore           ← files NOT to expose as public URLs
+/_headers                ← cache + security headers
 /index.html              ← landing + onboarding wizard
 /app.html                ← main guide
 /manifest.json           ← PWA manifest
+/robots.txt
+/sitemap.xml
 /css/
   styles.css             ← design system + components
   print.css              ← print-specific overrides
@@ -51,7 +57,7 @@ All data stays on the user's device. Nothing is sent anywhere.
   print.js               ← per-section print
   sw.js                  ← service worker (offline)
   config.example.js      ← API key template (commit this)
-  config.js              ← real API keys (gitignored — never commit)
+  config.js              ← real API keys for local dev only (gitignored)
 /data/
   duas.json              ← all duas with audio URLs
   rulings.json           ← madhab-specific rulings
@@ -87,7 +93,7 @@ php -S localhost:8000 -t hajj-app
 
 Without API keys, the site still works — but hotel autocomplete during onboarding and map embeds on the Locations tab will be disabled (placeholder shown instead).
 
-This project uses **Cloudflare Pages Functions** to serve the API key without committing it to git. The key lives only in Cloudflare's encrypted secret store and is injected at request time.
+This project uses a **Cloudflare Worker** with a **secret environment variable** to serve the API key without committing it to git. The key lives only in Cloudflare's encrypted secret store and is injected at request time by `_worker.js`.
 
 ### Step 1: Get an API key
 
@@ -108,8 +114,7 @@ This is critical — even with secrets, browser-side keys can be scraped. Lock y
 3. Add your domains:
    - `https://hajjguide.net/*`
    - `https://www.hajjguide.net/*`
-   - `https://hajj-guide.pages.dev/*`
-   - `https://*.hajj-guide.pages.dev/*` (covers preview deploys)
+   - `https://hajj-guide.<your-subdomain>.workers.dev/*`
 4. Under **API restrictions**, choose **Restrict key** and select only:
    - Maps Embed API
    - Places API (New)
@@ -123,21 +128,20 @@ Still in Cloud Console:
 2. Filter for "Places API (New)" requests per day
 3. Set a sensible daily cap (e.g. 1,000)
 
-### Step 4: Add the key to Cloudflare Pages as a secret
+### Step 4: Add the key to your Worker as a secret
 
-1. Cloudflare Dashboard → Workers & Pages → your project
+1. Cloudflare Dashboard → Compute (Workers) → `hajj-guide`
 2. Settings → Variables and Secrets → **Add**
 3. **Type:** Secret
 4. **Variable name:** `GOOGLE_MAPS_API_KEY` (must match exactly)
 5. **Value:** paste your API key
-6. Apply to: both Production and Preview
-7. Save
+6. Save
 
-Trigger a redeploy (push any commit, or hit "Retry deployment" on the latest deploy in the Pages dashboard). Pages Functions runs the file at `functions/js/config.js.js` and it serves your config.js dynamically with the key.
+Trigger a redeploy (push any commit, or hit "Retry deployment" in the Worker dashboard). The Worker reads the secret at request time and serves it dynamically as `/js/config.js`.
 
 ### Local development with the API key
 
-The Pages Function only runs on Cloudflare's edge — `python3 -m http.server` won't execute it. Two options:
+`_worker.js` only runs on Cloudflare's edge — `python3 -m http.server` won't execute it. Two options:
 
 **Option A — local config file (gitignored):**
 ```bash
@@ -149,13 +153,20 @@ This file is in `.gitignore` so it won't be committed. The browser tries to load
 **Option B — full Cloudflare simulation:**
 ```bash
 npm install -g wrangler
-wrangler pages dev .
+wrangler dev
 ```
-This runs the Pages Function locally. You'll need to set `GOOGLE_MAPS_API_KEY` in a `.dev.vars` file (also gitignored).
+This runs your Worker locally. Set `GOOGLE_MAPS_API_KEY` in a `.dev.vars` file (also gitignored).
 
 ## Deployment
 
-The site is fully static and deployed via **Cloudflare Pages** with **GitHub** as the source.
+The site runs as a **Cloudflare Worker with static assets**, deployed via **GitHub** integration.
+
+### Architecture
+
+- `_worker.js` is the entry point. It serves a dynamic `/js/config.js` (containing the Google Maps API key from a Cloudflare secret), and falls through to static asset serving for everything else.
+- `wrangler.jsonc` configures the Worker (compatibility date, asset binding).
+- `.assetsignore` prevents internal files (`_worker.js`, `wrangler.jsonc`, `README.md`, etc.) from being exposed as public URLs.
+- `_headers` configures cache-control and security headers.
 
 ### One-time setup
 
@@ -166,30 +177,24 @@ The site is fully static and deployed via **Cloudflare Pages** with **GitHub** a
    git branch -M main
    git add .
    git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR-USERNAME/hajj-companion.git
+   git remote add origin https://github.com/YOUR-USERNAME/hajj-guide.git
    git push -u origin main
    ```
 
-2. **Create the Pages project:**
-   - Cloudflare Dashboard → Workers & Pages → Create application → Pages → Connect to Git
-   - Authorise Cloudflare to access your GitHub
-   - Pick the `hajj-companion` repo
-   - Build settings:
-     - Framework preset: **None**
-     - Build command: *leave empty*
-     - Build output directory: `/`
+2. **Create the Worker:**
+   - Cloudflare Dashboard → Compute (Workers) → Create
+   - Connect to Git → pick the `hajj-guide` repo
+   - Cloudflare detects `wrangler.jsonc` and configures itself
    - Save and Deploy
 
 3. **Add the secret** (if using Google Maps):
-   - Pages project → Settings → Variables and Secrets → Add
+   - Worker → Settings → Variables and Secrets → Add
    - Type: **Secret**, Name: `GOOGLE_MAPS_API_KEY`, Value: your key
-   - Apply to both Production and Preview
    - Save and trigger a redeploy
 
 4. **Add custom domain:**
-   - Pages project → Custom domains → Set up a custom domain
+   - Worker → Settings → Domains & Routes → Add
    - Enter your domain — Cloudflare detects it and offers automatic DNS setup
-   - Wait 1–5 min for SSL provisioning
 
 ### Ongoing development
 
@@ -199,7 +204,16 @@ git commit -m "your change"
 git push
 ```
 
-Cloudflare auto-deploys on every push to `main` (~30 sec). Other branches get preview URLs at `branch-name.hajj-guide.pages.dev` for testing before merge.
+Cloudflare auto-deploys on every push to `main` (~30 sec).
+
+### Local development
+
+```bash
+npm install -g wrangler
+wrangler dev
+```
+
+Runs the Worker locally on `http://localhost:8787`. Set `GOOGLE_MAPS_API_KEY` in a `.dev.vars` file (gitignored) for local testing of the dynamic config endpoint.
 
 ## Audio
 
