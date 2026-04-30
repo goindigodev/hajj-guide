@@ -1,186 +1,123 @@
-# Hajj Guide v3.1 — SEO foundation + www subdomain redirect
+# Hajj Guide v3.2 — In-app user guide modal
 
-Two related improvements: (1) make the site genuinely discoverable in Google search, and (2) handle the www subdomain you're about to add in Cloudflare so it redirects cleanly to the apex domain.
+A new "i" (information) button in the header opens a modal slide presentation that walks pilgrims through the main features. 8 slides covering Welcome, Today, Itinerary, Add your own stops, Duas, Hajj journal, Emergency card, and Settings.
 
----
+## What changed
 
-## What's in this drop
+### Header — new (i) button
 
-### 1. Worker — `www.hajjguide.net` → `hajjguide.net` (301 redirect)
+A new circular icon button sits between the font-size selector and the print button. Same styling as the print icon. Click → modal opens.
 
-When you add the `www` DNS record in Cloudflare and point it at this Worker, requests to `www.hajjguide.net/anything` will 301-redirect to `hajjguide.net/anything`. This consolidates SEO signals on a single canonical URL.
+### The modal
 
-Five lines added at the top of the fetch handler in `_worker.js`. Path, query string, and fragment are preserved across the redirect.
+- 8 slides total, navigated by Next/Back buttons or arrow keys
+- Page-indicator dots below the slide; click any dot to jump
+- First slide is a welcome with no image (text-only intro)
+- Slides 2–8 each have a screenshot + bullet points
+- Last slide's "Next" button becomes "Done ✓" — clicking it closes the modal
+- ESC closes
+- Click outside the modal closes
+- Body scroll locks while the modal is open
+- Focus returns to the (i) button on close
+- ARIA roles set for screen readers
 
-### 2. SEO meta improvements on `index.html`
+### Slide content
 
-- **Title** — sharper, more keyword-rich: `Hajj Guide — free personalised companion for pilgrims | hajjguide.net`
-- **Description** — expanded to a richer sentence with the actual feature list (itinerary, duas, rulings, journal, emergency card)
-- **Robots** — explicit `index, follow, max-image-preview:large` so Google can use the icon as a rich-result image
-- **OG/Twitter** — minor polish, added `og:image:alt`
-- **Keywords** — added (small SEO impact but doesn't hurt)
+1. **Welcome** — what Hajj Guide is, four key features
+2. **Today** — the smart-default landing tab, today's day card
+3. **Itinerary** — day cards, phase pills, journey map, print button
+4. **Add your own stops** — the new v2.8 stops feature in detail
+5. **Duas** — Arabic + transliteration + English, source citations
+6. **Hajj journal** — Reflection textareas, Journal tab, text export
+7. **Emergency card** — printable card with QR code, Saudi numbers
+8. **Settings** — name, font size, edit trip, reset
 
-### 3. JSON-LD structured data on `index.html`
+### Screenshots
 
-Two schemas in one block:
+7 JPEGs at 1100px wide, optimized to ~50KB each (362KB total). Captured from the live UI with realistic example data so they show what the user will actually see.
 
-- **WebApplication** — tells Google this is a free travel-category app, with a feature list, English language, target audience (Muslim pilgrims). Used to surface rich application info in some result types.
-- **FAQPage** — six FAQs (free? offline? madhabs? data storage? print? fatwa?). Each answer is also visible on the page (see #4) so this is not cloaking.
+### Print
 
-Validated as parseable JSON. Both schemas detected by the structured-data parser.
+Modal is hidden in print output (`@media print { .userguide-overlay { display: none } }`). Doesn't interfere with the existing emergency card or full itinerary print modes.
 
-### 4. Visible FAQ section on `index.html`
+### Mobile
 
-A new "Common questions" section on the home page, just before the footer. Six questions (matching the JSON-LD):
-- Is Hajj Guide free?
-- Does it work offline?
-- Does it cover the four Sunni madhabs?
-- Where is my data stored?
-- Can I print my itinerary and emergency card?
-- Is this a fatwa or religious ruling?
-
-Each is a `<details>` element so users can expand individual questions. Editorial styling with brass `+` markers turning sage `−` on expand. Hidden from print.
-
-This serves three purposes simultaneously: (a) makes the JSON-LD honest, (b) addresses common concerns visitors actually have before committing to use the app, (c) gives Google more crawlable content with the right keywords.
-
-### 5. `app.html` — `noindex, follow`
-
-The app shell at `/app.html` is the personal interface. When a Googlebot lands on it without onboarding context, it sees a mostly empty UI shell — that's bad for ranking. Adding `noindex, follow` keeps it out of search results while still letting any links from it count.
-
-The `canonical` on `app.html` now points to the home page, not to itself, reinforcing that index.html is the page that should rank.
-
-### 6. `robots.txt` — explicit allow + AI crawler guidance
-
-Was: 4 lines. Now: structured rules for Googlebot, Bingbot, GPTBot, ClaudeBot, PerplexityBot. All allowed, with `/api/` and `/js/config.js` disallowed (those are runtime endpoints, not content). Sitemap reference preserved.
-
-### 7. `sitemap.xml` — drop app.html, add lastmod
-
-Now lists only the canonical home page URL. App.html is gone from the sitemap (it shouldn't be in there given we're noindex-ing it). Added a `<lastmod>` of today.
+At ≤640px the modal goes full-screen with no rounded corners. Smaller fonts, tighter padding. Screenshots scale to fit the viewport width.
 
 ---
 
 ## Files in this drop
 
-**Modified (v3.1):**
-- `_worker.js` — 5 lines for www→apex redirect
-- `index.html` — improved meta + JSON-LD block + visible FAQ section
-- `app.html` — noindex + canonical pointing to home
-- `css/styles.css` — appended ~75 lines of FAQ styles
-- `robots.txt` — expanded crawler rules
-- `sitemap.xml` — drop app.html, add lastmod
+**New (v3.2):**
+- `js/userguide.js` — UserGuide module (~280 lines)
+- `img/userguide/01-today.jpg` — Today tab screenshot
+- `img/userguide/02-itinerary.jpg` — Itinerary tab heading + Print button
+- `img/userguide/03-stops.jpg` — Day card with custom stops + Reflection
+- `img/userguide/04-duas.jpg` — Talbiyah dua with full Arabic/transliteration/English
+- `img/userguide/05-journal.jpg` — Journal tab with one entry
+- `img/userguide/06-emergency-card-print.jpg` — Rendered emergency card with QR
+- `img/userguide/07-settings.jpg` — Settings tab
 
-No new files. No JS module changes. No data file changes. Existing app behaviour is unchanged.
+**Modified (v3.2):**
+- `app.html` — added (i) button + userguide.js script tag
+- `css/styles.css` — appended ~180 lines of modal styles
+- `js/app.js` — wired up the (i) button click
+
+No data layer changes. No changes to onboarding, store, journal, stops, print, or any other module.
 
 ---
 
 ## Deployment
 
-### Step 1 — In Cloudflare dashboard (you mentioned you'd do this)
-
-Add a DNS record for `www.hajjguide.net`:
-- Type: `CNAME`
-- Name: `www`
-- Target: `hajjguide.net`
-- Proxy: enabled (orange cloud)
-
-Or, if Cloudflare for Pages doesn't support CNAME, add an `A` record for `www` pointing to the same IP/Worker as the apex.
-
-The Worker route should already include `*.hajjguide.net/*` if you've used the default. If not, add a route for `www.hajjguide.net/*` pointing to the same Worker.
-
-### Step 2 — Deploy code
-
-Replace these files in `~/Downloads/hajj-app21/`:
-- `_worker.js`
-- `index.html`
-- `app.html`
-- `css/styles.css`
-- `robots.txt`
-- `sitemap.xml`
-
 ```bash
 cd ~/Downloads/hajj-app21
+unzip -o ~/Downloads/v3.2-update.zip -d /tmp/v32
+
+# Copy the modified files
+cp /tmp/v32/v32/app.html .
+cp /tmp/v32/v32/css/styles.css css/
+cp /tmp/v32/v32/js/app.js js/
+
+# Add the new module
+cp /tmp/v32/v32/js/userguide.js js/
+
+# Add the screenshots — create the directory first if it doesn't exist
+mkdir -p img/userguide
+cp /tmp/v32/v32/img/userguide/*.jpg img/userguide/
+
 git add .
-git commit -m "v3.1: SEO foundation + www subdomain redirect"
+git commit -m "v3.2: in-app user guide modal with 8-slide tour"
 git push
 ```
 
-### Step 3 — Submit sitemap to Google
-
-After deploy, go to [Google Search Console](https://search.google.com/search-console). If you haven't verified ownership of `hajjguide.net` yet:
-
-1. Add `https://hajjguide.net/` as a property
-2. Verify ownership (DNS TXT record is the easiest method)
-3. Once verified, in the left sidebar go to **Sitemaps**
-4. Submit `https://hajjguide.net/sitemap.xml`
-
-Google will then crawl the site and index it. Indexing usually takes 24–72 hours for a new site, sometimes a couple of weeks. You can also use the **URL inspection** tool to manually request indexing for the home page.
-
-### Step 4 — Verify on the live site
+## Verify on hajjguide.net
 
 After deploy:
 
-```bash
-# Test the canonical redirect (will show after the www DNS record exists)
-curl -I https://www.hajjguide.net/
-# Should show: HTTP/2 301, Location: https://hajjguide.net/
-
-# Test the apex still works
-curl -sI https://hajjguide.net/ | head -5
-# Should show: HTTP/2 200
-
-# Verify the JSON-LD on the home page
-curl -s https://hajjguide.net/ | grep -A 2 'application/ld+json' | head
-```
-
-In the browser:
-1. View the home page → scroll to the bottom → see the new "Common questions" FAQ section
-2. Click any question → answer expands with a sage `−` icon
-3. Open DevTools → check that the page title and meta description match what's described above
-4. Visit `https://search.google.com/test/rich-results` and paste your URL — it should detect the WebApplication schema (FAQPage may show as detected but not eligible for rich results since Google deprecated FAQ rich snippets in 2023)
-
----
-
-## What this gets you
-
-**Short term (first 1–4 weeks):**
-- Google indexes the home page properly
-- Searching `hajj guide free` or `personalised hajj companion` should start showing the site
-- Branded searches (`hajjguide.net`, `hajj guide app`) should show the site at #1
-- Search results display the new sharper title and richer description
-- The FAQ section helps Google understand the site's purpose
-
-**Medium term (1–3 months):**
-- Rankings for genuinely competitive terms like `hajj itinerary planner` or `hajj duas with audio` depend largely on backlinks from other Muslim sites — that's an outreach task, not a code task
-- The structured data sometimes earns extra real estate in search results
-- Image previews using the icon should look good when the link is shared
-
-**What this does NOT do:**
-- Doesn't manufacture backlinks. The single biggest factor in ranking competitive terms is sites that other people link to. That comes from word-of-mouth, sharing in WhatsApp groups, posting on r/islam etc.
-- Doesn't help if there's no original content. The FAQ helps a little but the site's main "content" is the personalised guide, which is interactive and largely behind a JS app — Google will index what crawlers can see, which is mostly index.html.
-
----
+1. Open the app
+2. Top-right header — see the new (i) icon between font-size and print
+3. Click it — modal opens centered on the dimmed page
+4. Slide 1 "Welcome" — read the intro, no image yet
+5. Click Next — slide 2 "Today" with screenshot
+6. Click any dot to jump to a specific slide
+7. Click outside the modal → closes
+8. Click (i) again → re-opens at slide 1
+9. Press Esc → closes
+10. Press → → → → → → → on slide 8 Next becomes "Done ✓"
+11. Click Done → closes
+12. Test on mobile — modal should be full-screen
 
 ## Risk
 
-🟢 **Low.** Mostly meta-tag changes plus one small worker handler.
-- The www redirect is 5 lines; if the worker compiles, it works
-- The JSON-LD block is `<script type="application/ld+json">` which browsers ignore — only crawlers parse it. A bad block would just be ignored
-- The FAQ section is purely additive HTML/CSS at the end of the home page
-- The noindex on app.html is reversible by removing one meta tag
+🟢 **Low.** Purely additive feature:
+- New module in its own file
+- New images in their own subfolder
+- No data layer changes
+- Modal is hidden by default; only shown when (i) clicked
+- If broken: delete `js/userguide.js` and the (i) button button does nothing — everything else works fine
+- Print modes still work unchanged
 
-If the www redirect causes issues after Cloudflare DNS is set up:
+If anything looks off:
 ```bash
 git revert HEAD && git push
 ```
-
----
-
-## What's NOT in this drop
-
-- **Bing Webmaster Tools** — also worth submitting the sitemap there. Same process as Google Search Console, but bingwebmaster.com. Free.
-- **A blog or content section** — for competitive Hajj queries, original written content (e.g. a "How to prepare for Hajj" guide) would help. That's a substantial writing exercise, not a code one
-- **Backlinks** — the highest-leverage thing for Hajj-related search rankings, but it's outreach work
-- **Image alt-text audit** — the journey map and other SVGs could probably benefit from richer aria-labels. Skipped for this drop to keep scope tight
-- **Google Tag Manager / Analytics 4** — Cloudflare Web Analytics is a privacy-respecting alternative we already discussed enabling. Recommended over GTM
-- **Schema.org for individual FAQ entries** — already covered via the FAQPage JSON-LD
-- **`hreflang` tags** — only relevant if you add other-language versions of the site, which is on indefinite hold after the v2.5 rollback

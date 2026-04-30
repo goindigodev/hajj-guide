@@ -176,6 +176,12 @@
       printBtn.addEventListener('click', () => Print.printActiveTab());
     }
 
+    // v3.2 — User guide button (header "i") opens the modal-based slide tour.
+    const userGuideBtn = document.getElementById('btn-userguide');
+    if (userGuideBtn && window.UserGuide) {
+      userGuideBtn.addEventListener('click', () => UserGuide.open());
+    }
+
     // Service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./js/sw.js').catch(err => {

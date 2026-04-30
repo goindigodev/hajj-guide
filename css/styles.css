@@ -4349,3 +4349,262 @@ body.is-printing-itinerary #it-print-overlay {
 }
 .faq__answer p { margin: 0; }
 .faq__answer p + p { margin-top: var(--space-3); }
+
+/* =============================================================
+   v3.2 — USER GUIDE MODAL
+   Slide-show modal triggered by the (i) button in the header.
+   Hidden by default; shown when .is-visible is added to overlay.
+   ============================================================= */
+
+.userguide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 38, 32, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.20s ease, visibility 0.20s ease;
+  padding: 20px;
+  /* Allow scrolling if the modal is taller than the viewport */
+  overflow-y: auto;
+}
+.userguide-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.userguide-modal {
+  background: var(--paper);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(42, 38, 32, 0.25);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  /* Slight rise-in animation, optional */
+  transform: translateY(8px);
+  transition: transform 0.22s ease;
+}
+.userguide-overlay.is-visible .userguide-modal {
+  transform: translateY(0);
+}
+
+.userguide__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--ink-mute);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background-color 0.15s, color 0.15s;
+}
+.userguide__close:hover {
+  background: rgba(74, 93, 74, 0.08);
+  color: var(--ink);
+}
+
+.userguide__slide-host {
+  padding: 36px 40px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  /* Smooth scroll within the slide if content is long */
+  scroll-behavior: smooth;
+}
+
+.userguide__eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+  margin-bottom: 6px;
+}
+
+.userguide__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 8px;
+  line-height: 1.1;
+}
+
+.userguide__body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 20px;
+  font-style: italic;
+}
+
+.userguide__img-wrap {
+  margin: 0 0 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+}
+
+.userguide__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.userguide__bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.userguide__bullets li {
+  position: relative;
+  padding: 6px 0 6px 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.userguide__bullets li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brass);
+}
+
+/* Footer with prev / dots / next */
+.userguide__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--rule-soft);
+  background: var(--bg);
+  flex: 0 0 auto;
+}
+
+.userguide__nav {
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  min-height: 40px;
+}
+
+.userguide__nav--prev {
+  color: var(--ink-soft);
+}
+.userguide__nav--prev:hover {
+  background: rgba(74, 93, 74, 0.06);
+  color: var(--ink);
+}
+.userguide__nav--prev:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Next button uses btn--primary styling — already styled elsewhere.
+   When it becomes "Done" (last slide), let the same styling carry over. */
+.userguide__nav--next {
+  /* btn--primary is already applied via class list; nothing extra needed */
+}
+
+.userguide__dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.userguide__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--rule);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s, transform 0.15s;
+}
+.userguide__dot:hover {
+  background: var(--ink-mute);
+  transform: scale(1.15);
+}
+.userguide__dot.is-active {
+  background: var(--green);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* When the modal is open, prevent body scroll glitches */
+body.userguide-open {
+  overflow: hidden;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .userguide-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+  .userguide-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+  .userguide__slide-host {
+    padding: 28px 22px 20px;
+  }
+  .userguide__title {
+    font-size: 26px;
+  }
+  .userguide__body {
+    font-size: 15.5px;
+  }
+  .userguide__bullets li {
+    font-size: 13.5px;
+  }
+  .userguide__footer {
+    padding: 12px 16px;
+  }
+  .userguide__nav {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Print: never show the user-guide modal in print output */
+@media print {
+  .userguide-overlay { display: none !important; }
+}
