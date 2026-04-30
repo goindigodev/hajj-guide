@@ -113,6 +113,21 @@
       $$('.tab-content').forEach(t => t.classList.toggle('is-active', t.id === `tab-${id}`));
       $$('.tab-nav__btn').forEach(b => b.classList.toggle('is-active', b.dataset.tab === id));
 
+      // v3.0 — scroll the active tab into view inside the tab strip.
+      // If the user clicked a half-visible tab, this brings it fully into frame.
+      const activeBtn = document.querySelector(`.tab-nav__btn[data-tab="${id}"]`);
+      const scroller  = document.querySelector('.tab-nav__inner');
+      if (activeBtn && scroller) {
+        const btnRect = activeBtn.getBoundingClientRect();
+        const navRect = scroller.getBoundingClientRect();
+        const margin  = 40; // keep the chevron clear of the active pill
+        if (btnRect.left < navRect.left + margin) {
+          scroller.scrollBy({ left: btnRect.left - navRect.left - margin, behavior: 'smooth' });
+        } else if (btnRect.right > navRect.right - margin) {
+          scroller.scrollBy({ left: btnRect.right - navRect.right + margin, behavior: 'smooth' });
+        }
+      }
+
       // v2.7 — re-render the Journal tab on activation so newly-typed entries
       // from the Itinerary tab appear immediately. The Journal renders from
       // Store, so we need a fresh build each time it's shown.

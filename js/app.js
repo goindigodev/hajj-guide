@@ -84,6 +84,61 @@
         btn.addEventListener('click', () => Guide.switchTab(t.id));
         tabHost.appendChild(btn);
       });
+
+      // v3.0 — Option A: chevron arrows for scrolling the tab strip when overflow
+      // exists. Buttons are appended to the .tab-nav (not .tab-nav__inner) so they
+      // sit OUTSIDE the scrolling region and can position absolutely over it.
+      // Their visibility is gated by .is-visible, toggled by updateChevrons() based
+      // on the current scroll position.
+      const tabNav = document.getElementById('tab-nav');
+      if (tabNav) {
+        const arrowLeft = document.createElement('button');
+        arrowLeft.type = 'button';
+        arrowLeft.className = 'tab-nav__arrow tab-nav__arrow--left';
+        arrowLeft.setAttribute('aria-label', 'Scroll tabs left');
+        arrowLeft.textContent = '\u2039';   // single left-pointing angle quotation mark
+
+        const arrowRight = document.createElement('button');
+        arrowRight.type = 'button';
+        arrowRight.className = 'tab-nav__arrow tab-nav__arrow--right';
+        arrowRight.setAttribute('aria-label', 'Scroll tabs right');
+        arrowRight.textContent = '\u203A';  // single right-pointing angle quotation mark
+
+        tabNav.appendChild(arrowLeft);
+        tabNav.appendChild(arrowRight);
+
+        // How far to scroll on each click — most of the visible width minus a margin
+        // so the user retains a couple of context items.
+        const scrollStep = () => Math.max(160, Math.round(tabHost.clientWidth * 0.7));
+        arrowLeft.addEventListener('click', () => {
+          tabHost.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+        });
+        arrowRight.addEventListener('click', () => {
+          tabHost.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+        });
+
+        const updateChevrons = () => {
+          const max = tabHost.scrollWidth - tabHost.clientWidth;
+          // Tolerance in case of sub-pixel drift after a smooth scroll
+          const showLeft  = tabHost.scrollLeft > 4;
+          const showRight = tabHost.scrollLeft < max - 4;
+          arrowLeft.classList.toggle('is-visible', showLeft);
+          arrowRight.classList.toggle('is-visible', showRight);
+        };
+
+        // React to scroll, resize, and font-loading events. ResizeObserver covers
+        // tab text changes (e.g. font-size adjuster) and viewport resizes.
+        tabHost.addEventListener('scroll', updateChevrons, { passive: true });
+        window.addEventListener('resize', updateChevrons);
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(updateChevrons).observe(tabHost);
+        }
+
+        // Initial check — wait one frame so the layout has settled (fonts, etc.)
+        requestAnimationFrame(updateChevrons);
+        // And again a moment later in case web fonts shifted widths.
+        setTimeout(updateChevrons, 500);
+      }
     }
 
     // Initialise Guide (renders all tabs from data files)

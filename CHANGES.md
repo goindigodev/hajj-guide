@@ -1,88 +1,93 @@
-# Hajj Guide v2.9 — Print full itinerary
+# Hajj Guide v3.0 — Tab nav redesign (Option A)
 
-A new "🖨 Print full itinerary" button in the top-right of the Itinerary tab. Click it and your browser's print dialog opens with a single document covering every day of your trip, including any custom stops you've added.
+The 13-tab horizontal nav got three improvements that make scrolling discoverable and the active state much clearer. Single-row layout preserved — only the styling and affordances changed.
 
-## What's printed
+## What changed
 
-Trip-level summary at the top:
-- Pilgrim name, Hajj year (Hijri), madhab
-- Date range
-- Operator, group leader phone, 24-hr emergency line
-- Madinah hotel, Makkah hotel
+Three things, all in service of "make it obvious there are more tabs and which one you're on":
 
-Then **one block per day** with:
-- Day number, day-of-week, Gregorian date, Hijri date, location
-- Day title (e.g. "Arrive in Madinah", "9 Dhul Hijjah · Yawm Arafah")
-- Description
-- "What to do" actions
-- **Your custom stops** in a tinted callout — times in a left column, places aligned next to them
-- Day note (the editorial callouts from the data file)
-- Dua titles — single line, just titles separated by `·` (full Arabic / transliteration omitted to keep page count manageable)
+### 1. Stronger active state (sage-tinted pill)
 
-A footer with print date and the hajjguide.net attribution.
+Was: a faint sage tint plus a brass underline. Easy to miss.
+Now: a clear sage-tinted pill with deep-green text and slightly heavier weight. Matches the v2.6 phase pill aesthetic on the Itinerary tab — visual consistency.
 
-## What's deliberately NOT printed
+### 2. Chevron arrows for scrolling
 
-- The Reflection textareas (personal/empty at print time — journal export covers this separately)
-- The journey map illustration (decorative)
-- Phase pills / sticky strip (UI controls)
-- Edit/Remove buttons on stops (already hidden in v2.8 print rules)
-- Full Arabic dua text (would balloon the document to 30+ pages)
+A small circular chevron button (`‹` / `›`) appears on each end whenever overflow exists. It auto-shows and auto-hides based on scroll position:
 
-## Page format
+- **At the left edge:** only `›` is visible
+- **Mid-scroll:** both visible
+- **At the right edge:** only `‹` is visible
+- **No overflow (e.g. very wide viewport):** neither visible
 
-A4 portrait, 14mm × 12mm margins. Days have `break-inside: avoid` rules so a day rarely splits across pages. A typical 14-day Hajj fits in 8–10 pages.
+Click → scrolls 70% of the visible width with smooth scroll. Buttons are 28px desktop / 24px mobile, sit on a paper-coloured circle with a subtle border and shadow so they stand out against the cream background.
 
-## How it works
+### 3. Auto-scroll active tab into view
 
-Same overlay pattern as the Emergency Card (v2.7):
-1. Click button → JS builds a fresh print-only render
-2. Mounts it in `#it-print-overlay`
-3. Sets `body.is-printing-itinerary` class
-4. Print stylesheet hides everything except the overlay
-5. Calls `window.print()`
-6. Cleans up overlay + body class after the print dialog closes
+When the user clicks a tab that's partially or fully off-screen (e.g. clicking "Settings" while looking at the start of the strip), the strip now smooth-scrolls so the active pill is fully visible with a 40px margin from the chevrons. Stops the active pill ever being clipped behind a chevron.
 
-Live UI is untouched throughout — the overlay is purely transient.
+## What stays exactly the same
+
+- 13 tabs, same labels, same order, same widths
+- Single-row layout
+- Sticky behaviour (tab-nav stays at the top below the site header during scroll)
+- Edge-fade gradients (kept; tightened slightly to ~20px from 16px to better match the chevron)
+- Accessibility: tab-nav__btn keeps its `role="tab"` and 44px min-height on mobile
+- Rendering, switching, and the smart default tab selection all work identically
 
 ---
 
 ## Files in this drop
 
-**Modified (v2.9):**
-- `css/styles.css` — appended `.it-print*` styles + `body.is-printing-itinerary` print rules
-- `js/guide.js` — added "Print full itinerary" button on Itinerary tab + `renderItineraryPrintable()` method
-- `js/print.js` — added `Print.printFullItinerary()` method
+**Modified (v3.0):**
+- `css/styles.css` — rewrote `.tab-nav*` rules (~50 lines), updated journey-strip sticky offset to match new ~49px nav height
+- `js/app.js` — appended chevron creation + scroll listeners (~50 lines, all inside the existing nav-build block)
+- `js/guide.js` — extended `switchTab()` to scroll the active button into view when off-screen
 
-No new files. No changes to onboarding, store, or any data files.
+No new files. No changes to onboarding, store, journal, or stops.
+
+---
 
 ## Deployment
 
 Replace these 3 files in `~/Downloads/hajj-app21/`:
-- `css/styles.css`
-- `js/guide.js`
-- `js/print.js`
 
 ```bash
 cd ~/Downloads/hajj-app21
+# replace css/styles.css, js/app.js, js/guide.js from v3.0-update.zip
 git add .
-git commit -m "v2.9: print full itinerary"
+git commit -m "v3.0: tab nav redesign — sage pills, chevrons, auto-scroll active"
 git push
 ```
 
 ## Verify on hajjguide.net
 
 In a fresh tab:
-1. Add a few custom stops to a day or two (use the v2.8 stops feature on the Itinerary tab)
-2. Open **Itinerary** → top-right of the page should show "🖨 Print full itinerary"
-3. Click it → browser print dialog opens with the full document preview
-4. Verify the trip summary at the top, all days listed, your custom stops appearing in the gray callout boxes
-5. Cancel the print, refresh — the live UI returns to normal (no overlay residue)
+
+1. Open the app at desktop width — see the active tab is now a sage pill (clearer than before)
+2. See a small `›` chevron on the right edge
+3. Click `›` — strip scrolls right, `‹` appears on the left, `›` may hide if you've reached the end
+4. Click a tab that's partially visible — it auto-scrolls fully into view
+5. Resize the window to be very wide → both chevrons should disappear
+6. On a phone — the chevrons sit at 24px each, smaller pills, edge fade visible
+7. Print itinerary or emergency card — chevrons hidden in print as expected
 
 ## Risk
 
-🟢 **Low.** Same pattern as the Emergency Card print flow which is already in production:
-- Overlay-based, transient, doesn't touch the live UI
-- New CSS only fires when `body.is-printing-itinerary` is set — no risk of bleeding into normal browsing
-- New JS methods are only called from one button; if button click fails, nothing else is affected
-- If anything breaks: `git revert HEAD && git push` and you're back to v2.8
+🟢 **Low.** All changes are additive on top of existing markup:
+- HTML markup is unchanged (chevron buttons are appended via JS at boot)
+- New CSS rules replace old ones cleanly within the `.tab-nav*` namespace
+- No change to data layer or any other module
+- Print stylesheets already hide `.tab-nav` in both emergency-card and full-itinerary print modes — chevrons inherit that
+
+If anything looks off:
+```bash
+git revert HEAD && git push
+```
+
+## What's NOT in this drop
+
+- Did not implement Option B (two-row split) — the user-chosen direction was Option A
+- Did not change the tab labels (e.g. shorten "5 Days of Hajj" to "Hajj Days") — keeping the existing copy untouched
+- Did not add a "More" overflow menu — that was a different option (C)
+- The tab-nav is now ~49px tall (vs the previous ~56px). The journey-strip sticky offset was updated to match, but if any other sticky element or scroll-margin elsewhere in the app assumed 56px, it might now have a small visual offset. None spotted in testing, but keep an eye out for things hiding under the nav when scrolled to anchors

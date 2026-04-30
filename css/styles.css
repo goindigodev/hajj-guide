@@ -250,32 +250,37 @@ section + section {
   position: sticky;
   top: 57px;
   z-index: 90;
-  /* The strip below will read this for sticky offset */
-  --tab-nav-height: 56px;
+  /* The strip below will read this for sticky offset.
+     v3.0 — strip is now ~49px tall (40px inner + 4px+4px padding + 1px border) */
+  --tab-nav-height: 49px;
+  padding: 4px 0;
 }
 
 .tab-nav__inner {
   max-width: var(--maxw-wide);
   margin: 0 auto;
-  padding: 0 var(--space-2);
+  /* v3.0 — extra inline padding so the first/last pills don't touch the chevrons.
+     Mobile drops this back down via the breakpoint below. */
+  padding: 0 36px;
   display: flex;
-  gap: 2px;
+  gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-behavior: smooth;
   /* Edge fade hints there's more content to scroll */
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0,
-    #000 16px,
-    #000 calc(100% - 16px),
+    #000 20px,
+    #000 calc(100% - 20px),
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     transparent 0,
-    #000 16px,
-    #000 calc(100% - 16px),
+    #000 20px,
+    #000 calc(100% - 20px),
     transparent 100%
   );
 }
@@ -286,52 +291,93 @@ section + section {
   flex: 0 0 auto;
   background: transparent;
   border: none;
-  padding: 14px 16px;
-  /* Switched from Cormorant Garamond → Inter for crispness at this size */
+  padding: 10px 16px;
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   font-size: 15px;
   font-weight: 500;
   color: var(--ink-soft);
-  border-bottom: 2px solid transparent;
   white-space: nowrap;
-  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
   letter-spacing: 0.005em;
-  border-radius: 6px 6px 0 0;
-  min-height: 48px;
+  /* v3.0 — pill shape replaces the underline tab look. */
+  border-radius: 6px;
+  min-height: 40px;
   position: relative;
+  cursor: pointer;
 }
 
 .tab-nav__btn:hover {
   color: var(--ink);
-  background: rgba(74, 93, 74, 0.04);
+  background: rgba(74, 93, 74, 0.05);
 }
 
 .tab-nav__btn.is-active {
+  /* v3.0 — sage-tinted pill, much stronger than the previous faint underline */
   color: var(--green-deep);
   font-weight: 600;
-  background: rgba(74, 93, 74, 0.06);
-  border-bottom-color: var(--brass);
+  background: rgba(143, 166, 143, 0.20);
+}
+.tab-nav__btn.is-active:hover {
+  background: rgba(143, 166, 143, 0.26);
 }
 
-/* Active tab gets a slightly thicker underline for emphasis */
-.tab-nav__btn.is-active::after {
-  content: '';
+/* v3.0 — chevron arrows that scroll the strip when overflow exists.
+   JS toggles .is-visible based on scroll position so they hide cleanly
+   when there's nothing to scroll to. */
+.tab-nav__arrow {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: -1px;
-  height: 2px;
-  background: var(--brass);
-  border-radius: 2px 2px 0 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(42, 38, 32, 0.10);
+  transition: color 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+  /* Slight optical adjustment so the chevron glyph reads centred */
+  padding-bottom: 2px;
 }
+.tab-nav__arrow.is-visible {
+  display: inline-flex;
+}
+.tab-nav__arrow:hover {
+  color: var(--green-deep);
+  border-color: var(--green);
+}
+.tab-nav__arrow:active {
+  background: rgba(143, 166, 143, 0.10);
+}
+.tab-nav__arrow--left  { left: 6px; }
+.tab-nav__arrow--right { right: 6px; }
 
-/* On mobile: keep all tabs comfortable and fingers-friendly */
+/* On mobile: tighten chevrons inward, smaller padding, smaller pills */
 @media (max-width: 720px) {
-  .tab-nav__btn {
-    padding: 12px 14px;
-    font-size: 14px;
-    min-height: 44px;
+  .tab-nav__inner {
+    padding: 0 30px;
   }
+  .tab-nav__btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    /* min-height is also set via the accessibility rule lower in the file (44px) */
+  }
+  .tab-nav__arrow {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  .tab-nav__arrow--left  { left: 4px; }
+  .tab-nav__arrow--right { right: 4px; }
 }
 
 /* =============================================================
@@ -967,7 +1013,7 @@ hr.rule {
 /* ---- Sticky journey strip ---- */
 .journey-strip {
   position: sticky;
-  top: calc(57px + 56px);  /* site header + tab nav */
+  top: calc(57px + 49px);  /* v3.0 — site header (57) + tab nav (49) */
   z-index: 80;
   background: var(--paper);
   border-top: 1px solid var(--rule-soft);
@@ -1037,8 +1083,8 @@ hr.rule {
 
 @media (max-width: 720px) {
   .journey-strip {
-    /* Slightly tighter to fit on narrow screens */
-    top: calc(57px + 44px);
+    /* v3.0 — header (57) + mobile tab-nav (53). Was 44 in v2.x. */
+    top: calc(57px + 53px);
   }
   .journey-strip__inner {
     gap: 6px;
