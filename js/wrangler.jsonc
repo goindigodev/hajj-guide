@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hajj-guide",
+  "main": "_worker.js",
+  "compatibility_date": "2026-04-29",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  },
+
+  // v2.1 — KV for the like counter.
+  // The id below MUST be replaced with your real namespace id after creating
+  // it in Cloudflare (Workers & Pages → KV → Create Namespace → "hajj-likes").
+  // If left as the placeholder, the like endpoints will return 0 / no-op
+  // (the worker is defensive about a missing binding).
+  "kv_namespaces": [
+    {
+      "binding": "LIKES",
+      "id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+    }
+  ]
+}
