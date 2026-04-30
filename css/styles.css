@@ -479,13 +479,17 @@ section + section {
 
 /* v2.3 — Native <select> needs special handling: remove browser chrome,
    add a custom chevron via a background-image SVG so the select looks
-   identical to a text input. Same for selects rendered with .field__input. */
+   identical to a text input. Same for selects rendered with .field__input.
+
+   Note: the < and > characters in the data URI MUST be percent-encoded
+   (%3C / %3E) — without encoding, some Chromium builds render a fallback
+   diagonal-stripe pattern when the dropdown is in its open/focused state. */
 select.field__input,
 select.select {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'><path d='M1 1.5L7 6.5L13 1.5' stroke='%237a7c75' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1.5L7 6.5L13 1.5' stroke='%237a7c75' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 38px;
@@ -494,7 +498,14 @@ select.select {
 select.field__input:focus,
 select.select:focus {
   /* Slightly darker chevron when focused */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'><path d='M1 1.5L7 6.5L13 1.5' stroke='%232f3d2f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'%3E%3Cpath d='M1 1.5L7 6.5L13 1.5' stroke='%232f3d2f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* Re-assert background-repeat and background-position because the parent
+     `.field__input:focus` rule uses the `background:` shorthand which resets
+     all background-* longhand properties to their defaults (repeat at 0% 0%).
+     Without this, the chevron tiles across the whole select and looks like a
+     diagonal-stripe texture when the native dropdown is open. */
+  background-repeat: no-repeat;
+  background-position: right 14px center;
 }
 
 /* v2.3 — When a date input is rendered inline as .field__input it inherits
