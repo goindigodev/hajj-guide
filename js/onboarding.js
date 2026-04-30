@@ -111,6 +111,18 @@
           })
           .catch(() => { /* fail silently — dropdown shows just "Other" */ });
       }
+      // v2.3 — Load airports for the type-ahead combobox in the flights step
+      if (!window._AIRPORTS_LIST) {
+        Utils.fetchJSON('./data/airports.json')
+          .then(data => {
+            window._AIRPORTS_LIST = data;
+            // Re-render if on flights step so combobox populates
+            if (STEPS[this.currentStep] && STEPS[this.currentStep].id === 'flights') {
+              this.render();
+            }
+          })
+          .catch(() => { /* fail silently — input still works as plain text */ });
+      }
       this.render();
     },
 
@@ -208,60 +220,225 @@
       wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 1 of 5'));
       wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Your flights.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        'Add your flight numbers and dates so the guide can plan around them.'
+        'Add your flight numbers and dates so the guide can plan around them. Tick the road box if you\'re crossing by land.'
       ));
 
-      // Outbound
+      // Defensive defaults for byRoad fields (existing users from earlier versions)
+      if (!this.config.outboundFlight) this.config.outboundFlight = {};
+      if (!this.config.returnFlight)   this.config.returnFlight   = {};
+      if (typeof this.config.outboundFlight.byRoad !== 'boolean') this.config.outboundFlight.byRoad = false;
+      if (typeof this.config.returnFlight.byRoad   !== 'boolean') this.config.returnFlight.byRoad   = false;
+
+      // ── Outbound ───────────────────────────────────────────
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Outbound'));
-      const outRow = el('div', { class: 'input-row' });
-      const outFlightWrap = this.buildFlightField('Flight number', 'e.g. SV124',
-        this.config.outboundFlight.number,
-        v => { this.config.outboundFlight.number = v; },
-        'flight-hint-out'
-      );
-      outRow.appendChild(outFlightWrap);
-      outRow.appendChild(this.buildField('Departure airport', 'text', 'e.g. LHR', this.config.outboundFlight.from, v => { this.config.outboundFlight.from = v.toUpperCase(); }));
-      wrap.appendChild(outRow);
-
-      const outRow2 = el('div', { class: 'input-row' });
-      outRow2.appendChild(this.buildField('Date', 'date', '', this.config.outboundFlight.date, v => {
-        this.config.outboundFlight.date = v;
-        this._updateFlightDateWarning();
-      }));
-      outRow2.appendChild(this.buildField('Time', 'time', '', this.config.outboundFlight.time, v => { this.config.outboundFlight.time = v; }));
-      wrap.appendChild(outRow2);
-
-      wrap.appendChild(this.buildField('Arrival airport', 'text', 'MED (Madinah) or JED (Jeddah)', this.config.outboundFlight.to, v => { this.config.outboundFlight.to = v.toUpperCase(); }));
+      const outBlock = this._buildFlightLegBlock('outbound');
+      wrap.appendChild(outBlock);
 
       wrap.appendChild(el('hr', { class: 'rule' }));
 
-      // Return
+      // ── Return ─────────────────────────────────────────────
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Return'));
-      const retRow = el('div', { class: 'input-row' });
-      retRow.appendChild(this.buildFlightField('Flight number', 'e.g. SV123',
-        this.config.returnFlight.number,
-        v => { this.config.returnFlight.number = v; },
-        'flight-hint-ret'
-      ));
-      retRow.appendChild(this.buildField('From', 'text', 'e.g. JED', this.config.returnFlight.from, v => { this.config.returnFlight.from = v.toUpperCase(); }));
-      wrap.appendChild(retRow);
+      const retBlock = this._buildFlightLegBlock('return');
+      wrap.appendChild(retBlock);
 
-      const retRow2 = el('div', { class: 'input-row' });
-      retRow2.appendChild(this.buildField('Date', 'date', '', this.config.returnFlight.date, v => {
-        this.config.returnFlight.date = v;
-        this._updateFlightDateWarning();
-      }));
-      retRow2.appendChild(this.buildField('Time', 'time', '', this.config.returnFlight.time, v => { this.config.returnFlight.time = v; }));
-      wrap.appendChild(retRow2);
-
-      wrap.appendChild(this.buildField('Home airport', 'text', 'e.g. LHR', this.config.returnFlight.to, v => { this.config.returnFlight.to = v.toUpperCase(); }));
-
-      // Date-order warning slot (populated by _updateFlightDateWarning)
+      // Date-order warning slot
       const warning = el('div', { id: 'flight-date-warning', class: 'flight-warning hidden' });
       wrap.appendChild(warning);
 
-      // Run an initial check after mount
       requestAnimationFrame(() => this._updateFlightDateWarning());
+      return wrap;
+    },
+
+    /**
+     * v2.3 — Build one flight leg ('outbound' or 'return').
+     * Renders: byRoad checkbox, flight number + departure airport (hidden when byRoad),
+     *          date/time, arrival airport (hidden when byRoad).
+     * Re-renders itself in place when the byRoad checkbox toggles.
+     */
+    _buildFlightLegBlock(leg) {
+      const isOutbound = leg === 'outbound';
+      const cfgKey = isOutbound ? 'outboundFlight' : 'returnFlight';
+      const flight = this.config[cfgKey];
+      const byRoad = !!flight.byRoad;
+
+      const block = el('div', { class: 'flight-leg-block' });
+
+      // ── Travel mode toggle row (checkbox) ───────────
+      const modeRow = el('label', { class: 'travel-mode' });
+      const checkbox = el('input', {
+        type: 'checkbox',
+        checked: byRoad,
+      });
+      checkbox.addEventListener('change', () => {
+        this.config[cfgKey].byRoad = !!checkbox.checked;
+        // Re-render this block in place so the relevant fields show/hide
+        const next = this._buildFlightLegBlock(leg);
+        block.replaceWith(next);
+      });
+      modeRow.appendChild(checkbox);
+      modeRow.appendChild(el('span', { class: 'travel-mode__label' },
+        isOutbound ? 'Entry by road (no flight)' : 'Exit by road (no flight)'
+      ));
+      block.appendChild(modeRow);
+
+      // ── Flight number + departure airport (hidden when byRoad) ──
+      if (!byRoad) {
+        const row1 = el('div', { class: 'input-row' });
+
+        if (isOutbound) {
+          row1.appendChild(this.buildFlightField('Flight number', 'e.g. SV124',
+            flight.number,
+            v => { this.config[cfgKey].number = v; },
+            'flight-hint-' + leg
+          ));
+          // Departure airport — combobox (worldwide)
+          row1.appendChild(this._buildAirportCombobox(
+            'Departure airport', flight.from || '',
+            v => { this.config[cfgKey].from = v; },
+            'departure'
+          ));
+        } else {
+          row1.appendChild(this.buildFlightField('Flight number', 'e.g. SV123',
+            flight.number,
+            v => { this.config[cfgKey].number = v; },
+            'flight-hint-' + leg
+          ));
+          // From: Saudi airports only on return leg
+          row1.appendChild(this._buildAirportCombobox(
+            'From', flight.from || '',
+            v => { this.config[cfgKey].from = v; },
+            'saudi'
+          ));
+        }
+        block.appendChild(row1);
+      }
+
+      // ── Date + time (always shown) ────────────────
+      const row2 = el('div', { class: 'input-row' });
+      row2.appendChild(this.buildField('Date', 'date', '', flight.date, v => {
+        this.config[cfgKey].date = v;
+        this._updateFlightDateWarning();
+      }));
+      row2.appendChild(this.buildField('Time', 'time', '', flight.time, v => {
+        this.config[cfgKey].time = v;
+      }));
+      block.appendChild(row2);
+
+      // ── Arrival / Home airport (hidden when byRoad) ─
+      if (!byRoad) {
+        if (isOutbound) {
+          // Arrival airport — Saudi only
+          block.appendChild(this._buildAirportCombobox(
+            'Arrival airport', flight.to || '',
+            v => { this.config[cfgKey].to = v; },
+            'saudi'
+          ));
+        } else {
+          // Home airport — worldwide
+          block.appendChild(this._buildAirportCombobox(
+            'Home airport', flight.to || '',
+            v => { this.config[cfgKey].to = v; },
+            'departure'
+          ));
+        }
+      }
+
+      return block;
+    },
+
+    /**
+     * v2.3 — Type-ahead airport combobox.
+     * `dataset` is 'departure' (worldwide) or 'saudi' (4 airports).
+     * Reads from window._AIRPORTS_LIST — loaded asynchronously in init().
+     * Stores the IATA code in config; displays "City — Name (IATA)" when typing.
+     */
+    _buildAirportCombobox(label, currentIata, onSelect, dataset) {
+      const wrap = el('div', { class: 'field' });
+      wrap.appendChild(el('label', { class: 'field__label' }, label));
+
+      // Look up current display label from the IATA code
+      const list = (window._AIRPORTS_LIST && window._AIRPORTS_LIST[dataset]) || [];
+      const fmtAirport = (a) => `${a.city} — ${a.name} (${a.iata})`;
+      const findByIata = (iata) => list.find(a => a.iata === iata);
+      const initialDisplay = currentIata
+        ? (findByIata(currentIata) ? fmtAirport(findByIata(currentIata)) : currentIata)
+        : '';
+
+      const inputWrap = el('div', { class: 'combobox' });
+
+      const input = el('input', {
+        type: 'text',
+        class: 'field__input combobox__input',
+        placeholder: dataset === 'saudi' ? 'Type city or IATA (e.g. Jeddah, JED)' : 'Type city or IATA (e.g. London, LHR)',
+        value: initialDisplay,
+        autocomplete: 'off',
+        spellcheck: 'false',
+      });
+
+      const dropdown = el('div', { class: 'combobox__dropdown' });
+
+      const renderResults = (query) => {
+        dropdown.innerHTML = '';
+        const q = query.trim().toLowerCase();
+        if (!q) { dropdown.classList.remove('is-open'); return; }
+        // Match on iata, city, country, name (in that priority)
+        const matches = list.filter(a => {
+          const blob = `${a.iata} ${a.city} ${a.country || ''} ${a.name}`.toLowerCase();
+          return blob.includes(q);
+        }).slice(0, 8);
+        if (!matches.length) {
+          dropdown.classList.add('is-open');
+          dropdown.appendChild(el('div', { class: 'combobox__empty' },
+            'No match — type the IATA code if your airport isn\'t listed.'
+          ));
+          return;
+        }
+        matches.forEach((a, i) => {
+          const opt = el('button', { type: 'button', class: 'combobox__opt' });
+          opt.appendChild(el('span', { class: 'combobox__opt-iata' }, a.iata));
+          opt.appendChild(el('span', { class: 'combobox__opt-meta' },
+            ` ${a.city} · ${a.name}`
+          ));
+          opt.addEventListener('click', () => {
+            input.value = fmtAirport(a);
+            this._lastValidIata = a.iata;
+            onSelect(a.iata);
+            dropdown.classList.remove('is-open');
+          });
+          dropdown.appendChild(opt);
+        });
+        dropdown.classList.add('is-open');
+      };
+
+      input.addEventListener('input', () => {
+        renderResults(input.value);
+        // Try to extract IATA from a typed string. If user typed exactly 3
+        // letters that match a known airport, treat as a direct selection.
+        const typedIata = input.value.trim().toUpperCase();
+        const direct = list.find(a => a.iata === typedIata);
+        if (direct) {
+          onSelect(direct.iata);
+        } else {
+          // Otherwise store the raw input (uppercased) as a fallback. We don't
+          // overwrite a previously-selected IATA unless the user typed something
+          // clearly different.
+          onSelect(typedIata.length === 3 ? typedIata : input.value.trim());
+        }
+      });
+
+      input.addEventListener('focus', () => {
+        // Show dropdown on focus if query already present
+        if (input.value.trim()) renderResults(input.value);
+      });
+
+      input.addEventListener('blur', () => {
+        // Delay close so click on dropdown option still fires
+        setTimeout(() => dropdown.classList.remove('is-open'), 180);
+      });
+
+      inputWrap.appendChild(input);
+      inputWrap.appendChild(dropdown);
+      wrap.appendChild(inputWrap);
 
       return wrap;
     },

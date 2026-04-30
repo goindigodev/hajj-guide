@@ -13,8 +13,8 @@
     onboarded: false,
     config: {
       // Trip basics
-      outboundFlight: { number: '', date: '', time: '', from: '', to: 'MED' },
-      returnFlight: { number: '', date: '', time: '', from: 'JED', to: '' },
+      outboundFlight: { number: '', date: '', time: '', from: '', to: 'MED', byRoad: false },
+      returnFlight: { number: '', date: '', time: '', from: 'JED', to: '', byRoad: false },
 
       // Religious settings
       madhab: 'hanafi', // hanafi | shafi | maliki | hanbali

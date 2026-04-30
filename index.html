@@ -116,14 +116,18 @@
 
 <footer class="site-footer no-print" role="contentinfo">
   <div class="site-footer__row">
+    <span class="site-footer__preamble">Support this page with your Duas</span>
     <button type="button" class="like-btn" data-like-button aria-label="Like this guide">
       <span class="like-btn__heart" aria-hidden="true">♥</span>
       <span><span data-like-count>—</span> pilgrims</span>
     </button>
-    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <button type="button" class="share-btn" data-share-button aria-label="Share this guide">
+      <span class="share-btn__icon" aria-hidden="true">↗</span>
+      <span>Share</span>
+    </button>
+  </div>
+  <div class="site-footer__row site-footer__row--secondary">
     <a class="site-footer__link" href="mailto:ach@goindigo.co.uk?subject=Hajj%20Guide%20feedback">Send feedback</a>
-    <span class="site-footer__sep" aria-hidden="true">·</span>
-    <a class="site-footer__link" href="https://github.com/goindigodev/hajj-guide" target="_blank" rel="noopener noreferrer">GitHub</a>
     <span class="site-footer__sep" aria-hidden="true">·</span>
     <a class="site-footer__link" href="#" id="reset-link">Reset my data</a>
   </div>
@@ -146,6 +150,7 @@
 <script src="./js/fontsize.js"></script>
 <script src="./js/disclaimer.js"></script>
 <script src="./js/like.js"></script>
+<script src="./js/share.js"></script>
 <script src="./js/onboarding.js"></script>
 
 <script>
@@ -163,6 +168,9 @@
 
   // v2.1 — wire up like button
   if (window.Like && Like.init) Like.init();
+
+  // v2.3 — wire up share button
+  if (window.Share && Share.init) Share.init();
 
   // v2.2 — first-visit disclaimer
   if (window.Disclaimer && Disclaimer.init) Disclaimer.init();

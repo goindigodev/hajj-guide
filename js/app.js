@@ -26,6 +26,9 @@
     // v2.1 — like button (footer)
     if (window.Like && Like.init) Like.init();
 
+    // v2.3 — share button (footer)
+    if (window.Share && Share.init) Share.init();
+
     // v2.2 — first-visit disclaimer
     if (window.Disclaimer && Disclaimer.init) Disclaimer.init();
 

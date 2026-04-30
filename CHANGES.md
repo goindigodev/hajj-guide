@@ -1,140 +1,141 @@
-# Hajj Guide v2.2-part2 — Hijri dates, Mina/Aziziyah, multi-hotel
+# Hajj Guide v2.3 — UI fixes & share button
 
-Three substantial improvements building on v2.2-part1.
-
----
-
-## Items shipped
-
-### 5. Hijri dates wired into the UI
-- Day cards in Itinerary now show Hijri date below the Gregorian date
-  (e.g. "Wed, 20 May 2026" / "3 Dhul Hijjah 1447")
-- Warning callout at the top of Itinerary tab when user's flight dates don't
-  contain the 8–13 Dhul Hijjah window (suggests the trip might be Umrah-only
-  or that dates need correcting)
-- Uses the browser's built-in `Intl.DateTimeFormat` with `islamic-umalqura`
-  calendar — matches the Saudi Umm al-Qura calculation. Zero dependencies.
-- Note: Hijri dates may differ by ±1 day from official Saudi moon-sighting
-  announcements (covered by the existing "times are approximate" disclaimer)
-
-### 6. Two Mina camps (Mina vs Aziziyah)
-- New onboarding question on the accommodation step: "Where will you sleep
-  on the nights of 8th, 11th, 12th of Dhul Hijjah?"
-- Three options: Inside Mina valley · In Aziziyah · I'm not sure yet
-- When "Inside Mina valley" → reveals zone picker (A/B/C/D + unknown)
-  and an optional sub-area/camp text field (e.g. "Muaisim", "Camp 12B")
-- When "Aziziyah" → reveals an optional building/block text field
-- Journey map adds an "Aziziyah" marker (building silhouette, brown accent)
-  when the user selects Aziziyah; Mina marker is dimmed in that case to
-  visually emphasise where the user actually sleeps
-- Emergency Card now shows the user's Mina camp summary
-  (e.g. "Mina · Zone B" or "Aziziyah · Aziziyah Tower 12")
-
-### 7. Multi-hotel accommodation
-- Schema changed: `madinahHotel` (single object) → `madinahHotels` (array)
-- Same for `makkahHotel` → `makkahHotels`
-- Each hotel: `{ name, address, placeId, lat, lng, fromDate, toDate }`
-- Onboarding accommodation step rebuilt with multi-hotel support:
-  - "+ Add another hotel" button per city
-  - Each hotel entry has its own card with Remove button
-  - From/To date pickers for each hotel
-- Itinerary day cards now look up the right hotel by date (so if user has
-  multiple Makkah hotels with different dates, each day shows the correct one)
-- Emergency Card lists every hotel with its date range
-- Locations tab shows all hotels (instead of just one per city)
-
-#### Migration is automatic and silent
-Existing users with the old single-hotel schema are migrated transparently
-on next page load. The migration:
-- Detects `config.madinahHotel` (old shape) without `config.madinahHotels`
-- Converts it to a single-element array preserving all data
-- Removes the old field
-- Same for `makkahHotel`
-- Idempotent — running twice does nothing
-
-NO DATA IS LOST.
+8 modified files + 2 new files. No deletions.
 
 ---
 
-## What changed in this drop
+## What's in this drop
 
-**Modified files:**
-- `js/utils.js` — already in v2.2-part1 (Hijri helpers); unchanged in part2
-- `js/store.js` — DEFAULT_STATE schema, new `migrate()` function, hooked into `load()`
-- `js/guide.js` — `renderDayCard` adds Hijri label, `tabItinerary` adds Hajj-period
-  warning, `buildItineraryDays` passes raw `date` field, multi-hotel cascade across
-  `renderJourneyMapHero`, `renderEmergencyCard`, `tabLocations`, `buildItineraryDays`,
-  Aziziyah marker logic, Mina/Aziziyah emphasis classes
-- `js/onboarding.js` — Mina camp section, multi-hotel UI in accommodation step,
-  defensive defaults in init, `buildPlacesField` now uses callback uniformly
-- `js/app.js` — already loads operators.json from v2.2-part1; unchanged in part2
-- `css/styles.css` — new styles for `.day-card__date-col`, `.day-card__date-hijri`,
-  `.mina-camp-types`, `.hotel-list`, `.hotel-entry`, journey map active/dim states
+### Footer & header refinements
+- **Removed** GitHub link from footer (both index.html and app.html)
+- **Added** "Support this page with your Duas" preamble before the like chip
+- **Added** Share button next to the like chip
+- "Send feedback" + "Reset my data" moved to a quieter secondary footer row
 
-**No new files in this drop.**
+### UI consistency fixes
+- The Saudi service provider dropdown, Mina zone select, and sub-area text inputs
+  used `field__input` class which was undefined — now defined to match `.input`
+  styling (Lora font, sage focus border, paper background)
+- Native `<select>` elements get a custom chevron via SVG background-image
+  so they match the rest of the form
+
+### Mobile day-card layout
+- On screens ≤600px wide, day-card headers now stack vertically:
+  date row at top (Greg + Hijri inline), title on its own line, location below,
+  chevron always right-aligned. Stops the header from wrapping into 4–5 lines.
+
+### Flight step rebuild
+- **Two new checkboxes**: "Entry by road (no flight)" on the outbound leg,
+  "Exit by road (no flight)" on the return leg. Independent. When checked,
+  the flight number + departure airport + arrival airport fields hide for
+  that leg. Date/time still visible.
+- **Type-ahead airport combobox** for departure and home airports. Search
+  by city, IATA code, country, or airport name. ~80 worldwide airports curated.
+- **Saudi-only combobox** for arrival airport on outbound and "from" airport
+  on return — JED, MED, RUH, DMM.
+- Itinerary day cards adapt: when byRoad is set, departure/return cards say
+  "Departure (by road)" and show "Land crossing → KSA" instead of flight info.
+
+### Share button & counter
+- New `data/api/share` endpoint in the Worker, identical pattern to `/api/like`
+- Same KV namespace (LIKES) — share counter stored under key `share-total`
+- Share modal with WhatsApp, Telegram, Email, Copy-link tiles
+- Each click increments the counter
+- Counter visible at bottom of modal (e.g. "Shared 47 times")
+
+---
+
+## Files changed
+
+**Modified:**
+- `_worker.js` — generalised `handleCounter()` for like + share, added `/api/share` route
+- `index.html` — footer rebuild, share.js script tag
+- `app.html` — footer rebuild, share.js script tag
+- `css/styles.css` — `.field__input` definitions, native select chevron, mobile
+  day-card grid, footer refinements, combobox, travel-mode checkbox, share modal
+- `js/store.js` — `outboundFlight.byRoad` + `returnFlight.byRoad` fields (default false)
+- `js/onboarding.js` — flights step rebuilt with byRoad + airport combobox; airports list loaded
+- `js/guide.js` — departure/return day cards adapt to byRoad
+- `js/app.js` — Share module init
+
+**New:**
+- `js/share.js` — share modal logic
+- `data/airports.json` — curated worldwide + Saudi airport list
+
+**No deletions.**
 
 ---
 
 ## Deployment
 
-### Step 1 — drop in the new files
-Replace these in your project:
+### Step 1 — replace these files in `~/Downloads/hajj-app21/`:
+- `_worker.js`
+- `index.html`, `app.html`
 - `css/styles.css`
-- `js/utils.js`
-- `js/store.js`
-- `js/onboarding.js`
-- `js/guide.js`
-- `js/app.js`
+- `js/store.js`, `js/onboarding.js`, `js/guide.js`, `js/app.js`
+- `js/share.js` (new — drop in)
+- `data/airports.json` (new — drop in)
 
 ### Step 2 — commit and push
 ```bash
 cd ~/Downloads/hajj-app21
 git add .
-git commit -m "v2.2-part2: Hijri dates, Mina/Aziziyah camps, multi-hotel"
+git commit -m "v2.3: footer cleanup, share button, byRoad flights, airport combobox, mobile day-card fix"
 git push
 ```
 
-### Step 3 — verify
+### Step 3 — verify on hajjguide.net (fresh incognito)
 
-In a **fresh incognito window** (so the migration runs from saved data),
-go to hajjguide.net.
+**Footer:**
+- ✅ No GitHub link
+- ✅ "Support this page with your Duas" before the heart chip
+- ✅ "Share" button next to heart chip
+- ✅ Click Share → modal opens with 4 tiles
+- ✅ Click WhatsApp tile → wa.me opens with prefilled message
+- ✅ Click Copy → button shows "Copied ✓" briefly
 
-If you have data already saved on your test browser:
-- Itinerary day cards should now show "Hijri date" line below the Gregorian
-- Emergency Card should list each hotel with date ranges
-- No JS errors in the console
+**Onboarding flights step:**
+- ✅ Outbound section has "Entry by road (no flight)" checkbox at top
+- ✅ Return section has "Exit by road (no flight)" checkbox at top
+- ✅ Untick: flight + airport fields visible
+- ✅ Tick: flight + airport fields hide; date/time remain
+- ✅ Departure airport: type "lon" → 4 London airports + Barcelona
+- ✅ Arrival airport: type "jed" → JED Jeddah only (Saudi-restricted)
+- ✅ All inputs use the same Lora font and styling
 
-If you reset and re-onboard:
-- Step 4 (accommodation) lets you add multiple hotels per city, each with dates
-- Mina camp section appears at the bottom of step 4 with Mina/Aziziyah/unsure
-- Journey map adds an Aziziyah marker when Aziziyah is selected
-- Itinerary day cards correctly assign each day to the right hotel by date
+**Mobile (open dev tools, switch to iPhone view):**
+- ✅ Day cards in Itinerary stack cleanly
+- ✅ Day cards in 5 Days of Hajj stack cleanly
+- ✅ Header doesn't wrap into 4+ lines
+
+**Operator step (existing):**
+- ✅ Saudi Service Provider dropdown matches form styling
+- ✅ Mina zone dropdown (when "Inside Mina valley" selected) matches form styling
 
 ---
 
 ## Risk profile
 
-- 🟡 Item 7 (multi-hotel) is the highest-risk change in v2.2 because it
-  changes the data schema. The migration runs once on load and is idempotent.
-  Tested with both old-schema and new-schema localStorage entries.
-- 🟢 Items 5 and 6 are additive — no schema migration risk.
+- 🟢 Footer changes: pure HTML/CSS, no logic
+- 🟢 UI consistency: defines a previously-undefined CSS class
+- 🟢 Mobile day-card: pure CSS, scoped to ≤600px viewport
+- 🟢 Airport combobox: new component, isolated
+- 🟢 byRoad checkboxes: schema-additive (default `false`); existing user data unaffected
+- 🟢 Share button: same Worker pattern as like, KV already configured
 
-If anything goes wrong:
-```bash
-git revert HEAD
-git push
-```
+The KV namespace is already in place (you mentioned the like counter works),
+so `/api/share` will work immediately without dashboard changes.
+
+If anything breaks: `git revert HEAD && git push`.
 
 ---
 
-## Known limitations / what next session
+## Known limitations
 
-- The journey map's Aziziyah marker is positioned visually but the SVG
-  geometry isn't precisely geographic — Aziziyah in real life sits between
-  Makkah and Mina; the marker is approximately there but stylised.
-- Multi-hotel date-range validation is light: we don't currently warn if
-  ranges overlap, gap, or extend outside the user's flight dates. Could
-  be added later.
-- Operator dropdown content (data/operators.json) still needs your manual
-  verification against the official Nusuk page before you fully trust it.
+- **Airport list** is curated, not exhaustive (~80 airports). Smaller hubs aren't
+  listed but users can still type the IATA code manually — the input accepts free
+  text if no match is found.
+- The Saudi list has the 4 international airports (JED, MED, RUH, DMM). Domestic
+  Saudi airports aren't included.
+- Share counter starts at 0 separate from the like counter (different KV key).
 

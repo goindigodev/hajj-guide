@@ -1358,16 +1358,21 @@
       const day1 = startDate ? formatDate(startDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Day 1';
 
       // Departure
+      const outByRoad = !!(out && out.byRoad);
       days.push({
         date: startDate || null,
         dateLabel: day1,
-        title: 'Departure',
-        location: hasFlights ? `${out.from || 'Home'} → ${out.to || 'MED/JED'}` : 'Travel',
-        description: hasFlights
-          ? `Flight ${out.number || ''} departs at ${out.time || '—'}. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Begin the journey calmly.`
-          : 'Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua.',
+        title: outByRoad ? 'Departure (by road)' : 'Departure',
+        location: outByRoad
+          ? 'Land crossing → KSA'
+          : (hasFlights ? `${out.from || 'Home'} → ${out.to || 'MED/JED'}` : 'Travel'),
+        description: outByRoad
+          ? 'Travelling overland into Saudi Arabia. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Be ready to enter Ihram if your route bypasses a designated miqat — confirm with your group leader.'
+          : (hasFlights
+            ? `Flight ${out.number || ''} departs at ${out.time || '—'}. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Begin the journey calmly.`
+            : 'Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua.'),
         duaIds: ['leaving-home', 'travelers-dua', 'boarding-transport'],
-        note: 'For Tamattu\' pilgrims flying directly to Madinah, you do NOT need to be in Ihram on this flight. Ihram is donned later.',
+        note: 'For Tamattu\' pilgrims, you do NOT need to be in Ihram on this leg if heading directly to Madinah. Ihram is donned later.',
       });
 
       // Madinah days (estimate first ~3 days unless trip is short)
@@ -1475,14 +1480,19 @@
           duaIds: ['multazam'],
           note: 'Wajib in Hanafi/Shafi\'i/Hanbali; sunnah in Maliki. Menstruating women are exempt.',
         });
+        const retByRoad = !!(ret && ret.byRoad);
         days.push({
           date: endDate,
           dateLabel: formatDate(endDate),
-          title: 'Return Home',
-          location: hasFlights ? `${ret.from || 'JED'} → ${ret.to || 'Home'}` : 'Travel',
-          description: hasFlights
-            ? `Flight ${ret.number || ''} departs at ${ret.time || '—'}. Recite the returning dua as you approach home.`
-            : 'Recite the returning dua as you approach home.',
+          title: retByRoad ? 'Return Home (by road)' : 'Return Home',
+          location: retByRoad
+            ? 'Land crossing → home'
+            : (hasFlights ? `${ret.from || 'JED'} → ${ret.to || 'Home'}` : 'Travel'),
+          description: retByRoad
+            ? 'Travelling home overland. Recite the returning dua as you approach home.'
+            : (hasFlights
+              ? `Flight ${ret.number || ''} departs at ${ret.time || '—'}. Recite the returning dua as you approach home.`
+              : 'Recite the returning dua as you approach home.'),
           duaIds: ['returning-home', 'travelers-dua'],
         });
       }

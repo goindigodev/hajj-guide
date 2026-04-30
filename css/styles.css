@@ -447,7 +447,8 @@ section + section {
 
 .input,
 .select,
-.textarea {
+.textarea,
+.field__input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
   font-family: 'Lora', serif;
@@ -457,11 +458,14 @@ section + section {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   transition: border-color 0.15s, background 0.15s;
+  /* Make sure the box-sizing is consistent across all inputs */
+  box-sizing: border-box;
 }
 
 .input:focus,
 .select:focus,
-.textarea:focus {
+.textarea:focus,
+.field__input:focus {
   outline: none;
   border-color: var(--green-deep);
   background: var(--bg);
@@ -471,6 +475,36 @@ section + section {
   resize: vertical;
   min-height: 100px;
   font-family: inherit;
+}
+
+/* v2.3 — Native <select> needs special handling: remove browser chrome,
+   add a custom chevron via a background-image SVG so the select looks
+   identical to a text input. Same for selects rendered with .field__input. */
+select.field__input,
+select.select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'><path d='M1 1.5L7 6.5L13 1.5' stroke='%237a7c75' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+  cursor: pointer;
+}
+select.field__input:focus,
+select.select:focus {
+  /* Slightly darker chevron when focused */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8'><path d='M1 1.5L7 6.5L13 1.5' stroke='%232f3d2f' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+/* v2.3 — When a date input is rendered inline as .field__input it inherits
+   the right styling but the browser's date picker icon needs space; the
+   default picker is fine, just ensure the input doesn't look squashed. */
+input[type="date"].field__input,
+input[type="time"].field__input {
+  /* Some browsers render the picker icon in slightly different positions */
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: var(--fs-base);
 }
 
 .input-row {
@@ -1034,6 +1068,37 @@ hr.rule {
   width: 100%;
   text-align: left;
   color: var(--ink);
+}
+
+/* v2.3 — On narrow screens, stack the header vertically.
+   The date column becomes a row at the top (Greg + Hijri inline),
+   title sits on its own row, location can wrap beneath, chevron stays right.
+   This stops the title and location from wrapping into too many lines. */
+@media (max-width: 600px) {
+  .day-card__header {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "date    chevron"
+      "title   chevron"
+      "loc     loc";
+    align-items: start;
+    gap: 6px var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+  .day-card__date-col { grid-area: date; flex-direction: row; gap: 8px; align-items: baseline; min-width: 0; }
+  .day-card__title    { grid-area: title; line-height: 1.25; }
+  .day-card__location { grid-area: loc; padding-top: 2px; }
+  .day-card__chevron  { grid-area: chevron; align-self: center; }
+
+  .day-card__date-hijri {
+    /* When inline with the Gregorian date, drop the prefix gap */
+    margin-left: 4px;
+  }
+  .day-card__date-hijri::before {
+    content: '· ';
+    color: var(--ink-mute);
+    margin-right: 2px;
+  }
 }
 
 .day-card__date-col {
@@ -2494,4 +2559,345 @@ body.is-disclaimer-open {
   margin-top: 4px;
   font-size: 13px;
   padding: 8px 14px;
+}
+
+/* =============================================================
+   v2.3 — Footer: duas preamble + share button + secondary row
+   ============================================================= */
+
+.site-footer__preamble {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.site-footer__row--secondary {
+  margin-top: 8px;
+  font-size: 12px;
+  gap: 12px;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+.share-btn:hover {
+  border-color: var(--brass);
+  color: var(--brass-deep);
+}
+.share-btn:active {
+  transform: scale(0.96);
+}
+.share-btn__icon {
+  font-size: 14px;
+  color: var(--brass);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .site-footer__row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .site-footer__preamble {
+    font-size: 13px;
+  }
+}
+
+/* =============================================================
+   v2.3 — Airport combobox (type-ahead)
+   ============================================================= */
+
+.combobox {
+  position: relative;
+}
+
+.combobox__input {
+  /* Inherits from .field__input — just a clarifying placeholder colour */
+}
+
+.combobox__dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+  max-height: 280px;
+  overflow-y: auto;
+  display: none;
+}
+.combobox__dropdown.is-open {
+  display: block;
+}
+
+.combobox__opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule-soft);
+  transition: background 0.12s;
+}
+.combobox__opt:last-child {
+  border-bottom: none;
+}
+.combobox__opt:hover,
+.combobox__opt:focus {
+  background: rgba(74, 93, 74, 0.06);
+  outline: none;
+}
+
+.combobox__opt-iata {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--brass-deep);
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  width: 38px;
+}
+
+.combobox__opt-meta {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.combobox__empty {
+  padding: 12px 14px;
+  color: var(--ink-mute);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* =============================================================
+   v2.3 — Travel-mode checkbox (Entry/Exit by road)
+   ============================================================= */
+
+.travel-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(184, 149, 74, 0.06);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-3);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.travel-mode:hover {
+  background: rgba(184, 149, 74, 0.1);
+  border-color: var(--brass);
+}
+.travel-mode input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+.travel-mode__label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.flight-leg-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+/* =============================================================
+   v2.3 — SHARE MODAL
+   ============================================================= */
+
+body.is-modal-open { overflow: hidden; }
+
+.share-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: shrFadeIn 0.22s ease;
+}
+@keyframes shrFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.share-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 29, 26, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.share-modal__panel {
+  position: relative;
+  background: var(--paper);
+  border-radius: 14px;
+  border: 1px solid var(--rule);
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 28px 24px;
+  box-shadow: 0 12px 56px rgba(0, 0, 0, 0.22);
+  text-align: center;
+  animation: shrRise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes shrRise {
+  from { transform: translateY(12px) scale(0.985); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.share-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.share-modal__close:hover {
+  background: rgba(74, 93, 74, 0.08);
+  color: var(--ink);
+}
+
+.share-modal__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 400;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.share-modal__lead {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--green-deep);
+  margin: 0 0 20px;
+}
+
+.share-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.share-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  background: rgba(74, 93, 74, 0.04);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.1s;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+}
+.share-tile:hover {
+  background: rgba(184, 149, 74, 0.1);
+  border-color: var(--brass);
+}
+.share-tile:active {
+  transform: scale(0.97);
+}
+.share-tile.is-copied {
+  background: rgba(74, 93, 74, 0.12);
+  border-color: var(--green-deep);
+}
+
+.share-tile__icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule-soft);
+}
+.share-tile--whatsapp .share-tile__icon { background: #25d366; color: #fff; border-color: #25d366; }
+.share-tile--telegram .share-tile__icon { background: #229ed9; color: #fff; border-color: #229ed9; }
+.share-tile--email    .share-tile__icon { background: #b8954a; color: #fff; border-color: #b8954a; font-size: 18px; }
+.share-tile--copy     .share-tile__icon { background: var(--ink); color: #fff; border-color: var(--ink); font-size: 16px; }
+
+.share-tile__label {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.share-modal__url {
+  margin: 12px 0 8px;
+  padding: 10px 12px;
+  background: #fdfbf6;
+  border: 1px dashed var(--rule);
+  border-radius: 6px;
+  font-family: 'Inter', monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  word-break: break-all;
+}
+
+.share-modal__count {
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-style: italic;
+  text-align: center;
+  margin-top: 6px;
+  min-height: 14px;
+}
+
+@media (max-width: 480px) {
+  .share-modal__panel {
+    padding: 24px 20px 20px;
+  }
+  .share-modal__title { font-size: 22px; }
+  .share-modal__grid { gap: 8px; }
 }

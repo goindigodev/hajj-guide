@@ -3,22 +3,19 @@
  *
  * Routes:
  *   GET  /js/config.js   — dynamically generated, inlines the Google Maps API key
- *   POST /api/feedback   — accepts a feedback form, sends email via Resend
  *   POST /api/like       — increments the global "like" counter in KV
  *   GET  /api/like       — returns the current count
+ *   POST /api/share      — increments the global "share" counter in KV
+ *   GET  /api/share      — returns the current count
  *   *                    — falls through to env.ASSETS.fetch (static files)
  *
  * Bindings (set via wrangler.jsonc and the Cloudflare dashboard):
  *   env.ASSETS              — static asset binding (already present)
  *   env.GOOGLE_MAPS_API_KEY — secret, set via `wrangler secret put`
- *   env.RESEND_API_KEY      — secret, set via `wrangler secret put`
- *   env.FEEDBACK_TO         — plain var, e.g. "you@hajjguide.net"
- *   env.FEEDBACK_FROM       — plain var, e.g. "feedback@hajjguide.net" (must be a verified Resend domain)
  *   env.LIKES               — KV namespace binding (added in Cloudflare dashboard)
  */
 
 const CORS_HEADERS = {
-  // Restrict to our own origin — no need to allow third parties
   'Access-Control-Allow-Origin': 'https://hajjguide.net',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -34,17 +31,6 @@ function jsonResponse(body, status = 200, extraHeaders = {}) {
       ...extraHeaders,
     },
   });
-}
-
-const MAX_FEEDBACK_BYTES = 8 * 1024;
-
-function escapeHtml(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 async function handleConfig(env) {
@@ -67,104 +53,11 @@ window.APP_CONFIG = ${JSON.stringify(config, null, 2)};
   });
 }
 
-async function handleFeedback(request, env) {
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
-  if (request.method !== 'POST') {
-    return jsonResponse({ error: 'Method not allowed' }, 405);
-  }
-
-  if (!env.RESEND_API_KEY || !env.FEEDBACK_TO || !env.FEEDBACK_FROM) {
-    return jsonResponse(
-      { error: 'Feedback is temporarily unavailable. Please try again later.' },
-      503
-    );
-  }
-
-  let payload;
-  try {
-    const text = await request.text();
-    if (text.length > MAX_FEEDBACK_BYTES) {
-      return jsonResponse({ error: 'Message too long.' }, 413);
-    }
-    payload = JSON.parse(text);
-  } catch (e) {
-    return jsonResponse({ error: 'Invalid JSON.' }, 400);
-  }
-
-  const message = String(payload.message || '').trim();
-  const name = String(payload.name || '').trim().slice(0, 200);
-  const email = String(payload.email || '').trim().slice(0, 200);
-  // Honeypot — bots fill it, humans don't see it
-  const honeypot = String(payload.website || '').trim();
-
-  if (honeypot) {
-    // Pretend success so bots don't get a signal
-    return jsonResponse({ ok: true });
-  }
-
-  if (!message || message.length < 2) {
-    return jsonResponse({ error: 'Please write a message.' }, 400);
-  }
-  if (message.length > 5000) {
-    return jsonResponse({ error: 'Message too long (max 5000 chars).' }, 400);
-  }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return jsonResponse({ error: 'That email address looks invalid.' }, 400);
-  }
-
-  const ip = request.headers.get('CF-Connecting-IP') || '';
-  const country = request.headers.get('CF-IPCountry') || '';
-  const ua = request.headers.get('User-Agent') || '';
-
-  const subject = `[hajjguide.net] feedback from ${name || email || 'anonymous'}`;
-  const html = `
-    <h2 style="font-family: Georgia, serif;">New feedback from hajjguide.net</h2>
-    <p style="white-space: pre-wrap; font-family: -apple-system, sans-serif; font-size: 14px;">${escapeHtml(message)}</p>
-    <hr/>
-    <table style="font-family: -apple-system, sans-serif; font-size: 12px; color: #555;">
-      <tr><td><strong>Name</strong></td><td>${escapeHtml(name) || '<em>(not given)</em>'}</td></tr>
-      <tr><td><strong>Email</strong></td><td>${escapeHtml(email) || '<em>(not given)</em>'}</td></tr>
-      <tr><td><strong>Country</strong></td><td>${escapeHtml(country)}</td></tr>
-      <tr><td><strong>IP</strong></td><td>${escapeHtml(ip)}</td></tr>
-      <tr><td><strong>User agent</strong></td><td>${escapeHtml(ua)}</td></tr>
-      <tr><td><strong>Sent</strong></td><td>${new Date().toISOString()}</td></tr>
-    </table>
-  `;
-
-  const resendBody = {
-    from: env.FEEDBACK_FROM,
-    to: [env.FEEDBACK_TO],
-    subject,
-    html,
-  };
-  if (email) {
-    resendBody.reply_to = email;
-  }
-
-  let resendRes;
-  try {
-    resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(resendBody),
-    });
-  } catch (e) {
-    return jsonResponse({ error: 'Could not send. Please try again.' }, 502);
-  }
-
-  if (!resendRes.ok) {
-    return jsonResponse({ error: 'Could not send. Please try again.' }, 502);
-  }
-
-  return jsonResponse({ ok: true });
-}
-
-async function handleLike(request, env) {
+/**
+ * v2.3 — Generic KV counter handler. Used by /api/like and /api/share.
+ * The same KV namespace (LIKES) stores both, under different keys.
+ */
+async function handleCounter(request, env, kvKey) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
@@ -175,7 +68,7 @@ async function handleLike(request, env) {
   }
 
   if (request.method === 'GET') {
-    const raw = await env.LIKES.get('total');
+    const raw = await env.LIKES.get(kvKey);
     const count = parseInt(raw || '0', 10) || 0;
     return jsonResponse({ count }, 200, {
       'Cache-Control': 'public, max-age=15',
@@ -183,23 +76,27 @@ async function handleLike(request, env) {
   }
 
   if (request.method === 'POST') {
-    const raw = await env.LIKES.get('total');
+    const raw = await env.LIKES.get(kvKey);
     const current = parseInt(raw || '0', 10) || 0;
     const next = current + 1;
-    await env.LIKES.put('total', String(next));
+    await env.LIKES.put(kvKey, String(next));
     return jsonResponse({ ok: true, count: next });
   }
 
   return jsonResponse({ error: 'Method not allowed' }, 405);
 }
 
+// Backwards-compat thin wrappers
+async function handleLike(request, env)  { return handleCounter(request, env, 'total'); }
+async function handleShare(request, env) { return handleCounter(request, env, 'share-total'); }
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname === '/js/config.js') return handleConfig(env);
-    if (url.pathname === '/api/feedback') return handleFeedback(request, env);
     if (url.pathname === '/api/like')     return handleLike(request, env);
+    if (url.pathname === '/api/share')    return handleShare(request, env);
 
     return env.ASSETS.fetch(request);
   },
