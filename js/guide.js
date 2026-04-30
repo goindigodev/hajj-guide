@@ -2694,25 +2694,34 @@
       // Did we already insert a "Travel to Makkah · Umrah" card?
       let umrahInserted = false;
 
-      // Detect the day immediately AFTER the last Madinah hotel range
-      // (or the day Makkah starts, or the overlap day if both happen on the
-      // same date — i.e. the user's last Madinah night IS their first Makkah
-      // night). That's the natural slot for the Travel-to-Makkah / Umrah day.
+      // v3.5 — Detect the natural travel-to-Makkah / Umrah day.
+      //
+      // User mental model: when they extend their Madinah hotel by a day,
+      // they expect to gain a Madinah day (and lose a Makkah day), not for
+      // nothing to change. So we anchor the travel day to the Madinah end
+      // date (the user's last Madinah night) whenever Madinah is set.
+      //
+      // - Madinah end + 1 = Travel day, when Madinah is set
+      // - Same-day overlap (Madinah end = Makkah start) → that day is Travel
+      // - Madinah-only, no Makkah → day after Madinah ends is Travel
+      // - Makkah-only, no Madinah → first Makkah day is Travel/Umrah
       const travelDayIso = (() => {
-        // Case 1: Madinah-end and Makkah-start are the same day → that IS the travel day
+        // Same-day overlap: last Madinah night IS first Makkah night
         if (madinahRange && makkahRange &&
             madinahRange.latest === makkahRange.earliest) {
           return madinahRange.latest;
         }
-        // Case 2: Distinct end and start with a gap → use Makkah-start
-        // (user spends the gap day(s) travelling)
-        if (makkahRange && makkahRange.earliest) {
-          return makkahRange.earliest;
-        }
-        // Case 3: Madinah only (no Makkah) → day after Madinah ends
+        // Madinah end is set → travel is the day after (regardless of Makkah-start)
+        // This means if hotels overlap (Madinah end > Makkah start), the user's
+        // EXTENDED Madinah window wins, since they explicitly chose those dates
         if (madinahRange && madinahRange.latest) {
           const after = addDays(new Date(madinahRange.latest), 1);
           return isoOf(after);
+        }
+        // Madinah not set, but Makkah is → use Makkah start (Umrah-only or
+        // skip-Madinah trip)
+        if (makkahRange && makkahRange.earliest) {
+          return makkahRange.earliest;
         }
         return null;
       })();
@@ -2813,7 +2822,13 @@
         }
 
         // 6) In Madinah ──────────────────────────────────────────
-        if (madinahDated && inHotelRange('madinah', iso)) {
+        // v3.5 — Once the Travel-to-Makkah day has fired, we treat the
+        // pilgrim as having moved on, even if their Madinah hotel range
+        // overlaps. Otherwise we'd produce incoherent output like
+        // "Madinah Day 4" appearing AFTER the Travel/Umrah day, when in
+        // fact the pilgrim is just leaving the Madinah hotel late while
+        // already in Makkah.
+        if (madinahDated && inHotelRange('madinah', iso) && !umrahInserted) {
           madinahCounter++;
           const isFirstMadinahDay = madinahCounter === 1;
           days.push({
@@ -2824,7 +2839,7 @@
             description: isFirstMadinahDay
               ? 'Settle into your accommodation. Aim for the next prayer at Masjid an-Nabawi if time and energy allow. Visit the Rawdah and offer salaams at the Prophet\'s grave.'
               : 'Pray five daily prayers at Masjid an-Nabawi if possible. Each prayer there equals 1,000 elsewhere. Visit Masjid Quba (Saturday morning is sunnah).',
-            duaIds: isFirstMadinahDay ? ['first-sight-kabah'] : [],
+            duaIds: isFirstMadinahDay ? ['masjid-nabawi-entry', 'salam-prophet'] : [],
             actions: isFirstMadinahDay ? [
               'Check in and rest if exhausted from travel.',
               'Make ghusl or wudu before going to the mosque.',
@@ -3002,7 +3017,7 @@
           description: i === 0
             ? 'Settle into your accommodation. Aim for the next prayer at Masjid an-Nabawi if time and energy allow. Visit the Rawdah and offer salaams at the Prophet\'s grave.'
             : 'Pray five daily prayers at Masjid an-Nabawi if possible. Each prayer there equals 1,000 elsewhere. Visit Masjid Quba (Saturday morning is sunnah).',
-          duaIds: i === 0 ? ['first-sight-kabah'] : [],
+          duaIds: i === 0 ? ['masjid-nabawi-entry', 'salam-prophet'] : [],
           actions: i === 0 ? [
             'Check in and rest if exhausted from travel.',
             'Make ghusl or wudu before going to the mosque.',

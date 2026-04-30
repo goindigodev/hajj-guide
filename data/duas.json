@@ -1,7 +1,8 @@
 {
   "_meta": {
     "version": "1.0",
-    "audioSource": "Audio links use everyayah.com (full Quran) and quranicaudio.com. For specific dua audio, links direct to YouTube searches that can be replaced with actual audio files when hosting."
+    "audioSource": "Audio links use everyayah.com (full Quran) and quranicaudio.com. For specific dua audio, links direct to YouTube searches that can be replaced with actual audio files when hosting.",
+    "count": 23
   },
   "duas": [
     {
@@ -11,7 +12,11 @@
       "arabic": "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لاَ شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لاَ شَرِيكَ لَكَ",
       "transliteration": "Labbayk Allahumma labbayk, labbayka la sharika laka labbayk, innal-hamda wan-ni'mata laka wal-mulk, la sharika lak",
       "translation": "Here I am, O Allah, here I am. Here I am, You have no partner, here I am. Verily all praise and blessings are Yours, and all sovereignty. You have no partner.",
-      "tags": ["ihram", "umrah", "hajj"],
+      "tags": [
+        "ihram",
+        "umrah",
+        "hajj"
+      ],
       "audioUrl": "https://server8.mp3quran.net/afs/talbiyah.mp3",
       "source": "Sahih al-Bukhari 1549, Sahih Muslim 1184"
     },
@@ -22,7 +27,10 @@
       "arabic": "اللَّهُمَّ إِنِّي أُرِيدُ الْعُمْرَةَ فَيَسِّرْهَا لِي وَتَقَبَّلْهَا مِنِّي",
       "transliteration": "Allahumma inni uridul-'umrata fa-yassirha li wa-taqabbalha minni",
       "translation": "O Allah, I intend to perform Umrah, so make it easy for me and accept it from me.",
-      "tags": ["umrah", "ihram"],
+      "tags": [
+        "umrah",
+        "ihram"
+      ],
       "audioUrl": null,
       "source": "Hadith collections; standard intention formula"
     },
@@ -33,7 +41,10 @@
       "arabic": "اللَّهُمَّ إِنِّي أُرِيدُ الْحَجَّ فَيَسِّرْهُ لِي وَتَقَبَّلْهُ مِنِّي",
       "transliteration": "Allahumma inni uridul-hajja fa-yassirhu li wa-taqabbalhu minni",
       "translation": "O Allah, I intend to perform Hajj, so make it easy for me and accept it from me.",
-      "tags": ["hajj", "ihram"],
+      "tags": [
+        "hajj",
+        "ihram"
+      ],
       "audioUrl": null,
       "source": "Hadith collections; standard intention formula"
     },
@@ -44,7 +55,9 @@
       "arabic": "بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللَّهِ",
       "transliteration": "Bismillahi, tawakkaltu 'alallahi, wa la hawla wa la quwwata illa billah",
       "translation": "In the name of Allah, I place my trust in Allah, and there is no power nor strength except with Allah.",
-      "tags": ["travel"],
+      "tags": [
+        "travel"
+      ],
       "audioUrl": null,
       "source": "Sunan Abi Dawud 5095, At-Tirmidhi 3426"
     },
@@ -55,7 +68,9 @@
       "arabic": "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ",
       "transliteration": "Subhanal-ladhi sakhkhara lana hadha wa ma kunna lahu muqrinin, wa inna ila Rabbina la-munqalibun",
       "translation": "Glory to the One who has subjected this to us; we could not have done it ourselves. And indeed to our Lord we will return.",
-      "tags": ["travel"],
+      "tags": [
+        "travel"
+      ],
       "audioUrl": null,
       "source": "Quran 43:13-14, Sunan Abi Dawud 2602"
     },
@@ -66,9 +81,41 @@
       "arabic": "اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي السَّفَرِ وَالْخَلِيفَةُ فِي الأَهْلِ",
       "transliteration": "Allahumma inna nas'aluka fi safarina hadhal-birra wat-taqwa, wa minal-'amali ma tarda, Allahumma hawwin 'alayna safarana hadha wa atwi 'anna bu'dahu, Allahumma antas-sahibu fis-safari wal-khalifatu fil-ahl",
       "translation": "O Allah, we ask You in this journey of ours for righteousness and piety, and for deeds that are pleasing to You. O Allah, make easy for us this journey and shorten its distance for us. O Allah, You are the Companion in travel and the Successor over the family.",
-      "tags": ["travel"],
+      "tags": [
+        "travel"
+      ],
       "audioUrl": null,
       "source": "Sahih Muslim 1342"
+    },
+    {
+      "id": "masjid-nabawi-entry",
+      "title": "On Entering Masjid an-Nabawi",
+      "context": "Recited on entering any mosque, including Masjid an-Nabawi. Step in with the right foot first.",
+      "arabic": "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ",
+      "transliteration": "Allahumma'ftaḥ lī abwāba raḥmatik",
+      "translation": "O Allah, open for me the doors of Your mercy.",
+      "tags": [
+        "madinah",
+        "mosque",
+        "prophets-mosque"
+      ],
+      "audioUrl": "",
+      "source": "Sahih Muslim 713 (from Abu Usayd, RA)"
+    },
+    {
+      "id": "salam-prophet",
+      "title": "Salam on the Prophet ﷺ at the Rawdah",
+      "context": "Recited when standing before the resting place of the Prophet ﷺ in Masjid an-Nabawi. Stand facing the grave with composure and lowered voice.",
+      "arabic": "السَّلامُ عَلَيْكَ يَا رَسُولَ اللهِ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ",
+      "transliteration": "As-salāmu ʿalayka yā Rasūlallāh wa raḥmatullāhi wa barakātuh",
+      "translation": "Peace be upon you, O Messenger of Allah, and the mercy of Allah and His blessings.",
+      "tags": [
+        "madinah",
+        "prophets-mosque",
+        "rawdah"
+      ],
+      "audioUrl": "",
+      "source": "The Prophet ﷺ said: \"No one sends salam upon me except that Allah returns my soul to me so that I may return his salam.\" (Sunan Abi Dawud 2041, classed hasan)"
     },
     {
       "id": "first-sight-kabah",
@@ -77,7 +124,11 @@
       "arabic": "اللَّهُمَّ زِدْ هَذَا الْبَيْتَ تَشْرِيفًا وَتَعْظِيمًا وَتَكْرِيمًا وَمَهَابَةً، وَزِدْ مَنْ شَرَّفَهُ وَكَرَّمَهُ مِمَّنْ حَجَّهُ أَوِ اعْتَمَرَهُ تَشْرِيفًا وَتَكْرِيمًا وَتَعْظِيمًا وَبِرًّا",
       "transliteration": "Allahumma zid hadhal-bayta tashrifan wa ta'ziman wa takriman wa mahabah, wa zid man sharrafahu wa karramahu mimman hajjahu aw i'tamarahu tashrifan wa takriman wa ta'ziman wa birra",
       "translation": "O Allah, increase this House in honour, magnification, dignity and reverence. And increase those who honour and dignify it from among those who perform Hajj or Umrah here in honour, dignity, magnification and righteousness.",
-      "tags": ["umrah", "hajj", "tawaf"],
+      "tags": [
+        "umrah",
+        "hajj",
+        "tawaf"
+      ],
       "audioUrl": null,
       "source": "Reported in classical Hajj manuals (Ibn Qudamah, others)"
     },
@@ -88,7 +139,9 @@
       "arabic": "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَانًا بِكَ وَتَصْدِيقًا بِكِتَابِكَ وَوَفَاءً بِعَهْدِكَ وَاتِّبَاعًا لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّم",
       "transliteration": "Bismillahi wallahu akbar. Allahumma imanan bika wa tasdiqan bi-kitabika wa wafa'an bi-'ahdika wat-tiba'an li-sunnati Nabiyyika Muhammadin sallallahu 'alayhi wa sallam",
       "translation": "In the name of Allah, Allah is the Greatest. O Allah, [I begin] in faith in You, in affirmation of Your Book, in fulfilment of Your covenant, and in following the Sunnah of Your Prophet Muhammad ﷺ.",
-      "tags": ["tawaf"],
+      "tags": [
+        "tawaf"
+      ],
       "audioUrl": null,
       "source": "Reported by Ibn Umar in classical sources"
     },
@@ -99,7 +152,9 @@
       "arabic": "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّار",
       "transliteration": "Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina 'adhaban-nar",
       "translation": "Our Lord, grant us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",
-      "tags": ["tawaf"],
+      "tags": [
+        "tawaf"
+      ],
       "audioUrl": null,
       "source": "Quran 2:201; Sunan Abi Dawud 1892"
     },
@@ -110,7 +165,9 @@
       "arabic": "وَاتَّخِذُوا مِن مَّقَامِ إِبْرَاهِيمَ مُصَلًّى",
       "transliteration": "Wat-takhidhu min maqami Ibrahima musalla",
       "translation": "And take from the standing-place of Ibrahim a place of prayer.",
-      "tags": ["tawaf"],
+      "tags": [
+        "tawaf"
+      ],
       "audioUrl": null,
       "source": "Quran 2:125"
     },
@@ -121,7 +178,11 @@
       "arabic": "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا وَاسِعًا، وَشِفَاءً مِنْ كُلِّ دَاءٍ",
       "transliteration": "Allahumma inni as'aluka 'ilman nafi'an, wa rizqan wasi'an, wa shifa'an min kulli da'",
       "translation": "O Allah, I ask You for beneficial knowledge, abundant provision, and healing from every disease.",
-      "tags": ["zamzam", "umrah", "hajj"],
+      "tags": [
+        "zamzam",
+        "umrah",
+        "hajj"
+      ],
       "audioUrl": null,
       "source": "Sunan Ibn Majah 3062 (the dua before drinking is from the Prophet ﷺ; specific words may vary)"
     },
@@ -132,7 +193,9 @@
       "arabic": "إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّه، أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ",
       "transliteration": "Innas-Safa wal-Marwata min sha'a'irillah. Abda'u bima bada'allahu bih",
       "translation": "Indeed, Safa and Marwah are among the symbols of Allah. I begin with what Allah began with.",
-      "tags": ["sa-i"],
+      "tags": [
+        "sa-i"
+      ],
       "audioUrl": null,
       "source": "Quran 2:158; Sahih Muslim 1218"
     },
@@ -143,7 +206,9 @@
       "arabic": "اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ. لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ. لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الأَحْزَابَ وَحْدَهُ",
       "transliteration": "Allahu akbar, Allahu akbar, Allahu akbar. La ilaha illallah wahdahu la sharika lah, lahul-mulku wa lahul-hamdu wa huwa 'ala kulli shay'in qadir. La ilaha illallahu wahdah, anjaza wa'dahu, wa nasara 'abdahu, wa hazamal-ahzaba wahdah",
       "translation": "Allah is the Greatest, Allah is the Greatest, Allah is the Greatest. There is no god but Allah alone, with no partner; to Him belongs sovereignty and to Him belongs all praise, and He has power over all things. There is no god but Allah alone; He fulfilled His promise, gave victory to His servant, and defeated the confederates alone.",
-      "tags": ["sa-i"],
+      "tags": [
+        "sa-i"
+      ],
       "audioUrl": null,
       "source": "Sahih Muslim 1218"
     },
@@ -154,7 +219,9 @@
       "arabic": "لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
       "transliteration": "La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, wa huwa 'ala kulli shay'in qadir",
       "translation": "There is no god but Allah alone, with no partner. To Him belongs sovereignty and to Him belongs all praise, and He has power over all things.",
-      "tags": ["arafah"],
+      "tags": [
+        "arafah"
+      ],
       "audioUrl": null,
       "source": "Jami' at-Tirmidhi 3585"
     },
@@ -165,7 +232,9 @@
       "arabic": "اللَّهُمَّ لَكَ الْحَمْدُ كَالَّذِي تَقُولُ وَخَيْرًا مِمَّا نَقُولُ، اللَّهُمَّ لَكَ صَلاَتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي، وَإِلَيْكَ مَآبِي، وَلَكَ رَبِّ تُرَاثِي. اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَوَسْوَسَةِ الصَّدْرِ، وَشَتَاتِ الأَمْرِ. اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ خَيْرِ مَا تَجِيءُ بِهِ الرِّيحُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا تَجِيءُ بِهِ الرِّيحُ",
       "transliteration": "Allahumma lakal-hamdu kalladhi taqulu wa khayran mimma naqul. Allahumma laka salati wa nusuki wa mahyaya wa mamati, wa ilayka ma'abi, wa laka Rabbi turathi. Allahumma inni a'udhu bika min 'adhabil-qabri, wa waswasatis-sadri, wa shatatil-amr. Allahumma inni as'aluka min khayri ma taji'u bihir-rih, wa a'udhu bika min sharri ma taji'u bihir-rih",
       "translation": "O Allah, all praise is Yours as You have said and better than what we say. O Allah, my prayer, my sacrifice, my life and my death are for You; to You is my return, and to You belongs my legacy. O Allah, I seek refuge in You from the punishment of the grave, the whisperings of the chest, and the dispersion of affairs. O Allah, I ask You for the good of what the wind brings, and seek refuge in You from the evil of what the wind brings.",
-      "tags": ["arafah"],
+      "tags": [
+        "arafah"
+      ],
       "audioUrl": null,
       "source": "Reported by Ali ibn Abi Talib; Jami' at-Tirmidhi"
     },
@@ -176,7 +245,9 @@
       "arabic": "اللَّهُمَّ كَمَا وَقَّفْتَنَا فِيهِ وَأَرَيْتَنَا إِيَّاهُ، فَوَفِّقْنَا لِذِكْرِكَ كَمَا هَدَيْتَنَا، وَاغْفِرْ لَنَا وَارْحَمْنَا",
       "transliteration": "Allahumma kama wawaqqaftana fihi wa araytana iyyah, fa-waffiqna li-dhikrika kama hadaytana, waghfir lana warhamna",
       "translation": "O Allah, just as You have made us stop here and shown it to us, grant us success in remembering You as You have guided us, and forgive us and have mercy upon us.",
-      "tags": ["muzdalifah"],
+      "tags": [
+        "muzdalifah"
+      ],
       "audioUrl": null,
       "source": "Quran 2:198 (basis); reported in classical manuals"
     },
@@ -187,7 +258,9 @@
       "arabic": "بِسْمِ اللَّهِ، وَاللَّهُ أَكْبَرُ، رَغْمًا لِلشَّيْطَانِ وَرِضًا لِلرَّحْمَن",
       "transliteration": "Bismillahi, wallahu akbar, raghman lish-shaytani wa ridan lir-Rahman",
       "translation": "In the name of Allah, Allah is the Greatest. In defiance of Satan and to please the Most Merciful.",
-      "tags": ["rami"],
+      "tags": [
+        "rami"
+      ],
       "audioUrl": null,
       "source": "Reported in classical Hajj manuals; the takbir is mutawatir"
     },
@@ -198,7 +271,9 @@
       "arabic": "Make personal duas. Many scholars recommend reciting Surah al-Fatihah and Ayat al-Kursi.",
       "transliteration": "—",
       "translation": "Pause and make extensive personal supplication.",
-      "tags": ["rami"],
+      "tags": [
+        "rami"
+      ],
       "audioUrl": null,
       "source": "Sahih al-Bukhari 1751"
     },
@@ -209,7 +284,10 @@
       "arabic": "اللَّهُمَّ إِنِّي أَسْأَلُكَ بِأَنَّكَ أَنْتَ اللَّهُ الَّذِي لاَ إِلَهَ إِلاَّ أَنْت",
       "transliteration": "Allahumma inni as'aluka bi'annaka antallah, alladhi la ilaha illa ant",
       "translation": "O Allah, I ask You by virtue that You are Allah, there is no god but You.",
-      "tags": ["tawaf", "wada"],
+      "tags": [
+        "tawaf",
+        "wada"
+      ],
       "audioUrl": null,
       "source": "Recommended in classical sources for personal supplication"
     },
@@ -220,7 +298,9 @@
       "arabic": "آيِبُونَ، تَائِبُونَ، عَابِدُونَ، لِرَبِّنَا حَامِدُون",
       "transliteration": "Ayibun, ta'ibun, 'abidun, li-Rabbina hamidun",
       "translation": "We return, we repent, we worship, and we praise our Lord.",
-      "tags": ["travel"],
+      "tags": [
+        "travel"
+      ],
       "audioUrl": null,
       "source": "Sahih al-Bukhari 1797"
     },
@@ -231,7 +311,10 @@
       "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي، فَاغْفِرْ لِي فَإِنَّهُ لاَ يَغْفِرُ الذُّنُوبَ إِلاَّ أَنْت",
       "transliteration": "Allahumma anta Rabbi, la ilaha illa ant. Khalaqtani wa ana 'abduk, wa ana 'ala 'ahdika wa wa'dika mas-tata't. A'udhu bika min sharri ma sana't. Abu'u laka bi-ni'matika 'alayy, wa abu'u bi-dhanbi, faghfir li, fa-innahu la yaghfirudh-dhunuba illa ant",
       "translation": "O Allah, You are my Lord, there is no god but You. You created me and I am Your servant. I keep Your covenant and Your promise as much as I am able. I seek refuge in You from the evil I have done. I acknowledge Your blessings upon me and I acknowledge my sin. Forgive me, for none forgives sins except You.",
-      "tags": ["forgiveness", "daily"],
+      "tags": [
+        "forgiveness",
+        "daily"
+      ],
       "audioUrl": null,
       "source": "Sahih al-Bukhari 6306"
     }
