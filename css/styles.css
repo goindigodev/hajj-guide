@@ -483,6 +483,55 @@ section + section {
   .input-row { grid-template-columns: 1fr; }
 }
 
+/* v2.1 — smart flight helpers */
+.flight-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-mute);
+  min-height: 0;
+}
+.flight-hint:empty { display: none; }
+.flight-hint__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.flight-hint__airline {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.flight-hint__airline strong {
+  color: var(--green-deep);
+  font-style: normal;
+  font-weight: 600;
+}
+.flight-hint__verify {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--brass-deep);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--brass);
+  padding-bottom: 1px;
+}
+.flight-hint__verify:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.flight-warning {
+  margin-top: var(--space-3);
+  padding: 10px 14px;
+  background: #fdf3e3;
+  border-left: 3px solid #c08930;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: #6b4d11;
+  font-style: italic;
+}
+.flight-warning.hidden { display: none; }
+
 /* Radio / option grid */
 .option-grid {
   display: grid;
@@ -2108,3 +2157,279 @@ hr.rule {
 
 .print-header { display: none; }
 
+
+/* =============================================================
+   v2.1 — FEEDBACK MODAL
+   ============================================================= */
+
+body.is-modal-open {
+  overflow: hidden;
+}
+
+.feedback-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: feedbackFade 0.2s ease;
+}
+
+@keyframes feedbackFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.feedback-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 29, 26, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.feedback-modal__panel {
+  position: relative;
+  background: var(--paper);
+  border-radius: 12px;
+  border: 1px solid var(--rule);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px 28px 24px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  animation: feedbackRise 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes feedbackRise {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.feedback-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.feedback-modal__close:hover {
+  background: rgba(74, 93, 74, 0.08);
+  color: var(--ink);
+}
+
+.feedback-modal__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 400;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.feedback-modal__lead {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0 0 20px;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedback-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.feedback-field__opt,
+.feedback-field__req {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-mute);
+  font-size: 12px;
+}
+
+.feedback-field__req {
+  color: #b8954a;
+  font-style: normal;
+}
+
+.feedback-field input,
+.feedback-field textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: #fdfbf6;
+  color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: vertical;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.feedback-field input:focus,
+.feedback-field textarea:focus {
+  outline: none;
+  border-color: var(--green-deep);
+  box-shadow: 0 0 0 3px rgba(74, 93, 74, 0.12);
+}
+
+.feedback-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.feedback-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.feedback-status {
+  font-size: 13px;
+  text-align: right;
+  min-height: 18px;
+  margin-top: 2px;
+}
+.feedback-status--pending {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+.feedback-status--error {
+  color: #a14a2c;
+}
+.feedback-status--success {
+  color: var(--green-deep);
+}
+
+@media (max-width: 480px) {
+  .feedback-modal__panel {
+    padding: 20px 18px;
+    border-radius: 10px;
+  }
+  .feedback-modal__title { font-size: 22px; }
+}
+
+/* =============================================================
+   v2.1 — LIKE BUTTON (footer)
+   ============================================================= */
+
+.site-footer {
+  margin-top: var(--space-7, 56px);
+  padding: 28px var(--space-2) 36px;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink-soft);
+}
+
+.site-footer__row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.site-footer__link {
+  background: none;
+  border: none;
+  color: var(--brass-deep);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--brass);
+  padding: 2px 0;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.site-footer__link:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.site-footer__sep {
+  color: var(--ink-mute);
+  user-select: none;
+}
+
+.site-footer__caption {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.1s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+.like-btn:hover {
+  border-color: var(--brass);
+  color: var(--brass-deep);
+}
+.like-btn:active {
+  transform: scale(0.96);
+}
+.like-btn__heart {
+  font-size: 14px;
+  color: var(--brass);
+  transition: transform 0.25s ease, color 0.18s;
+}
+.like-btn.is-liked {
+  background: rgba(184, 149, 74, 0.1);
+  border-color: var(--brass);
+  color: var(--brass-deep);
+  cursor: default;
+}
+.like-btn.is-liked .like-btn__heart {
+  color: #c0623c;
+  animation: likePulse 0.4s ease;
+}
+@keyframes likePulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+[data-like-count] {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

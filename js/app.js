@@ -12,6 +12,10 @@
     if (window.FontSize)  FontSize.init();
     if (window.Maps)      Maps.init();
 
+    // v2.1 — feedback modal + like button (footer)
+    if (window.Feedback && Feedback.init) Feedback.init();
+    if (window.Like && Like.init) Like.init();
+
     // Render font-size control in header
     const fsHost = document.getElementById('fontsize-host');
     if (fsHost && window.FontSize) FontSize.renderControl(fsHost);

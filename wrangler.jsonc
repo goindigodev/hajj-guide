@@ -10,5 +10,26 @@
   },
   "observability": {
     "enabled": true
+  },
+
+  // v2.1 — KV for the like counter.
+  // The id below MUST be replaced with your real namespace id after creating
+  // it in Cloudflare (Workers & Pages → KV → Create Namespace → "hajj-likes").
+  // If left as the placeholder, the like endpoints will return 0 / no-op
+  // (the worker is defensive about a missing binding).
+  "kv_namespaces": [
+    {
+      "binding": "LIKES",
+      "id": "c8601b6fc216473baf4d649cc051abd7"
+    }
+  ],
+
+  // v2.1 — Plain-text vars (NOT secrets — set via dashboard or wrangler.jsonc).
+  // FEEDBACK_TO is where feedback emails arrive. FEEDBACK_FROM must be a
+  // verified domain on Resend. RESEND_API_KEY is a SECRET, set via
+  //   wrangler secret put RESEND_API_KEY
+  "vars": {
+    "FEEDBACK_TO": "REPLACE_WITH_YOUR_EMAIL",
+    "FEEDBACK_FROM": "ach@goindigo.co.uk"
   }
 }

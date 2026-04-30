@@ -114,13 +114,20 @@
   </div>
 </main>
 
-<footer class="site-footer no-print">
-  <div class="container">
-    <p class="text-mute" style="font-size: var(--fs-xs);">
-      Hajj Guide · An open companion for pilgrims · 
-      <a href="#" id="reset-link">Reset all my data</a>
-    </p>
+<footer class="site-footer no-print" role="contentinfo">
+  <div class="site-footer__row">
+    <button type="button" class="like-btn" data-like-button aria-label="Like this guide">
+      <span class="like-btn__heart" aria-hidden="true">♥</span>
+      <span><span data-like-count>—</span> pilgrims</span>
+    </button>
+    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <button type="button" class="site-footer__link" data-feedback-open>Send feedback</button>
+    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <a class="site-footer__link" href="https://github.com/goindigodev/hajj-guide" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <a class="site-footer__link" href="#" id="reset-link">Reset my data</a>
   </div>
+  <div class="site-footer__caption">A free planning aid · Confirm rulings with a qualified scholar</div>
 </footer>
 
 <!--
@@ -137,6 +144,8 @@
 <script src="./js/store.js"></script>
 <script src="./js/maps.js"></script>
 <script src="./js/fontsize.js"></script>
+<script src="./js/feedback.js"></script>
+<script src="./js/like.js"></script>
 <script src="./js/onboarding.js"></script>
 
 <script>
@@ -151,6 +160,10 @@
 
   // Initialise Maps (loads Places API if key configured)
   if (window.Maps && Maps.init) Maps.init();
+
+  // v2.1 — wire up feedback modal + like button
+  if (window.Feedback && Feedback.init) Feedback.init();
+  if (window.Like && Like.init) Like.init();
 
   // If user already onboarded, allow them to go straight to the app
   if (Store.isOnboarded()) {
@@ -203,6 +216,15 @@
   }
 })();
 </script>
+
+<!--
+  v2.1 — Cloudflare Web Analytics
+  After enabling Web Analytics on hajjguide.net in the Cloudflare dashboard
+  (Analytics → Web Analytics → Add a site), copy the beacon token they
+  give you and uncomment the line below, replacing YOUR_BEACON_TOKEN.
+  Privacy-first, no cookies, no PII.
+-->
+<!-- <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script> -->
 
 </body>
 </html>

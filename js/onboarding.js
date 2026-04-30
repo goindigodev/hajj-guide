@@ -16,6 +16,68 @@
     { id: 'group', title: 'Travel Companions' },
   ];
 
+  /**
+   * v2.1 — Airline IATA reference for the smart flight helpers.
+   * Just the carriers commonly flown by pilgrims to KSA. Not exhaustive
+   * — if a user's airline isn't here, we silently fall back to no hint.
+   * Each entry maps IATA prefix -> { name, statusUrl }.
+   * statusUrl is a template; {flight} is replaced with the user's number.
+   */
+  const AIRLINES = {
+    SV: { name: 'Saudia', statusUrl: 'https://www.saudia.com/manage/flight-status' },
+    XY: { name: 'flynas', statusUrl: 'https://www.flynas.com/en/flight-status' },
+    EK: { name: 'Emirates', statusUrl: 'https://www.emirates.com/english/manage-booking/flight-status/' },
+    EY: { name: 'Etihad Airways', statusUrl: 'https://www.etihad.com/en-gb/manage/flight-status' },
+    QR: { name: 'Qatar Airways', statusUrl: 'https://www.qatarairways.com/en/flight-status.html' },
+    TK: { name: 'Turkish Airlines', statusUrl: 'https://www.turkishairlines.com/en-int/flights/flight-status/' },
+    MS: { name: 'EgyptAir', statusUrl: 'https://www.egyptair.com/en/fly/Pages/flight-status.aspx' },
+    BA: { name: 'British Airways', statusUrl: 'https://www.britishairways.com/travel/flight-information/public/en_gb' },
+    VS: { name: 'Virgin Atlantic', statusUrl: 'https://www.virginatlantic.com/flight-status' },
+    LH: { name: 'Lufthansa', statusUrl: 'https://www.lufthansa.com/xx/en/flight-status' },
+    AF: { name: 'Air France', statusUrl: 'https://www.airfrance.us/US/en/local/transverse/flight/flight-status.htm' },
+    KL: { name: 'KLM', statusUrl: 'https://www.klm.com/travel/gb_en/prepare_for_travel/checkin_options/flight_status/index.htm' },
+    PK: { name: 'Pakistan International', statusUrl: 'https://www.piac.com.pk/' },
+    AI: { name: 'Air India', statusUrl: 'https://www.airindia.com/in/en/manage/flight-status.html' },
+    GF: { name: 'Gulf Air', statusUrl: 'https://www.gulfair.com/manage-my-booking/flight-status' },
+    KU: { name: 'Kuwait Airways', statusUrl: 'https://www.kuwaitairways.com/en/manage-my-booking/flight-status' },
+    RJ: { name: 'Royal Jordanian', statusUrl: 'https://www.rj.com/en/manage-my-booking/flight-status' },
+    GA: { name: 'Garuda Indonesia', statusUrl: 'https://www.garuda-indonesia.com/' },
+    MH: { name: 'Malaysia Airlines', statusUrl: 'https://www.malaysiaairlines.com/' },
+    BG: { name: 'Biman Bangladesh', statusUrl: 'https://www.biman-airlines.com/' },
+    UL: { name: 'SriLankan Airlines', statusUrl: 'https://www.srilankan.com/en_uk/flight-status' },
+    AC: { name: 'Air Canada', statusUrl: 'https://www.aircanada.com/us/en/aco/home/flight-status.html' },
+    UA: { name: 'United Airlines', statusUrl: 'https://www.united.com/en-us/flight-status' },
+    DL: { name: 'Delta', statusUrl: 'https://www.delta.com/flightinfo/searchByFlight' },
+    AA: { name: 'American Airlines', statusUrl: 'https://www.aa.com/travelInformation/flights/status' },
+  };
+
+  /**
+   * Normalise a flight-number string: uppercase, strip whitespace + non-alphanumerics.
+   * "ba 147" -> "BA147", " sv-124 " -> "SV124".
+   */
+  function normaliseFlightNumber(raw) {
+    return String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  }
+
+  /**
+   * Given a normalised flight number like "BA147", return { iata, airline, statusUrl }
+   * or null if no match. Tries the first 2 chars (IATA standard).
+   */
+  function lookupAirline(flightNum) {
+    const norm = normaliseFlightNumber(flightNum);
+    if (norm.length < 3) return null;
+    const iata = norm.slice(0, 2);
+    const airline = AIRLINES[iata];
+    if (!airline) return null;
+    return {
+      iata,
+      number: norm,
+      name: airline.name,
+      statusUrl: airline.statusUrl,
+    };
+  }
+
+
   const Onboarding = {
     currentStep: 0,
     config: null,
@@ -126,12 +188,20 @@
       // Outbound
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Outbound'));
       const outRow = el('div', { class: 'input-row' });
-      outRow.appendChild(this.buildField('Flight number', 'text', 'e.g. SV124', this.config.outboundFlight.number, v => { this.config.outboundFlight.number = v; }));
+      const outFlightWrap = this.buildFlightField('Flight number', 'e.g. SV124',
+        this.config.outboundFlight.number,
+        v => { this.config.outboundFlight.number = v; },
+        'flight-hint-out'
+      );
+      outRow.appendChild(outFlightWrap);
       outRow.appendChild(this.buildField('Departure airport', 'text', 'e.g. LHR', this.config.outboundFlight.from, v => { this.config.outboundFlight.from = v.toUpperCase(); }));
       wrap.appendChild(outRow);
 
       const outRow2 = el('div', { class: 'input-row' });
-      outRow2.appendChild(this.buildField('Date', 'date', '', this.config.outboundFlight.date, v => { this.config.outboundFlight.date = v; }));
+      outRow2.appendChild(this.buildField('Date', 'date', '', this.config.outboundFlight.date, v => {
+        this.config.outboundFlight.date = v;
+        this._updateFlightDateWarning();
+      }));
       outRow2.appendChild(this.buildField('Time', 'time', '', this.config.outboundFlight.time, v => { this.config.outboundFlight.time = v; }));
       wrap.appendChild(outRow2);
 
@@ -142,18 +212,126 @@
       // Return
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Return'));
       const retRow = el('div', { class: 'input-row' });
-      retRow.appendChild(this.buildField('Flight number', 'text', 'e.g. SV123', this.config.returnFlight.number, v => { this.config.returnFlight.number = v; }));
+      retRow.appendChild(this.buildFlightField('Flight number', 'e.g. SV123',
+        this.config.returnFlight.number,
+        v => { this.config.returnFlight.number = v; },
+        'flight-hint-ret'
+      ));
       retRow.appendChild(this.buildField('From', 'text', 'e.g. JED', this.config.returnFlight.from, v => { this.config.returnFlight.from = v.toUpperCase(); }));
       wrap.appendChild(retRow);
 
       const retRow2 = el('div', { class: 'input-row' });
-      retRow2.appendChild(this.buildField('Date', 'date', '', this.config.returnFlight.date, v => { this.config.returnFlight.date = v; }));
+      retRow2.appendChild(this.buildField('Date', 'date', '', this.config.returnFlight.date, v => {
+        this.config.returnFlight.date = v;
+        this._updateFlightDateWarning();
+      }));
       retRow2.appendChild(this.buildField('Time', 'time', '', this.config.returnFlight.time, v => { this.config.returnFlight.time = v; }));
       wrap.appendChild(retRow2);
 
       wrap.appendChild(this.buildField('Home airport', 'text', 'e.g. LHR', this.config.returnFlight.to, v => { this.config.returnFlight.to = v.toUpperCase(); }));
 
+      // Date-order warning slot (populated by _updateFlightDateWarning)
+      const warning = el('div', { id: 'flight-date-warning', class: 'flight-warning hidden' });
+      wrap.appendChild(warning);
+
+      // Run an initial check after mount
+      requestAnimationFrame(() => this._updateFlightDateWarning());
+
       return wrap;
+    },
+
+    /**
+     * Smart flight-number field with airline detection and verify link.
+     * Renders into a wrapper div containing a label, the input, and
+     * a hint area (filled in with detected airline + verify button).
+     */
+    buildFlightField(label, placeholder, initialValue, onValue, hintId) {
+      const wrap = el('div', { class: 'field' });
+      wrap.appendChild(el('label', { class: 'field__label' }, label));
+
+      const input = el('input', {
+        type: 'text',
+        class: 'field__input flight-input',
+        placeholder,
+        value: initialValue || '',
+        autocapitalize: 'characters',
+        autocomplete: 'off',
+        spellcheck: 'false',
+      });
+
+      const hint = el('div', { class: 'flight-hint', id: hintId });
+
+      // Update on every keystroke: normalise + write back + render hint
+      const onInput = () => {
+        const raw = input.value;
+        const norm = normaliseFlightNumber(raw);
+        // Update displayed value if normalisation differs (preserves caret)
+        if (raw !== norm) {
+          const pos = input.selectionStart;
+          input.value = norm;
+          try { input.setSelectionRange(pos, pos); } catch (e) { /* no-op */ }
+        }
+        onValue(norm);
+        this._renderFlightHint(hint, norm);
+      };
+
+      input.addEventListener('input', onInput);
+      input.addEventListener('blur', onInput);
+
+      wrap.appendChild(input);
+      wrap.appendChild(hint);
+
+      // Initial render of the hint
+      requestAnimationFrame(() => this._renderFlightHint(hint, normaliseFlightNumber(initialValue)));
+      return wrap;
+    },
+
+    /** Render the airline hint inside the given hint container. */
+    _renderFlightHint(hintEl, flightNum) {
+      hintEl.innerHTML = '';
+      if (!flightNum || flightNum.length < 3) return;
+      const lookup = lookupAirline(flightNum);
+      if (!lookup) return;
+
+      const row = el('div', { class: 'flight-hint__row' });
+      row.appendChild(el('span', { class: 'flight-hint__airline' },
+        el('strong', null, lookup.name),
+        ' · ',
+        lookup.number
+      ));
+
+      const verify = el('a', {
+        href: lookup.statusUrl,
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        class: 'flight-hint__verify',
+      }, 'Verify on airline website ↗');
+      row.appendChild(verify);
+      hintEl.appendChild(row);
+    },
+
+    /** Show/hide a warning if return date is before outbound date. */
+    _updateFlightDateWarning() {
+      const warn = document.getElementById('flight-date-warning');
+      if (!warn) return;
+      const out = this.config.outboundFlight && this.config.outboundFlight.date;
+      const ret = this.config.returnFlight && this.config.returnFlight.date;
+      if (!out || !ret) {
+        warn.classList.add('hidden');
+        warn.textContent = '';
+        return;
+      }
+      // Compare as ISO strings (YYYY-MM-DD sorts correctly)
+      if (ret < out) {
+        warn.classList.remove('hidden');
+        warn.textContent = 'Heads up — your return date is before your outbound date. Double-check.';
+      } else if (ret === out) {
+        warn.classList.remove('hidden');
+        warn.textContent = 'Heads up — return and outbound are the same day. Double-check.';
+      } else {
+        warn.classList.add('hidden');
+        warn.textContent = '';
+      }
     },
 
     stepMadhab() {
