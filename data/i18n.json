@@ -1,13 +1,11 @@
 {
   "_note": "UI chrome strings. Religious content (duas, rulings, itinerary day descriptions) is NOT translated — it lives in its own data files. Keys are dotted paths like 'tabs.today'. Translations into fr/ar/ur are added in subsequent sessions; missing keys fall back to English at runtime.",
-
   "en": {
     "header": {
       "languageLabel": "Language",
       "fontSizeLabel": "Text size",
       "appName": "Hajj Guide"
     },
-
     "footer": {
       "duasPreamble": "Support this page with your Duas",
       "share": "Share",
@@ -18,7 +16,6 @@
       "ariaLikeButton": "Like this guide",
       "ariaShareButton": "Share this guide"
     },
-
     "tabs": {
       "today": "Today",
       "overview": "Overview",
@@ -33,7 +30,6 @@
       "wisdom": "Wisdom",
       "settings": "Settings"
     },
-
     "disclaimer": {
       "title": "Before you begin.",
       "lead": "Hajj Guide is a planning aid, not a fatwa.",
@@ -42,7 +38,6 @@
       "accept": "I understand",
       "caption": "May Allah accept your Hajj."
     },
-
     "share": {
       "title": "Share this guide",
       "lead": "Help another pilgrim plan their Hajj.",
@@ -57,7 +52,6 @@
       "countMany": "Shared {n} times",
       "ariaClose": "Close"
     },
-
     "common": {
       "continue": "Continue",
       "back": "Back",
@@ -71,23 +65,31 @@
       "yes": "Yes",
       "no": "No",
       "loading": "Loading…",
-      "comingSoon": "Coming soon"
+      "comingSoon": "Coming soon",
+      "edit": "Edit",
+      "days": "days",
+      "day": "day",
+      "night": "night",
+      "nights": "nights",
+      "noData": "No data yet."
     },
-
     "onboarding": {
       "welcome": {
         "stepNum": "Step 1 of 5",
         "title": "Welcome.",
-        "lead": "This guide walks you through Hajj day by day, with rulings tailored to your madhab. Let's set it up — should take less than 3 minutes.",
+        "lead": "This companion will become a personalised guide to your Hajj — your dates, your flights, your madhab, your accommodation. Everything is stored only on this device. Nothing is sent anywhere.",
         "calloutTitle": "What you'll need:",
         "calloutItem1": "Your flight numbers and dates",
         "calloutItem2": "Your madhab (Hanafi / Shafi'i / Maliki / Hanbali)",
         "calloutItem3": "Your operator's contact details",
         "calloutItem4": "Where you're staying in Madinah and Makkah",
         "calloutNote": "All saved on your device only — nothing sent anywhere.",
-        "begin": "Let's begin"
+        "begin": "Let's begin",
+        "bismillah": "Bismillah",
+        "noteIntro": "A note on what follows: ",
+        "noteBody": "This is a planning aid, not a fatwa. Always confirm rulings with a qualified scholar of your madhab. May Allah accept your Hajj and grant you ease.",
+        "skipNote": "You can skip any question and return later from settings."
       },
-
       "flights": {
         "stepNum": "Step 1 of 5",
         "title": "Your flights.",
@@ -108,19 +110,24 @@
         "airportSearchPlaceholderWorld": "Type city or IATA (e.g. London, LHR)",
         "airportSearchPlaceholderSaudi": "Type city or IATA (e.g. Jeddah, JED)",
         "airportNoMatch": "No match — type the IATA code if your airport isn't listed.",
-        "warningDateOrder": "Return date is before departure date."
+        "warningDateOrder": "Return date is before departure date.",
+        "warnReturnBeforeOutbound": "Heads up — your return date is before your outbound date. Double-check.",
+        "warnSameDay": "Heads up — return and outbound are the same day. Double-check."
       },
-
       "madhab": {
         "stepNum": "Step 2 of 5",
         "title": "Your madhab.",
-        "lead": "Rulings throughout the guide will follow this school. You can switch later in Settings or compare side-by-side.",
+        "lead": "Rulings throughout the guide will reflect the school you choose. You can switch any time.",
         "hanafi": "Hanafi",
         "shafii": "Shafi'i",
         "maliki": "Maliki",
-        "hanbali": "Hanbali"
+        "hanbali": "Hanbali",
+        "hanafiHint": "School of Imam Abu Hanifa",
+        "shafiHint": "School of Imam ash-Shafi'i",
+        "malikiHint": "School of Imam Malik",
+        "hanbaliHint": "School of Imam Ahmad",
+        "unsureCallout": "If you are unsure, choose the school followed by the majority in your community or by the scholar you usually consult."
       },
-
       "operator": {
         "stepNum": "Step 3 of 5",
         "title": "Your Hajj operator.",
@@ -140,7 +147,6 @@
         "tipTitle": "Tip:",
         "tipBody": "Save these in your phone contacts as well, in case the device is reset or the browser cache is cleared."
       },
-
       "accommodation": {
         "stepNum": "Step 4 of 5",
         "title": "Where you will stay.",
@@ -172,19 +178,18 @@
         "aziziyahLocationPlaceholder": "e.g. building name, Aziziyah block",
         "placesApiDisabled": "Address autocomplete is currently disabled. Type your hotel name manually — it will still appear in the guide. Site owner: configure your Google Maps API key in <code>js/config.js</code> to enable autocomplete."
       },
-
       "group": {
         "stepNum": "Step 5 of 5",
         "title": "Your travel companions.",
         "lead": "For the lost-group emergency card. Useful if you become separated in the crowds.",
         "totalPeople": "Total people in your party (including you)",
-        "addContact": "+ Add another contact",
+        "addContact": "+ Add a contact",
         "removeContact": "× Remove",
         "contactName": "Name",
         "contactPhone": "Phone",
-        "finish": "Finish setup"
+        "finish": "Finish setup",
+        "contactsHeading": "Contacts (companions or family back home)"
       },
-
       "validation": {
         "warnReverse": "{name}: check-out date ({to}) is before check-in date ({from}).",
         "warnOverlap": "{a} (until {aTo}) overlaps with {b} (from {bFrom}). You can't be in two hotels at once.",
@@ -196,9 +201,122 @@
         "infoCoveragePlural": "{n} nights between your flights have no hotel: {dates}{more}. Are you in Mina/Aziziyah those nights?",
         "moreCount": " (+{n} more)"
       }
+    },
+    "guide": {
+      "today": {
+        "todaySection": "Today",
+        "yesterdaySection": "Yesterday",
+        "tomorrowSection": "Tomorrow",
+        "duasForToday": "Duas for today",
+        "quickContacts": "Quick contacts",
+        "groupLeaderRole": "Group leader",
+        "emergencyRole": "Emergency",
+        "concludedTitle": "Your Hajj has concluded.",
+        "concludedLead": "May Allah accept your pilgrimage and grant you Hajj Mabroor.",
+        "concludedRange": "Your trip ran from {from} to {to}.",
+        "concludedHint": "The full guide is still available — visit the Itinerary tab for your day-by-day record, or the Wisdom & Tips tab for post-Hajj reflections.",
+        "countdownLabelOne": "day until your Hajj begins",
+        "countdownLabelMany": "days until your Hajj begins",
+        "countdownLabelToday": "Your Hajj begins today.",
+        "countdownOutbound": "Outbound: {date}",
+        "whileWaiting": "While you wait: review the Preparation, Packing, and Duas tabs.",
+        "noFlightsHint": "Add your flight dates to see your daily plan. Open setup.",
+        "noPlanToday": "No specific plan recorded for today — see the Itinerary tab for the full schedule."
+      },
+      "overview": {
+        "heading": "Your Hajj at a glance",
+        "lead": "A snapshot of your trip — flights, hotels, and key dates.",
+        "editSetup": "Edit setup",
+        "flights": "Flights",
+        "accommodation": "Accommodation",
+        "madhab": "Madhab",
+        "operator": "Operator",
+        "emergencyContacts": "Emergency contacts",
+        "noContacts": "No contacts saved yet.",
+        "printCard": "Print emergency card",
+        "noFlights": "No flights set yet.",
+        "noHotels": "No hotels set yet.",
+        "essentialsHeading": "The Essentials of Hajj"
+      },
+      "itinerary": {
+        "heading": "Day-by-day itinerary",
+        "lead": "Tap any day to see actions and duas.",
+        "filterAll": "All",
+        "filterMadinah": "Madinah",
+        "filterMakkah": "Makkah",
+        "filterHajj": "5 Days"
+      },
+      "hajjDays": {
+        "heading": "The 5 Days of Hajj",
+        "lead": "The Hajj proper runs from 8 to 13 Dhul Hijjah — five days of structured worship."
+      },
+      "umrah": {
+        "heading": "Umrah",
+        "lead": "The \"lesser pilgrimage\" — required for Tamattu' Hajj, optional for Qiran/Ifrad."
+      },
+      "duas": {
+        "heading": "Duas",
+        "lead": "Authentic supplications for each stage of the journey.",
+        "searchPlaceholder": "Search duas…",
+        "allCategories": "All",
+        "noResults": "No duas match your search."
+      },
+      "rulings": {
+        "heading": "Rulings",
+        "lead": "Rulings according to your selected madhab. Compare schools side-by-side.",
+        "compareLabel": "Compare madhabs"
+      },
+      "locations": {
+        "heading": "Holy sites & locations",
+        "lead": "The places of Hajj — with directions and significance."
+      },
+      "packing": {
+        "heading": "Packing checklist",
+        "lead": "Tap to mark items as packed.",
+        "category": "Category",
+        "allItems": "All items",
+        "packedCount": "{n} of {total} packed"
+      },
+      "preparation": {
+        "heading": "Preparation",
+        "lead": "Things to do in the weeks before you travel."
+      },
+      "wisdom": {
+        "heading": "Wisdom & tips",
+        "lead": "Practical advice from those who have completed the journey."
+      },
+      "settings": {
+        "heading": "Settings",
+        "lead": "Adjust your preferences and review your data.",
+        "changeMadhab": "Madhab",
+        "language": "Language",
+        "fontSize": "Text size",
+        "exportData": "Export my data",
+        "resetData": "Reset all data",
+        "resetConfirm": "This will erase all your saved data. This cannot be undone.",
+        "aboutHeading": "About",
+        "aboutBody": "A free, ad-free planning aid built for pilgrims. Open source.",
+        "version": "Version",
+        "tripDetailsHeading": "Trip details",
+        "tripDetailsBody": "Update your flights, accommodation, operator or madhab.",
+        "notesHeading": "Your notes",
+        "notesBody": "Export all the notes you've written across the guide.",
+        "exportNotes": "Export notes as text",
+        "resetHeading": "Reset everything",
+        "resetBody": "Clear all your data — flights, notes, packing. This cannot be undone.",
+        "disclaimerLabel": "Disclaimer: ",
+        "disclaimerBody": "This is a planning aid, not a fatwa. Times, distances and rulings are approximate and reflect commonly-held positions. Always confirm with a qualified scholar of your madhab. The author is not responsible for trip decisions made on the basis of this guide."
+      },
+      "common": {
+        "edit": "Edit",
+        "days": "days",
+        "day": "day",
+        "night": "night",
+        "nights": "nights",
+        "noData": "No data yet."
+      }
     }
   },
-
   "fr": {
     "header": {
       "languageLabel": "Langue",
@@ -264,20 +382,30 @@
       "yes": "Oui",
       "no": "Non",
       "loading": "Chargement…",
-      "comingSoon": "Bientôt disponible"
+      "comingSoon": "Bientôt disponible",
+      "edit": "Modifier",
+      "days": "jours",
+      "day": "jour",
+      "night": "nuit",
+      "nights": "nuits",
+      "noData": "Aucune donnée pour le moment."
     },
     "onboarding": {
       "welcome": {
         "stepNum": "Étape 1 sur 5",
         "title": "Bienvenue.",
-        "lead": "Ce guide vous accompagne jour par jour pendant le Hajj, avec des règles adaptées à votre madhhab. Configurons-le — moins de 3 minutes.",
+        "lead": "Ce compagnon deviendra un guide personnalisé pour votre Hajj — vos dates, vos vols, votre madhhab, votre hébergement. Tout est enregistré uniquement sur cet appareil. Rien n'est envoyé ailleurs.",
         "calloutTitle": "Ce dont vous aurez besoin :",
         "calloutItem1": "Vos numéros et dates de vol",
         "calloutItem2": "Votre madhhab (Hanafi / Shafi'i / Maliki / Hanbali)",
         "calloutItem3": "Les coordonnées de votre opérateur",
         "calloutItem4": "Où vous logez à Médine et à La Mecque",
         "calloutNote": "Tout est enregistré uniquement sur votre appareil — rien n'est envoyé.",
-        "begin": "Commençons"
+        "begin": "Commençons",
+        "bismillah": "Bismillah",
+        "noteIntro": "À noter : ",
+        "noteBody": "Il s'agit d'une aide à la planification, pas d'une fatwa. Confirmez toujours les règles avec un savant qualifié de votre madhhab. Qu'Allah accepte votre Hajj et vous accorde la facilité.",
+        "skipNote": "Vous pouvez passer toute question et y revenir plus tard depuis les paramètres."
       },
       "flights": {
         "stepNum": "Étape 1 sur 5",
@@ -299,16 +427,23 @@
         "airportSearchPlaceholderWorld": "Tapez la ville ou le code IATA (ex. London, LHR)",
         "airportSearchPlaceholderSaudi": "Tapez la ville ou le code IATA (ex. Jeddah, JED)",
         "airportNoMatch": "Aucune correspondance — tapez le code IATA si votre aéroport n'est pas listé.",
-        "warningDateOrder": "La date de retour est antérieure à la date de départ."
+        "warningDateOrder": "La date de retour est antérieure à la date de départ.",
+        "warnReturnBeforeOutbound": "Attention — votre date de retour est antérieure à votre date d'aller. Vérifiez.",
+        "warnSameDay": "Attention — le retour et l'aller sont le même jour. Vérifiez."
       },
       "madhab": {
         "stepNum": "Étape 2 sur 5",
         "title": "Votre madhhab.",
-        "lead": "Les règles du guide suivront cette école. Vous pourrez en changer dans les paramètres ou comparer côte à côte.",
+        "lead": "Les règles du guide refléteront l'école que vous choisissez. Vous pouvez en changer à tout moment.",
         "hanafi": "Hanafi",
         "shafii": "Shafi'i",
         "maliki": "Maliki",
-        "hanbali": "Hanbali"
+        "hanbali": "Hanbali",
+        "hanafiHint": "École de l'Imam Abu Hanifa",
+        "shafiHint": "École de l'Imam ash-Shafi'i",
+        "malikiHint": "École de l'Imam Malik",
+        "hanbaliHint": "École de l'Imam Ahmad",
+        "unsureCallout": "Si vous n'êtes pas sûr, choisissez l'école suivie par la majorité de votre communauté ou par le savant que vous consultez habituellement."
       },
       "operator": {
         "stepNum": "Étape 3 sur 5",
@@ -369,7 +504,8 @@
         "removeContact": "× Supprimer",
         "contactName": "Nom",
         "contactPhone": "Téléphone",
-        "finish": "Terminer la configuration"
+        "finish": "Terminer la configuration",
+        "contactsHeading": "Contacts (compagnons ou famille à la maison)"
       },
       "validation": {
         "warnReverse": "{name} : la date de départ ({to}) est antérieure à la date d'arrivée ({from}).",
@@ -382,9 +518,122 @@
         "infoCoveragePlural": "{n} nuits entre vos vols n'ont pas d'hôtel : {dates}{more}. Êtes-vous à Mina/Aziziyah ces nuits-là ?",
         "moreCount": " (+{n} de plus)"
       }
+    },
+    "guide": {
+      "today": {
+        "todaySection": "Aujourd'hui",
+        "yesterdaySection": "Hier",
+        "tomorrowSection": "Demain",
+        "duasForToday": "Invocations d'aujourd'hui",
+        "quickContacts": "Contacts rapides",
+        "groupLeaderRole": "Chef de groupe",
+        "emergencyRole": "Urgence",
+        "concludedTitle": "Votre Hajj est terminé.",
+        "concludedLead": "Qu'Allah accepte votre pèlerinage et vous accorde un Hajj Mabroor.",
+        "concludedRange": "Votre voyage a duré du {from} au {to}.",
+        "concludedHint": "Le guide complet reste disponible — consultez l'onglet Itinéraire pour votre récit jour par jour, ou Sagesse pour des réflexions post-Hajj.",
+        "countdownLabelOne": "jour avant le début de votre Hajj",
+        "countdownLabelMany": "jours avant le début de votre Hajj",
+        "countdownLabelToday": "Votre Hajj commence aujourd'hui.",
+        "countdownOutbound": "Aller : {date}",
+        "whileWaiting": "En attendant : consultez les onglets Préparation, Bagages et Invocations.",
+        "noFlightsHint": "Ajoutez les dates de vos vols pour voir votre plan quotidien. Ouvrez la configuration.",
+        "noPlanToday": "Aucun plan spécifique enregistré pour aujourd'hui — consultez l'onglet Itinéraire pour le programme complet."
+      },
+      "overview": {
+        "heading": "Votre Hajj en un coup d'œil",
+        "lead": "Un aperçu de votre voyage — vols, hôtels et dates clés.",
+        "editSetup": "Modifier",
+        "flights": "Vols",
+        "accommodation": "Hébergement",
+        "madhab": "Madhhab",
+        "operator": "Opérateur",
+        "emergencyContacts": "Contacts d'urgence",
+        "noContacts": "Aucun contact enregistré pour le moment.",
+        "printCard": "Imprimer la fiche d'urgence",
+        "noFlights": "Aucun vol enregistré.",
+        "noHotels": "Aucun hôtel enregistré.",
+        "essentialsHeading": "Les essentiels du Hajj"
+      },
+      "itinerary": {
+        "heading": "Itinéraire jour par jour",
+        "lead": "Touchez n'importe quel jour pour voir les actions et invocations.",
+        "filterAll": "Tous",
+        "filterMadinah": "Médine",
+        "filterMakkah": "La Mecque",
+        "filterHajj": "5 jours"
+      },
+      "hajjDays": {
+        "heading": "Les 5 jours du Hajj",
+        "lead": "Le Hajj proprement dit se déroule du 8 au 13 Dhoul-Hijja — cinq jours de culte structuré."
+      },
+      "umrah": {
+        "heading": "Omra",
+        "lead": "Le « petit pèlerinage » — requis pour le Hajj Tamattu', facultatif pour Qiran/Ifrad."
+      },
+      "duas": {
+        "heading": "Invocations",
+        "lead": "Invocations authentiques pour chaque étape du voyage.",
+        "searchPlaceholder": "Rechercher des invocations…",
+        "allCategories": "Toutes",
+        "noResults": "Aucune invocation ne correspond à votre recherche."
+      },
+      "rulings": {
+        "heading": "Règles",
+        "lead": "Règles selon le madhhab sélectionné. Comparez les écoles côte à côte.",
+        "compareLabel": "Comparer les madhhabs"
+      },
+      "locations": {
+        "heading": "Lieux saints",
+        "lead": "Les lieux du Hajj — avec itinéraires et significations."
+      },
+      "packing": {
+        "heading": "Liste de bagages",
+        "lead": "Touchez pour marquer comme préparé.",
+        "category": "Catégorie",
+        "allItems": "Tous les articles",
+        "packedCount": "{n} sur {total} préparés"
+      },
+      "preparation": {
+        "heading": "Préparation",
+        "lead": "Choses à faire dans les semaines précédant votre départ."
+      },
+      "wisdom": {
+        "heading": "Sagesse et conseils",
+        "lead": "Conseils pratiques de ceux qui ont accompli le voyage."
+      },
+      "settings": {
+        "heading": "Paramètres",
+        "lead": "Ajustez vos préférences et consultez vos données.",
+        "changeMadhab": "Madhhab",
+        "language": "Langue",
+        "fontSize": "Taille du texte",
+        "exportData": "Exporter mes données",
+        "resetData": "Réinitialiser toutes les données",
+        "resetConfirm": "Cela effacera toutes vos données enregistrées. Cette action est irréversible.",
+        "aboutHeading": "À propos",
+        "aboutBody": "Un guide gratuit, sans publicité, construit pour les pèlerins. Open source.",
+        "version": "Version",
+        "tripDetailsHeading": "Détails du voyage",
+        "tripDetailsBody": "Mettez à jour vos vols, hébergement, opérateur ou madhhab.",
+        "notesHeading": "Vos notes",
+        "notesBody": "Exportez toutes les notes que vous avez écrites dans le guide.",
+        "exportNotes": "Exporter les notes en texte",
+        "resetHeading": "Tout réinitialiser",
+        "resetBody": "Effacez toutes vos données — vols, notes, bagages. Cela ne peut pas être annulé.",
+        "disclaimerLabel": "Avertissement : ",
+        "disclaimerBody": "Il s'agit d'une aide à la planification, pas d'une fatwa. Les horaires, distances et règles sont approximatifs et reflètent les positions communément admises. Confirmez toujours avec un savant qualifié de votre madhhab. L'auteur n'est pas responsable des décisions prises sur la base de ce guide."
+      },
+      "common": {
+        "edit": "Modifier",
+        "days": "jours",
+        "day": "jour",
+        "night": "nuit",
+        "nights": "nuits",
+        "noData": "Aucune donnée pour le moment."
+      }
     }
   },
-
   "ar": {
     "header": {
       "languageLabel": "اللغة",
@@ -450,20 +699,30 @@
       "yes": "نعم",
       "no": "لا",
       "loading": "جاري التحميل…",
-      "comingSoon": "قريباً"
+      "comingSoon": "قريباً",
+      "edit": "تعديل",
+      "days": "أيام",
+      "day": "يوم",
+      "night": "ليلة",
+      "nights": "ليالٍ",
+      "noData": "لا توجد بيانات بعد."
     },
     "onboarding": {
       "welcome": {
         "stepNum": "الخطوة 1 من 5",
         "title": "مرحباً.",
-        "lead": "يصحبك هذا الدليل خلال الحج يوماً بيوم، مع أحكام تتبع مذهبك. لنُعدّه — أقل من 3 دقائق.",
+        "lead": "سيصبح هذا الرفيق دليلاً مخصصاً لحجك — تواريخك، رحلاتك، مذهبك، إقامتك. كل شيء يُحفظ على هذا الجهاز فقط. لا يُرسل أي شيء إلى أي مكان.",
         "calloutTitle": "ما تحتاج إليه:",
         "calloutItem1": "أرقام الرحلات وتواريخها",
         "calloutItem2": "مذهبك (حنفي / شافعي / مالكي / حنبلي)",
         "calloutItem3": "بيانات اتصال شركة الحج",
         "calloutItem4": "أين ستقيم في المدينة ومكة",
         "calloutNote": "كل شيء يُحفظ على جهازك فقط — لا يُرسل أي شيء.",
-        "begin": "لنبدأ"
+        "begin": "لنبدأ",
+        "bismillah": "بسم الله",
+        "noteIntro": "ملاحظة: ",
+        "noteBody": "هذه أداة تخطيط، وليست فتوى. تأكد دائماً من الأحكام مع عالم مؤهل من مذهبك. تقبل الله حجك ويسّر لك.",
+        "skipNote": "يمكنك تخطي أي سؤال والعودة إليه لاحقاً من الإعدادات."
       },
       "flights": {
         "stepNum": "الخطوة 1 من 5",
@@ -485,16 +744,23 @@
         "airportSearchPlaceholderWorld": "اكتب المدينة أو رمز IATA (مثل London, LHR)",
         "airportSearchPlaceholderSaudi": "اكتب المدينة أو رمز IATA (مثل Jeddah, JED)",
         "airportNoMatch": "لا توجد نتائج — اكتب رمز IATA إن لم يكن مطارك مدرجاً.",
-        "warningDateOrder": "تاريخ العودة قبل تاريخ المغادرة."
+        "warningDateOrder": "تاريخ العودة قبل تاريخ المغادرة.",
+        "warnReturnBeforeOutbound": "تنبيه — تاريخ العودة قبل تاريخ المغادرة. تحقق من ذلك.",
+        "warnSameDay": "تنبيه — العودة والمغادرة في نفس اليوم. تحقق من ذلك."
       },
       "madhab": {
         "stepNum": "الخطوة 2 من 5",
         "title": "مذهبك.",
-        "lead": "ستتبع أحكام الدليل هذا المذهب. يمكنك التبديل لاحقاً في الإعدادات أو المقارنة جنباً إلى جنب.",
+        "lead": "ستعكس الأحكام في الدليل المذهب الذي تختاره. يمكنك التبديل في أي وقت.",
         "hanafi": "الحنفي",
         "shafii": "الشافعي",
         "maliki": "المالكي",
-        "hanbali": "الحنبلي"
+        "hanbali": "الحنبلي",
+        "hanafiHint": "مذهب الإمام أبي حنيفة",
+        "shafiHint": "مذهب الإمام الشافعي",
+        "malikiHint": "مذهب الإمام مالك",
+        "hanbaliHint": "مذهب الإمام أحمد",
+        "unsureCallout": "إن لم تكن متأكداً، اختر المذهب الذي يتبعه أغلب مجتمعك أو العالم الذي تستفتيه عادةً."
       },
       "operator": {
         "stepNum": "الخطوة 3 من 5",
@@ -555,7 +821,8 @@
         "removeContact": "× إزالة",
         "contactName": "الاسم",
         "contactPhone": "الهاتف",
-        "finish": "إنهاء الإعداد"
+        "finish": "إنهاء الإعداد",
+        "contactsHeading": "جهات الاتصال (الرفقاء أو العائلة في الوطن)"
       },
       "validation": {
         "warnReverse": "{name}: تاريخ المغادرة ({to}) قبل تاريخ الوصول ({from}).",
@@ -568,9 +835,122 @@
         "infoCoveragePlural": "{n} ليالٍ بين رحلتيك بدون فندق: {dates}{more}. هل أنت في منى/العزيزية تلك الليالي؟",
         "moreCount": " (+{n} أخرى)"
       }
+    },
+    "guide": {
+      "today": {
+        "todaySection": "اليوم",
+        "yesterdaySection": "الأمس",
+        "tomorrowSection": "الغد",
+        "duasForToday": "أدعية اليوم",
+        "quickContacts": "جهات اتصال سريعة",
+        "groupLeaderRole": "قائد المجموعة",
+        "emergencyRole": "طوارئ",
+        "concludedTitle": "انتهى حجك.",
+        "concludedLead": "تقبل الله حجك وجعله حجاً مبروراً.",
+        "concludedRange": "كانت رحلتك من {from} إلى {to}.",
+        "concludedHint": "الدليل الكامل لا يزال متاحاً — قم بزيارة علامة جدول الرحلة لسجلك يوماً بيوم، أو علامة الحكم والنصائح للتأملات بعد الحج.",
+        "countdownLabelOne": "يوم على بدء حجك",
+        "countdownLabelMany": "يوماً على بدء حجك",
+        "countdownLabelToday": "يبدأ حجك اليوم.",
+        "countdownOutbound": "المغادرة: {date}",
+        "whileWaiting": "بينما تنتظر: راجع علامات التحضير والأمتعة والأدعية.",
+        "noFlightsHint": "أضف تواريخ رحلاتك لرؤية خطتك اليومية. افتح الإعداد.",
+        "noPlanToday": "لا توجد خطة محددة مسجلة لهذا اليوم — راجع علامة جدول الرحلة للجدول الكامل."
+      },
+      "overview": {
+        "heading": "حجك في لمحة",
+        "lead": "لمحة عن رحلتك — الرحلات والفنادق والتواريخ الرئيسية.",
+        "editSetup": "تعديل",
+        "flights": "الرحلات",
+        "accommodation": "الإقامة",
+        "madhab": "المذهب",
+        "operator": "المشغل",
+        "emergencyContacts": "جهات اتصال الطوارئ",
+        "noContacts": "لم يتم حفظ أي جهة اتصال بعد.",
+        "printCard": "طباعة بطاقة الطوارئ",
+        "noFlights": "لا توجد رحلات مسجلة بعد.",
+        "noHotels": "لا توجد فنادق مسجلة بعد.",
+        "essentialsHeading": "أركان الحج وواجباته"
+      },
+      "itinerary": {
+        "heading": "جدول الرحلة يوماً بيوم",
+        "lead": "انقر على أي يوم لرؤية الإجراءات والأدعية.",
+        "filterAll": "الكل",
+        "filterMadinah": "المدينة",
+        "filterMakkah": "مكة",
+        "filterHajj": "5 أيام"
+      },
+      "hajjDays": {
+        "heading": "أيام الحج الخمسة",
+        "lead": "الحج الفعلي من 8 إلى 13 ذي الحجة — خمسة أيام من العبادة المنظمة."
+      },
+      "umrah": {
+        "heading": "العمرة",
+        "lead": "الحج الأصغر — مطلوبة لحج التمتع، اختيارية للقران/الإفراد."
+      },
+      "duas": {
+        "heading": "الأدعية",
+        "lead": "أدعية صحيحة لكل مرحلة من مراحل الرحلة.",
+        "searchPlaceholder": "ابحث في الأدعية…",
+        "allCategories": "الكل",
+        "noResults": "لا توجد أدعية تطابق بحثك."
+      },
+      "rulings": {
+        "heading": "الأحكام",
+        "lead": "الأحكام حسب المذهب المختار. قارن المذاهب جنباً إلى جنب.",
+        "compareLabel": "قارن المذاهب"
+      },
+      "locations": {
+        "heading": "الأماكن المقدسة",
+        "lead": "أماكن الحج — مع الاتجاهات والأهمية."
+      },
+      "packing": {
+        "heading": "قائمة الأمتعة",
+        "lead": "انقر لتحديد العناصر كمعبأة.",
+        "category": "الفئة",
+        "allItems": "جميع العناصر",
+        "packedCount": "{n} من {total} معبأة"
+      },
+      "preparation": {
+        "heading": "التحضير",
+        "lead": "أمور لتفعلها في الأسابيع التي تسبق سفرك."
+      },
+      "wisdom": {
+        "heading": "حكم ونصائح",
+        "lead": "نصائح عملية من أولئك الذين أكملوا الرحلة."
+      },
+      "settings": {
+        "heading": "الإعدادات",
+        "lead": "اضبط تفضيلاتك وراجع بياناتك.",
+        "changeMadhab": "المذهب",
+        "language": "اللغة",
+        "fontSize": "حجم النص",
+        "exportData": "تصدير بياناتي",
+        "resetData": "إعادة تعيين جميع البيانات",
+        "resetConfirm": "سيؤدي هذا إلى محو جميع البيانات المحفوظة. لا يمكن التراجع عن هذا.",
+        "aboutHeading": "حول",
+        "aboutBody": "أداة تخطيط مجانية بدون إعلانات للحجاج. مفتوحة المصدر.",
+        "version": "الإصدار",
+        "tripDetailsHeading": "تفاصيل الرحلة",
+        "tripDetailsBody": "حدّث رحلاتك أو إقامتك أو المشغل أو المذهب.",
+        "notesHeading": "ملاحظاتك",
+        "notesBody": "صدّر جميع الملاحظات التي كتبتها في الدليل.",
+        "exportNotes": "تصدير الملاحظات كنص",
+        "resetHeading": "إعادة تعيين كل شيء",
+        "resetBody": "امسح جميع بياناتك — الرحلات والملاحظات والأمتعة. لا يمكن التراجع.",
+        "disclaimerLabel": "تنبيه: ",
+        "disclaimerBody": "هذه أداة تخطيط وليست فتوى. الأوقات والمسافات والأحكام تقريبية وتعكس المواقف المعتمدة. تأكد دائماً مع عالم مؤهل من مذهبك. المؤلف غير مسؤول عن القرارات المتخذة بناءً على هذا الدليل."
+      },
+      "common": {
+        "edit": "تعديل",
+        "days": "أيام",
+        "day": "يوم",
+        "night": "ليلة",
+        "nights": "ليالٍ",
+        "noData": "لا توجد بيانات بعد."
+      }
     }
   },
-
   "ur": {
     "header": {
       "languageLabel": "زبان",
@@ -636,20 +1016,30 @@
       "yes": "ہاں",
       "no": "نہیں",
       "loading": "لوڈ ہو رہا ہے…",
-      "comingSoon": "جلد آرہا ہے"
+      "comingSoon": "جلد آرہا ہے",
+      "edit": "ترمیم",
+      "days": "دن",
+      "day": "دن",
+      "night": "رات",
+      "nights": "راتیں",
+      "noData": "ابھی تک کوئی ڈیٹا نہیں۔"
     },
     "onboarding": {
       "welcome": {
         "stepNum": "مرحلہ 1 از 5",
         "title": "خوش آمدید۔",
-        "lead": "یہ گائیڈ حج کے دوران آپ کو دن بہ دن لے کر چلتی ہے، آپ کے مذہب کے مطابق احکام کے ساتھ۔ آئیے اسے ترتیب دیں — 3 منٹ سے کم کا کام۔",
+        "lead": "یہ ساتھی آپ کے حج کا ذاتی نوعیت کا گائیڈ بن جائے گا — آپ کی تاریخیں، پروازیں، مذہب، رہائش۔ سب کچھ صرف اس ڈیوائس پر محفوظ ہوتا ہے۔ کہیں کچھ نہیں بھیجا جاتا۔",
         "calloutTitle": "آپ کو کیا چاہیے ہوگا:",
         "calloutItem1": "آپ کے فلائٹ نمبر اور تاریخیں",
         "calloutItem2": "آپ کا مذہب (حنفی / شافعی / مالکی / حنبلی)",
         "calloutItem3": "آپ کے آپریٹر کی تفصیلات",
         "calloutItem4": "آپ مدینہ اور مکہ میں کہاں ٹھہر رہے ہیں",
         "calloutNote": "سب کچھ صرف آپ کے ڈیوائس پر محفوظ ہوتا ہے — کہیں نہیں بھیجا جاتا۔",
-        "begin": "آغاز کریں"
+        "begin": "آغاز کریں",
+        "bismillah": "بسم اللہ",
+        "noteIntro": "نوٹ: ",
+        "noteBody": "یہ منصوبہ بندی کا ذریعہ ہے، فتویٰ نہیں۔ ہمیشہ اپنے مذہب کے کسی مستند عالم سے احکام کی تصدیق کریں۔ اللہ آپ کا حج قبول فرمائے اور آسانی عطا کرے۔",
+        "skipNote": "آپ کوئی بھی سوال چھوڑ سکتے ہیں اور بعد میں ترتیبات سے واپس آ سکتے ہیں۔"
       },
       "flights": {
         "stepNum": "مرحلہ 1 از 5",
@@ -671,16 +1061,23 @@
         "airportSearchPlaceholderWorld": "شہر یا IATA کوڈ ٹائپ کریں (مثلاً London, LHR)",
         "airportSearchPlaceholderSaudi": "شہر یا IATA کوڈ ٹائپ کریں (مثلاً Jeddah, JED)",
         "airportNoMatch": "کوئی مماثل نتیجہ نہیں — اگر آپ کا ہوائی اڈہ فہرست میں نہیں تو IATA کوڈ ٹائپ کریں۔",
-        "warningDateOrder": "واپسی کی تاریخ روانگی کی تاریخ سے پہلے ہے۔"
+        "warningDateOrder": "واپسی کی تاریخ روانگی کی تاریخ سے پہلے ہے۔",
+        "warnReturnBeforeOutbound": "خبردار — آپ کی واپسی کی تاریخ روانگی کی تاریخ سے پہلے ہے۔ دوبارہ چیک کریں۔",
+        "warnSameDay": "خبردار — واپسی اور روانگی ایک ہی دن ہے۔ دوبارہ چیک کریں۔"
       },
       "madhab": {
         "stepNum": "مرحلہ 2 از 5",
         "title": "آپ کا مذہب۔",
-        "lead": "گائیڈ بھر کے احکام اسی مکتب فکر کے مطابق ہوں گے۔ آپ بعد میں ترتیبات میں تبدیل کر سکتے ہیں یا موازنہ کر سکتے ہیں۔",
+        "lead": "گائیڈ کے احکام آپ کے منتخب کردہ مذہب کی عکاسی کریں گے۔ آپ کسی بھی وقت تبدیل کر سکتے ہیں۔",
         "hanafi": "حنفی",
         "shafii": "شافعی",
         "maliki": "مالکی",
-        "hanbali": "حنبلی"
+        "hanbali": "حنبلی",
+        "hanafiHint": "امام ابو حنیفہ کا مکتبِ فکر",
+        "shafiHint": "امام شافعی کا مکتبِ فکر",
+        "malikiHint": "امام مالک کا مکتبِ فکر",
+        "hanbaliHint": "امام احمد کا مکتبِ فکر",
+        "unsureCallout": "اگر آپ یقینی نہیں ہیں، تو وہ مکتب فکر منتخب کریں جس کی پیروی آپ کی برادری میں زیادہ تر کرتی ہے یا جس عالم سے آپ عام طور پر مشورہ کرتے ہیں۔"
       },
       "operator": {
         "stepNum": "مرحلہ 3 از 5",
@@ -737,11 +1134,12 @@
         "title": "آپ کے سفر کے ساتھی۔",
         "lead": "گم شدہ گروپ کے ایمرجنسی کارڈ کے لیے۔ ہجوم میں الگ ہو جانے پر مفید۔",
         "totalPeople": "آپ کے گروپ میں کل لوگ (آپ سمیت)",
-        "addContact": "+ ایک اور رابطہ شامل کریں",
+        "addContact": "+ ایک رابطہ شامل کریں",
         "removeContact": "× ہٹائیں",
         "contactName": "نام",
         "contactPhone": "فون",
-        "finish": "ترتیب مکمل کریں"
+        "finish": "ترتیب مکمل کریں",
+        "contactsHeading": "رابطے (ساتھی یا گھر پر اہل خانہ)"
       },
       "validation": {
         "warnReverse": "{name}: روانگی کی تاریخ ({to}) آمد کی تاریخ ({from}) سے پہلے ہے۔",
@@ -753,6 +1151,120 @@
         "infoCoverage": "آپ کی پروازوں کے درمیان 1 رات کے لیے کوئی ہوٹل نہیں: {dates}{more}۔ کیا آپ ان راتوں کو منیٰ/عزیزیہ میں ہیں؟",
         "infoCoveragePlural": "آپ کی پروازوں کے درمیان {n} راتوں کے لیے کوئی ہوٹل نہیں: {dates}{more}۔ کیا آپ ان راتوں کو منیٰ/عزیزیہ میں ہیں؟",
         "moreCount": " (+{n} مزید)"
+      }
+    },
+    "guide": {
+      "today": {
+        "todaySection": "آج",
+        "yesterdaySection": "کل",
+        "tomorrowSection": "کل (مستقبل)",
+        "duasForToday": "آج کی دعائیں",
+        "quickContacts": "فوری رابطے",
+        "groupLeaderRole": "گروپ لیڈر",
+        "emergencyRole": "ایمرجنسی",
+        "concludedTitle": "آپ کا حج مکمل ہو گیا۔",
+        "concludedLead": "اللہ آپ کا حج قبول فرمائے اور حج مبرور عطا کرے۔",
+        "concludedRange": "آپ کا سفر {from} سے {to} تک تھا۔",
+        "concludedHint": "مکمل گائیڈ اب بھی دستیاب ہے — اپنے دن بہ دن ریکارڈ کے لیے سفرنامہ ٹیب دیکھیں، یا حج کے بعد کی غور و فکر کے لیے حکمتیں اور تجاویز ٹیب۔",
+        "countdownLabelOne": "دن آپ کے حج کے آغاز میں",
+        "countdownLabelMany": "دن آپ کے حج کے آغاز میں",
+        "countdownLabelToday": "آپ کا حج آج شروع ہوتا ہے۔",
+        "countdownOutbound": "روانگی: {date}",
+        "whileWaiting": "انتظار کے دوران: تیاری، سامان اور دعائیں ٹیبز کا جائزہ لیں۔",
+        "noFlightsHint": "اپنا یومیہ منصوبہ دیکھنے کے لیے اپنی پرواز کی تاریخیں شامل کریں۔ سیٹ اپ کھولیں۔",
+        "noPlanToday": "آج کے لیے کوئی مخصوص منصوبہ ریکارڈ نہیں — مکمل شیڈول کے لیے سفرنامہ ٹیب دیکھیں۔"
+      },
+      "overview": {
+        "heading": "آپ کا حج ایک نظر میں",
+        "lead": "آپ کے سفر کا خلاصہ — پروازیں، ہوٹل اور اہم تاریخیں۔",
+        "editSetup": "ترمیم",
+        "flights": "پروازیں",
+        "accommodation": "رہائش",
+        "madhab": "مذہب",
+        "operator": "آپریٹر",
+        "emergencyContacts": "ایمرجنسی رابطے",
+        "noContacts": "ابھی تک کوئی رابطہ محفوظ نہیں۔",
+        "printCard": "ایمرجنسی کارڈ پرنٹ کریں",
+        "noFlights": "ابھی تک کوئی پرواز نہیں۔",
+        "noHotels": "ابھی تک کوئی ہوٹل نہیں۔",
+        "essentialsHeading": "حج کے ارکان اور واجبات"
+      },
+      "itinerary": {
+        "heading": "دن بہ دن سفرنامہ",
+        "lead": "اقدامات اور دعائیں دیکھنے کے لیے کسی بھی دن پر ٹیپ کریں۔",
+        "filterAll": "سب",
+        "filterMadinah": "مدینہ",
+        "filterMakkah": "مکہ",
+        "filterHajj": "5 دن"
+      },
+      "hajjDays": {
+        "heading": "حج کے 5 دن",
+        "lead": "حج اصل میں 8 سے 13 ذی الحجہ تک ہوتا ہے — منظم عبادت کے پانچ دن۔"
+      },
+      "umrah": {
+        "heading": "عمرہ",
+        "lead": "چھوٹا حج — تمتع حج کے لیے ضروری، قران/افراد کے لیے اختیاری۔"
+      },
+      "duas": {
+        "heading": "دعائیں",
+        "lead": "سفر کے ہر مرحلے کے لیے مستند دعائیں۔",
+        "searchPlaceholder": "دعائیں تلاش کریں…",
+        "allCategories": "سب",
+        "noResults": "آپ کی تلاش سے کوئی دعا مماثل نہیں۔"
+      },
+      "rulings": {
+        "heading": "احکام",
+        "lead": "آپ کے منتخب کردہ مذہب کے مطابق احکام۔ مکاتبِ فکر کا موازنہ کریں۔",
+        "compareLabel": "مذاہب کا موازنہ"
+      },
+      "locations": {
+        "heading": "مقدس مقامات",
+        "lead": "حج کی جگہیں — ہدایات اور اہمیت کے ساتھ۔"
+      },
+      "packing": {
+        "heading": "سامان کی فہرست",
+        "lead": "پیک شدہ نشان زد کرنے کے لیے ٹیپ کریں۔",
+        "category": "زمرہ",
+        "allItems": "تمام اشیاء",
+        "packedCount": "{n} از {total} پیک شدہ"
+      },
+      "preparation": {
+        "heading": "تیاری",
+        "lead": "سفر سے پہلے کے ہفتوں میں کرنے کی چیزیں۔"
+      },
+      "wisdom": {
+        "heading": "حکمتیں اور تجاویز",
+        "lead": "سفر مکمل کرنے والوں کی عملی مشورے۔"
+      },
+      "settings": {
+        "heading": "ترتیبات",
+        "lead": "اپنی ترجیحات ایڈجسٹ کریں اور اپنا ڈیٹا دیکھیں۔",
+        "changeMadhab": "مذہب",
+        "language": "زبان",
+        "fontSize": "متن کا سائز",
+        "exportData": "میرا ڈیٹا برآمد کریں",
+        "resetData": "تمام ڈیٹا ری سیٹ کریں",
+        "resetConfirm": "یہ آپ کا تمام محفوظ شدہ ڈیٹا مٹا دے گا۔ اسے کالعدم نہیں کیا جا سکتا۔",
+        "aboutHeading": "بارے میں",
+        "aboutBody": "حاجیوں کے لیے ایک مفت، اشتہار سے پاک منصوبہ بندی کا ذریعہ۔ اوپن سورس۔",
+        "version": "ورژن",
+        "tripDetailsHeading": "سفر کی تفصیلات",
+        "tripDetailsBody": "اپنی پروازیں، رہائش، آپریٹر یا مذہب اپ ڈیٹ کریں۔",
+        "notesHeading": "آپ کے نوٹس",
+        "notesBody": "گائیڈ میں آپ نے جتنے بھی نوٹس لکھے ہیں انہیں برآمد کریں۔",
+        "exportNotes": "نوٹس متن کے طور پر برآمد کریں",
+        "resetHeading": "سب کچھ ری سیٹ کریں",
+        "resetBody": "اپنا تمام ڈیٹا صاف کریں — پروازیں، نوٹس، سامان۔ اسے کالعدم نہیں کیا جا سکتا۔",
+        "disclaimerLabel": "انتباہ: ",
+        "disclaimerBody": "یہ منصوبہ بندی کا ذریعہ ہے، فتویٰ نہیں۔ اوقات، فاصلے اور احکام تقریبی ہیں اور عام طور پر تسلیم شدہ مواقف کی عکاسی کرتے ہیں۔ ہمیشہ اپنے مذہب کے کسی مستند عالم سے تصدیق کریں۔ مصنف اس گائیڈ کی بنیاد پر کیے گئے سفری فیصلوں کے لیے ذمہ دار نہیں۔"
+      },
+      "common": {
+        "edit": "ترمیم",
+        "days": "دن",
+        "day": "دن",
+        "night": "رات",
+        "nights": "راتیں",
+        "noData": "ابھی تک کوئی ڈیٹا نہیں۔"
       }
     }
   }

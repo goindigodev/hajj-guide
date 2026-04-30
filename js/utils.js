@@ -192,12 +192,19 @@
         .filter(h => h && h.name);
       const dated = named.filter(h => h.fromDate && h.toDate);
 
+      // Local i18n shortcut. Falls back to English string with template-literal-style
+      // substitution if I18n isn't loaded (or the key is missing).
+      const tt = (key, fallback, params) =>
+        (window.I18n ? window.I18n.t(key, params) : fallback) || fallback;
+
       // 1. Single-hotel reverse-order check (treat each hotel independently first)
       named.forEach(h => {
         if (h.fromDate && h.toDate && h.toDate < h.fromDate) {
           warnings.push({
             level: 'warn',
-            message: `${h.name}: check-out date (${h.toDate}) is before check-in date (${h.fromDate}).`,
+            message: tt('onboarding.validation.warnReverse',
+              `${h.name}: check-out date (${h.toDate}) is before check-in date (${h.fromDate}).`,
+              { name: h.name, to: h.toDate, from: h.fromDate }),
             hotelIndices: [h._idx],
           });
         }
@@ -216,16 +223,21 @@
           if (b.fromDate < a.toDate) {
             warnings.push({
               level: 'warn',
-              message: `${a.name} (until ${a.toDate}) overlaps with ${b.name} (from ${b.fromDate}). You can\'t be in two hotels at once.`,
+              message: tt('onboarding.validation.warnOverlap',
+                `${a.name} (until ${a.toDate}) overlaps with ${b.name} (from ${b.fromDate}). You can\'t be in two hotels at once.`,
+                { a: a.name, aTo: a.toDate, b: b.name, bFrom: b.fromDate }),
               hotelIndices: [a._idx, b._idx],
             });
           } else if (b.fromDate > a.toDate) {
             // Compute the gap days
             const gap = this._daysBetweenIso(a.toDate, b.fromDate) - 1;
             if (gap > 0) {
+              const key = gap === 1 ? 'onboarding.validation.warnGap' : 'onboarding.validation.warnGapPlural';
               warnings.push({
                 level: 'warn',
-                message: `Gap of ${gap} night${gap === 1 ? '' : 's'} between ${a.name} (ends ${a.toDate}) and ${b.name} (starts ${b.fromDate}). Where are you sleeping in between?`,
+                message: tt(key,
+                  `Gap of ${gap} night${gap === 1 ? '' : 's'} between ${a.name} (ends ${a.toDate}) and ${b.name} (starts ${b.fromDate}). Where are you sleeping in between?`,
+                  { n: gap, a: a.name, aTo: a.toDate, b: b.name, bFrom: b.fromDate }),
                 hotelIndices: [a._idx, b._idx],
               });
             }
@@ -243,14 +255,18 @@
           if (outIso && h.fromDate && h.fromDate < outIso) {
             warnings.push({
               level: 'info',
-              message: `${h.name} starts (${h.fromDate}) before your outbound flight (${outIso}). Is the date correct?`,
+              message: tt('onboarding.validation.infoBeforeOutbound',
+                `${h.name} starts (${h.fromDate}) before your outbound flight (${outIso}). Is the date correct?`,
+                { name: h.name, from: h.fromDate, outbound: outIso }),
               hotelIndices: [h._idx],
             });
           }
           if (retIso && h.toDate && h.toDate > retIso) {
             warnings.push({
               level: 'info',
-              message: `${h.name} ends (${h.toDate}) after your return flight (${retIso}). Is the date correct?`,
+              message: tt('onboarding.validation.infoAfterReturn',
+                `${h.name} ends (${h.toDate}) after your return flight (${retIso}). Is the date correct?`,
+                { name: h.name, to: h.toDate, return: retIso }),
               hotelIndices: [h._idx],
             });
           }

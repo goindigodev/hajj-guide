@@ -1,64 +1,87 @@
-# Hajj Guide v2.5 (foundation drop) — multi-language UI
+# Hajj Guide v2.5 (complete) — multi-language UI
 
-This is a **foundation drop**, not a complete release. The i18n machinery works, the language switcher works, the chrome translates correctly across all 4 locales — but the onboarding flow and the in-app guide tabs remain in English regardless of the selected language. They will be refactored in subsequent drops.
+Multi-language UI shipped across all four target languages: **English, Français, العربية, اردو**. Includes RTL support for Arabic and Urdu.
+
+This drop completes sessions A + B + C of the v2.5 plan. The app now translates the chrome (header, tab nav, footer, switcher, all popups), the entire onboarding flow, and the in-app guide tab headings + leads + key buttons.
 
 ---
 
-## What works in this drop
+## What's translated
 
-- **Language switcher chip** in the header (top-right, next to font-size control). Click to choose English / Français / العربية / اردو.
-- **Persistent locale** — choice survives reloads (localStorage key `hajj-companion-v1.locale`).
-- **RTL layout** — Arabic and Urdu correctly flip the layout direction (`<html dir="rtl">`).
-- **Translated chrome:**
-  - Footer (Support with Duas, Share, Send feedback, Reset my data, tagline)
-  - Disclaimer popup
-  - Share popup (modal title, lead, tile labels, count, copy feedback)
-  - Tab navigation labels
-  - The switcher itself
-- **English fallback** — any string not yet translated falls back to English automatically (so missing translations are visible as English text, never broken).
+### Chrome (foundation, session A)
+- Header (language switcher chip)
+- Footer (Support with Duas, Share, Send feedback, Reset, tagline)
+- Tab navigation labels
+- Disclaimer popup
+- Share popup (modal title, lead, tile labels, count text, copy feedback)
+- Common UI words (Continue, Back, Skip, Cancel, etc.)
 
-## What does NOT translate yet (English only for now)
+### Onboarding (session B) — entire 5-step flow
+- Welcome step
+- Flights step (incl. by-road checkboxes, airport combobox placeholders, date warnings)
+- Madhab step (incl. school hint subtitles, "if unsure" callout)
+- Operator step (Saudi Service Provider dropdown labels, group leader, 24-hr line, tip)
+- Accommodation step (Madinah / Makkah hotel sections, hotel names, dates, Mina vs Aziziyah, zone picker, sub-areas)
+- Group / companions step
+- All hotel-validation warnings (overlap, gap, reverse dates, outside flight window, uncovered nights)
 
-- The marketing copy on the landing page (`A companion for the journey of a lifetime`, the four feature cards)
-- The entire onboarding flow (5 steps, ~80 strings)
-- All in-app guide tabs (Today, Overview, Itinerary, 5 Days of Hajj, Umrah, Duas, Rulings, Locations, Packing, Preparation, Wisdom, Settings) — the biggest body of strings in the app
-- Hotel validation warnings
-- Day cards descriptions
+### Guide tabs (session C)
+- Today tab — **fully translated** (countdown, on-trip sections, concluded message, no-flights state, quick contacts)
+- Overview tab — heading, lead, "Bismillah" intro, Essentials of Hajj heading
+- Itinerary tab — heading + lead
+- 5 Days of Hajj tab — heading + lead
+- Umrah tab — heading + lead
+- Duas tab — heading + lead
+- Rulings tab — heading + lead
+- Locations tab — heading + lead
+- Packing tab — heading + lead
+- Preparation tab — heading + lead
+- Wisdom tab — heading + lead
+- Settings tab — heading + lead + all card headings + reset confirm + disclaimer body
 
-These will be refactored in v2.5b and v2.5c. The pattern is established — it's just mechanical work to apply it across the larger files.
+### NOT translated (intentional, not yet)
+- **Religious instructional content** in `data/itinerary-template.json`, `data/duas.json`, `data/rulings.json`. These are technical religious content that should be translated by qualified scholars per language, not by an AI assistant. The data files stay English; the UI structure around them translates.
+- Day card body text (descriptions of what to do each day)
+- Specific ruling text in the Rulings tab body
+- Step-by-step Umrah procedure paragraphs
+- Inline prep tips in Preparation/Wisdom tabs
+
+### Behaviour notes
+- **English is default.** New users land in English. They can switch via the header chip.
+- **Persistence.** Locale stored in `localStorage` under `hajj-companion-v1.locale`. Survives reloads and data resets (separate key from main user data).
+- **Auto-fallback.** Any string missing in fr/ar/ur falls back to English at runtime. So missing translations = visible English, never broken UI.
+- **RTL.** Arabic and Urdu set `<html dir="rtl">` and use Amiri / Noto Nastaliq Urdu fonts where available. Layout flips correctly across header, tab nav, day cards, contacts.
 
 ---
 
 ## ⚠ Translation quality caveat
 
-The French / Arabic / Urdu translations were produced by Claude (the AI assistant) and are competent but **not authoritative**. They should be reviewed by a native speaker before being trusted by real pilgrims, particularly:
+The French / Arabic / Urdu translations were produced by Claude (the AI assistant) and are **competent but not authoritative**. Native-speaker review is recommended before being trusted by real pilgrims, particularly:
 
-- **Religious-adjacent register** — words like "pilgrim", "ruling", "madhab", "operator" carry different connotations in different languages
+- **Religious-adjacent register** — words like "pilgrim", "ruling", "madhab", "operator" carry different connotations across languages
 - **Arabic specifically** — formal MSA was used; some pilgrims may expect more colloquial wording
 - **Urdu specifically** — uses standard Urdu prose, not poetic register
 
-Recommendation: ask a native speaker (a friend, your imam, a community member) to skim the translated UI in their language and flag anything that reads oddly. The strings live in `data/i18n.json` — easy to edit one entry at a time.
+Recommendation: ask a native speaker of each language to skim the translated UI and flag anything that reads oddly. The strings live in `data/i18n.json` — easy to edit one entry at a time.
 
 ---
 
 ## Files in this drop
 
-**New:**
+**New (v2.5):**
 - `js/i18n.js` — i18n machinery (~150 lines)
-- `data/i18n.json` — translation dictionary (4 locales, ~800 strings total)
+- `data/i18n.json` — translation dictionary (4 locales, ~1000 keys total across all sections)
 
-**Modified:**
+**Modified (v2.5):**
 - `index.html` — language switcher host + i18n script tag + boot now async + data-i18n attrs on footer
 - `app.html` — same
-- `css/styles.css` — language switcher chip + popover styles + RTL overrides
+- `css/styles.css` — language switcher chip + popover styles + RTL overrides + locale-specific font fallbacks
 - `js/app.js` — async boot, I18n.init() first, switcher render + onChange refresh, tab i18n keys
+- `js/utils.js` — validation messages now translated
 - `js/disclaimer.js` — pulls strings via `I18n.t()`
-- `js/share.js` — pulls strings via `I18n.t()` (including the share text used in deep links)
-
-**Not yet touched (deferred):**
-- `js/onboarding.js` — needs string extraction
-- `js/guide.js` — needs string extraction
-- `js/like.js` — only one string ("pilgrims"), already in i18n.json, applied via `data-i18n` on the footer span
+- `js/share.js` — pulls strings via `I18n.t()` (incl. share text used in deep links)
+- `js/onboarding.js` — 80+ string sites refactored
+- `js/guide.js` — tab headings + leads + Today tab + Settings tab translated
 
 ---
 
@@ -69,8 +92,11 @@ Replace these files in `~/Downloads/hajj-app21/`:
 - `index.html`
 - `app.html`
 - `js/app.js`
+- `js/utils.js`
 - `js/disclaimer.js`
 - `js/share.js`
+- `js/onboarding.js`
+- `js/guide.js`
 
 Drop in these new files:
 - `js/i18n.js`
@@ -79,27 +105,27 @@ Drop in these new files:
 ```bash
 cd ~/Downloads/hajj-app21
 git add .
-git commit -m "v2.5 foundation: i18n machinery + 4-locale chrome (en/fr/ar/ur)"
+git commit -m "v2.5: full multi-language UI (en/fr/ar/ur) with RTL support"
 git push
 ```
 
 ## Verify on hajjguide.net
 
 In a fresh incognito tab:
-1. The language chip is visible in the header (shows "⌾ English ⌄")
-2. Click it → dropdown shows English, Français, العربية, اردو
-3. Click Français → footer text changes to French
-4. Click العربية → footer flips to RTL, Arabic strings show
-5. Reload the page → previously chosen language persists
-6. Open the disclaimer modal (incognito should trigger it on first load) → it's translated
-7. Click Share button → share modal is translated
-
-Onboarding and in-app guide tabs will still be in English regardless of selected language. That's expected — fix in next drop.
+1. Language chip in header shows "English"
+2. Click → dropdown lists English / Français / العربية / اردو
+3. Click Français → tab nav, footer, all UI translates to French
+4. Click العربية → layout flips to RTL, Arabic strings visible
+5. Click اردو → also RTL, Urdu strings visible
+6. Reload → locale persists
+7. Open onboarding → all 5 steps translate
+8. Walk through any tab → headings + section labels translate
+9. Day card body content stays English (intentional — religious instructional content)
 
 ## Risk
 
-- 🟢 The i18n machinery is additive. Without selecting a non-English locale, the site behaves identically to v2.4.
-- 🟢 Falls back to English for any missing key, so half-translated content never produces blank UI.
-- 🟡 RTL CSS is scaffolded but not yet stress-tested in onboarding/guide. Some layouts might look awkward in RTL until session B fixes them.
+- 🟢 The i18n machinery is additive. With English locale active, the site behaves identically to v2.4.
+- 🟢 Falls back to English for any missing key, so a partial translation never produces broken UI.
+- 🟡 RTL layouts have been tested in onboarding and the Today tab. Some other tabs (Itinerary, Locations) may have minor layout quirks in RTL that surface only with real use. Easy fix on report.
 
 If anything breaks, `git revert HEAD && git push`.

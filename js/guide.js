@@ -8,6 +8,11 @@
 
   const { el, $, $$, escapeHtml, formatDate, addDays, daysBetween, slugify } = Utils;
 
+  // v2.5 — i18n shortcut. Falls back to the English literal if the key is missing.
+  // Resolved at call time so order-of-load doesn't matter.
+  const t = (key, fallback, params) =>
+    (window.I18n ? window.I18n.t(key, params) : fallback) || fallback;
+
   // ─── Tab definitions ──────────────────────────────────────
   const TABS = [
     { id: 'today',       title: 'Today',        icon: '◐' },
@@ -155,12 +160,10 @@
 
     _tabTodayNoFlights() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Today'));
+      wrap.appendChild(el('h1', null, t('tabs.today', 'Today')));
       wrap.appendChild(el('div', { class: 'callout callout--info' },
         el('p', { style: { margin: 0 } },
-          'Add your flight dates to see your daily plan. ',
-          el('a', { href: './index.html' }, 'Open setup'),
-          '.'
+          t('guide.today.noFlightsHint', 'Add your flight dates to see your daily plan. Open setup.')
         )
       ));
       return wrap;
@@ -185,14 +188,17 @@
       const count = el('div', { class: 'today-countdown' });
       count.appendChild(el('div', { class: 'today-countdown__num' }, String(days)));
       count.appendChild(el('div', { class: 'today-countdown__label' },
-        days === 0 ? 'Your Hajj begins today.' :
-        days === 1 ? 'day until your Hajj begins' :
-        'days until your Hajj begins'
+        days === 0 ? t('guide.today.countdownLabelToday', 'Your Hajj begins today.') :
+        days === 1 ? t('guide.today.countdownLabelOne', 'day until your Hajj begins') :
+        t('guide.today.countdownLabelMany', 'days until your Hajj begins')
       ));
       wrap.appendChild(count);
 
       const sub = el('p', { class: 'today-countdown__sub' });
-      sub.appendChild(document.createTextNode('Outbound: '));
+      // Compose "Outbound: <date>" — keeping the date in a <strong> element
+      const outboundLabel = t('guide.today.countdownOutbound', 'Outbound: {date}', { date: '' })
+        .replace(/\{date\}\s*$/, '').trim();
+      sub.appendChild(document.createTextNode(outboundLabel + ' '));
       sub.appendChild(el('strong', null, Utils.formatDate(startDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })));
       if (startHijri) {
         sub.appendChild(document.createTextNode(' · '));
@@ -203,13 +209,7 @@
       // Suggestion to use the Preparation/Packing tabs while waiting
       wrap.appendChild(el('div', { class: 'callout', style: { marginTop: 'var(--space-6)' } },
         el('p', { style: { margin: 0 } },
-          'While you wait: review the ',
-          el('a', { href: '#', 'data-jump-tab': 'preparation' }, 'Preparation'),
-          ', ',
-          el('a', { href: '#', 'data-jump-tab': 'packing' }, 'Packing'),
-          ', and ',
-          el('a', { href: '#', 'data-jump-tab': 'duas' }, 'Duas'),
-          ' tabs.'
+          t('guide.today.whileWaiting', 'While you wait: review the Preparation, Packing, and Duas tabs.')
         )
       ));
 
@@ -225,21 +225,19 @@
         el('div', { class: 'today-hero__hijri' }, Utils.formatHijri(new Date()) || '')
       ));
 
-      wrap.appendChild(el('h2', { class: 'today-concluded__heading' }, 'Your Hajj has concluded.'));
+      wrap.appendChild(el('h2', { class: 'today-concluded__heading' }, t('guide.today.concludedTitle', 'Your Hajj has concluded.')));
       wrap.appendChild(el('p', { class: 'today-concluded__lead' },
-        'May Allah accept your pilgrimage and grant you Hajj Mabroor.'
+        t('guide.today.concludedLead', 'May Allah accept your pilgrimage and grant you Hajj Mabroor.')
       ));
+      const fromStr = Utils.formatDate(startDate, { day: 'numeric', month: 'short', year: 'numeric' });
+      const toStr = Utils.formatDate(endDate, { day: 'numeric', month: 'short', year: 'numeric' });
       wrap.appendChild(el('p', { class: 'today-concluded__sub' },
-        `Your trip ran from ${Utils.formatDate(startDate, { day: 'numeric', month: 'short', year: 'numeric' })} to ${Utils.formatDate(endDate, { day: 'numeric', month: 'short', year: 'numeric' })}.`
+        t('guide.today.concludedRange', `Your trip ran from ${fromStr} to ${toStr}.`, { from: fromStr, to: toStr })
       ));
 
       wrap.appendChild(el('div', { class: 'callout callout--info', style: { marginTop: 'var(--space-6)' } },
         el('p', { style: { margin: 0 } },
-          'The full guide is still available — visit the ',
-          el('a', { href: '#', 'data-jump-tab': 'itinerary' }, 'Itinerary'),
-          ' tab for your day-by-day record, or the ',
-          el('a', { href: '#', 'data-jump-tab': 'wisdom' }, 'Wisdom & Tips'),
-          ' tab for post-Hajj reflections.'
+          t('guide.today.concludedHint', 'The full guide is still available — visit the Itinerary tab for your day-by-day record, or the Wisdom & Tips tab for post-Hajj reflections.')
         )
       ));
       requestAnimationFrame(() => this._wireTabJumpLinks(wrap));
@@ -272,7 +270,7 @@
       // ── Today's plan (expanded) ────────────────────────────
       if (dayToday) {
         const todaySection = el('div', { class: 'today-section today-section--main' });
-        todaySection.appendChild(el('h2', { class: 'today-section__heading' }, 'Today'));
+        todaySection.appendChild(el('h2', { class: 'today-section__heading' }, t('guide.today.todaySection', 'Today')));
 
         const card = this.renderDayCard(dayToday, 0);
         // Expand it by default — that's the whole point of this view
@@ -288,7 +286,7 @@
         // Today's duas (separate section so they're glanceable)
         if (dayToday.duaIds && dayToday.duaIds.length && this.data.duas) {
           const duaSection = el('div', { class: 'today-section' });
-          duaSection.appendChild(el('h2', { class: 'today-section__heading' }, 'Duas for today'));
+          duaSection.appendChild(el('h2', { class: 'today-section__heading' }, t('guide.today.duasForToday', 'Duas for today')));
           dayToday.duaIds.forEach(id => {
             const dua = this.data.duas.find(d => d.id === id);
             if (dua) duaSection.appendChild(this.renderDuaCard(dua));
@@ -297,12 +295,9 @@
         }
       } else {
         // Edge case: today's date is in the trip window but no day card matches
-        // (shouldn't happen but possible if itinerary build skips a day)
         wrap.appendChild(el('div', { class: 'callout' },
           el('p', { style: { margin: 0 } },
-            'No specific plan recorded for today — see the ',
-            el('a', { href: '#', 'data-jump-tab': 'itinerary' }, 'Itinerary'),
-            ' tab for the full schedule.'
+            t('guide.today.noPlanToday', 'No specific plan recorded for today — see the Itinerary tab for the full schedule.')
           )
         ));
       }
@@ -310,7 +305,7 @@
       // ── Yesterday recap ─────────────────────────────────────
       if (dayYesterday) {
         const ySection = el('div', { class: 'today-section today-section--past' });
-        ySection.appendChild(el('h2', { class: 'today-section__heading' }, 'Yesterday'));
+        ySection.appendChild(el('h2', { class: 'today-section__heading' }, t('guide.today.yesterdaySection', 'Yesterday')));
         ySection.appendChild(this.renderDayCard(dayYesterday, 0));
         wrap.appendChild(ySection);
       }
@@ -318,7 +313,7 @@
       // ── Tomorrow preview ────────────────────────────────────
       if (dayTomorrow) {
         const tSection = el('div', { class: 'today-section today-section--future' });
-        tSection.appendChild(el('h2', { class: 'today-section__heading' }, 'Tomorrow'));
+        tSection.appendChild(el('h2', { class: 'today-section__heading' }, t('guide.today.tomorrowSection', 'Tomorrow')));
         tSection.appendChild(this.renderDayCard(dayTomorrow, 0));
         wrap.appendChild(tSection);
       }
@@ -327,8 +322,6 @@
       const contacts = this._buildQuickContacts();
       if (contacts) wrap.appendChild(contacts);
 
-      // Wire collapsible day-cards is already attached inside renderDayCard().
-      // We just need to wire the tab-jump links here.
       requestAnimationFrame(() => {
         this._wireTabJumpLinks(wrap);
       });
@@ -337,22 +330,23 @@
     },
 
     /**
-     * v2.4 — Compact contacts strip for the Today tab. Pulls operator + group leader
-     * + extra contacts. Each phone is a tap-to-call link.
+     * v2.4 — Compact contacts strip for the Today tab.
      */
     _buildQuickContacts() {
       const cfg = this.config || {};
       const op = cfg.operator || {};
       const all = [];
-      if (op.contactName || op.contactPhone) all.push({ name: op.contactName || 'Group leader', phone: op.contactPhone, role: 'Group leader' });
-      if (op.emergencyPhone) all.push({ name: '24-hr emergency line', phone: op.emergencyPhone, role: 'Emergency' });
+      const groupLeaderRole = t('guide.today.groupLeaderRole', 'Group leader');
+      const emergencyRole   = t('guide.today.emergencyRole',   'Emergency');
+      if (op.contactName || op.contactPhone) all.push({ name: op.contactName || groupLeaderRole, phone: op.contactPhone, role: groupLeaderRole });
+      if (op.emergencyPhone) all.push({ name: t('onboarding.operator.emergencyLine', '24-hr emergency line'), phone: op.emergencyPhone, role: emergencyRole });
       (cfg.groupContacts || []).forEach((c, i) => {
         if (c.name || c.phone) all.push({ name: c.name || `Contact ${i + 1}`, phone: c.phone, role: '' });
       });
       if (!all.length) return null;
 
       const section = el('div', { class: 'today-section today-contacts' });
-      section.appendChild(el('h2', { class: 'today-section__heading' }, 'Quick contacts'));
+      section.appendChild(el('h2', { class: 'today-section__heading' }, t('guide.today.quickContacts', 'Quick contacts')));
       const list = el('div', { class: 'today-contacts__list' });
       all.forEach(c => {
         const row = el('a', {
@@ -389,12 +383,12 @@
 
       // Page header
       const header = el('div', { class: 'section-header' });
-      const title = el('h1', { class: 'display-1', style: { fontSize: 'var(--fs-3xl)', margin: 0 } }, 'Bismillah.');
+      const title = el('h1', { class: 'display-1', style: { fontSize: 'var(--fs-3xl)', margin: 0 } }, t('onboarding.welcome.bismillah', 'Bismillah.'));
       header.appendChild(title);
       wrap.appendChild(header);
 
       wrap.appendChild(el('p', { class: 'lead', style: { maxWidth: '60ch' } },
-        'Your guide to a Hajj that is structured, intentional and rooted in your madhab. Use the tabs to navigate. Tap the notes icon at any time to record reflections. Tap the print icon to print the current section.'
+        t('guide.overview.lead', 'Your guide to a Hajj that is structured, intentional and rooted in your madhab. Use the tabs to navigate. Tap the notes icon at any time to record reflections. Tap the print icon to print the current section.')
       ));
 
       // Countdown
@@ -408,7 +402,7 @@
       ));
 
       // Pillars + Wajib of Hajj — madhab-specific
-      wrap.appendChild(el('h2', null, 'The Essentials of Hajj'));
+      wrap.appendChild(el('h2', null, t('guide.overview.essentialsHeading', 'The Essentials of Hajj')));
       const madhab = this.config.madhab || 'hanafi';
       wrap.appendChild(el('p', { class: 'text-mute' },
         'Per the ', this.renderMadhabBadge(madhab), ' school. Other schools differ — see ',
@@ -454,9 +448,9 @@
 
     tabItinerary() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Your Itinerary'));
+      wrap.appendChild(el('h1', null, t('guide.itinerary.heading', 'Your Itinerary')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'A day-by-day plan personalised to your flight dates. Each card opens to show the day\'s rituals, prayers, and duas.'
+        t('guide.itinerary.lead', 'A day-by-day plan personalised to your flight dates. Each card opens to show the day\'s rituals, prayers, and duas.')
       ));
 
       const out = this.config.outboundFlight;
@@ -852,9 +846,9 @@
 
     tabHajjDays() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'The Five Days of Hajj'));
+      wrap.appendChild(el('h1', null, t('guide.hajjDays.heading', 'The Five Days of Hajj')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'From the 8th of Dhul Hijjah (Yawm at-Tarwiyah) to the 12th or 13th. The order, timing and rulings of each day matter — particularly in your madhab. Tap any day for the detail.'
+        t('guide.hajjDays.lead', 'From the 8th of Dhul Hijjah (Yawm at-Tarwiyah) to the 12th or 13th. The order, timing and rulings of each day matter — particularly in your madhab. Tap any day for the detail.')
       ));
 
       const days = this.data.itinerary.phases.find(p => p.id === 'hajj-days').days;
@@ -889,9 +883,9 @@
 
     tabUmrah() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Umrah'));
+      wrap.appendChild(el('h1', null, t('guide.umrah.heading', 'Umrah')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'The lesser pilgrimage — performed before Hajj for Tamattu\' pilgrims. Eight steps from Ihram to release.'
+        t('guide.umrah.lead', 'The lesser pilgrimage — performed before Hajj for Tamattu\' pilgrims. Eight steps from Ihram to release.')
       ));
 
       const steps = [
@@ -938,9 +932,9 @@
 
     tabDuas() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Duas'));
+      wrap.appendChild(el('h1', null, t('guide.duas.heading', 'Duas')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'Every supplication you need for the journey, with Arabic, transliteration, and English.'
+        t('guide.duas.lead', 'Every supplication you need for the journey, with Arabic, transliteration, and English.')
       ));
 
       // Render each dua
@@ -953,11 +947,10 @@
 
     tabRulings() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Rulings by Madhab'));
+      wrap.appendChild(el('h1', null, t('guide.rulings.heading', 'Rulings by Madhab')));
       const madhab = this.config.madhab || 'hanafi';
       wrap.appendChild(el('p', { class: 'lead' },
-        'Showing the position of the ', this.renderMadhabBadge(madhab),
-        ' school by default. Tap "Compare" on any ruling to see the other three.'
+        t('guide.rulings.lead', 'Showing the position of your selected school. Tap "Compare" on any ruling to see the other three.')
       ));
 
       // Madhab switcher
@@ -1008,9 +1001,9 @@
 
     tabLocations() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Sacred Locations'));
+      wrap.appendChild(el('h1', null, t('guide.locations.heading', 'Sacred Locations')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'The places of the journey. Distances are walking estimates; transport may be required in heat or for those with limited mobility.'
+        t('guide.locations.lead', 'The places of the journey. Distances are walking estimates; transport may be required in heat or for those with limited mobility.')
       ));
 
       const places = [
@@ -1054,9 +1047,9 @@
 
     tabPacking() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Packing Checklist'));
+      wrap.appendChild(el('h1', null, t('guide.packing.heading', 'Packing Checklist')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'A comprehensive list — check things off as you pack. Your progress is saved automatically.'
+        t('guide.packing.lead', 'A comprehensive list — check things off as you pack. Your progress is saved automatically.')
       ));
 
       const sections = this.packingData();
@@ -1112,9 +1105,9 @@
 
     tabPreparation() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Preparation'));
+      wrap.appendChild(el('h1', null, t('guide.preparation.heading', 'Preparation')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'A timeline of what to do — and when — to arrive ready in body, mind and soul.'
+        t('guide.preparation.lead', 'A timeline of what to do — and when — to arrive ready in body, mind and soul.')
       ));
 
       const phases = [
@@ -1175,9 +1168,9 @@
 
     tabWisdom() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Wisdom & Practical Tips'));
+      wrap.appendChild(el('h1', null, t('guide.wisdom.heading', 'Wisdom & Practical Tips')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'Lessons from those who have walked before you.'
+        t('guide.wisdom.lead', 'Lessons from those who have walked before you.')
       ));
 
       const sections = [
@@ -1253,37 +1246,37 @@
 
     tabSettings() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Settings'));
+      wrap.appendChild(el('h1', null, t('guide.settings.heading', 'Settings')));
       wrap.appendChild(el('p', { class: 'lead' },
-        'Adjust your preferences and trip details.'
+        t('guide.settings.lead', 'Adjust your preferences and trip details.')
       ));
 
       const grid = el('div', { class: 'settings-grid' });
 
       // Edit setup
       const editCard = el('div', { class: 'settings-card' });
-      editCard.appendChild(el('h3', null, 'Trip details'));
-      editCard.appendChild(el('p', null, 'Update your flights, accommodation, operator or madhab.'));
-      const editBtn = el('a', { class: 'btn btn--primary', href: './index.html' }, 'Edit setup →');
+      editCard.appendChild(el('h3', null, t('guide.settings.tripDetailsHeading', 'Trip details')));
+      editCard.appendChild(el('p', null, t('guide.settings.tripDetailsBody', 'Update your flights, accommodation, operator or madhab.')));
+      const editBtn = el('a', { class: 'btn btn--primary', href: './index.html' }, t('guide.overview.editSetup', 'Edit setup') + ' →');
       editCard.appendChild(editBtn);
       grid.appendChild(editCard);
 
       // Notes export
       const notesCard = el('div', { class: 'settings-card' });
-      notesCard.appendChild(el('h3', null, 'Your notes'));
-      notesCard.appendChild(el('p', null, 'Export all the notes you\'ve written across the guide.'));
-      const exportBtn = el('button', { class: 'btn btn--secondary' }, 'Export notes as text');
+      notesCard.appendChild(el('h3', null, t('guide.settings.notesHeading', 'Your notes')));
+      notesCard.appendChild(el('p', null, t('guide.settings.notesBody', "Export all the notes you've written across the guide.")));
+      const exportBtn = el('button', { class: 'btn btn--secondary' }, t('guide.settings.exportNotes', 'Export notes as text'));
       exportBtn.addEventListener('click', () => Notes.exportAll());
       notesCard.appendChild(exportBtn);
       grid.appendChild(notesCard);
 
       // Reset
       const resetCard = el('div', { class: 'settings-card' });
-      resetCard.appendChild(el('h3', null, 'Reset everything'));
-      resetCard.appendChild(el('p', null, 'Clear all your data — flights, notes, packing. This cannot be undone.'));
-      const resetBtn = el('button', { class: 'btn btn--secondary', style: { color: 'var(--crimson)' } }, 'Reset all data');
+      resetCard.appendChild(el('h3', null, t('guide.settings.resetHeading', 'Reset everything')));
+      resetCard.appendChild(el('p', null, t('guide.settings.resetBody', 'Clear all your data — flights, notes, packing. This cannot be undone.')));
+      const resetBtn = el('button', { class: 'btn btn--secondary', style: { color: 'var(--crimson)' } }, t('guide.settings.resetData', 'Reset all data'));
       resetBtn.addEventListener('click', async () => {
-        if (confirm('This will erase everything. Continue?')) {
+        if (confirm(t('guide.settings.resetConfirm', 'This will erase everything. Continue?'))) {
           Store.reset();
           if (window.Disclaimer && Disclaimer.reset) Disclaimer.reset();
           if ('caches' in window) {
@@ -1301,8 +1294,8 @@
       // Disclaimer
       wrap.appendChild(el('div', { class: 'callout callout--info', style: { marginTop: 'var(--space-7)' } },
         el('p', { style: { margin: 0 } },
-          el('strong', null, 'Disclaimer: '),
-          'This is a planning aid, not a fatwa. Times, distances and rulings are approximate and reflect commonly-held positions. Always confirm with a qualified scholar of your madhab. The author is not responsible for trip decisions made on the basis of this guide.'
+          el('strong', null, t('guide.settings.disclaimerLabel', 'Disclaimer: ')),
+          t('guide.settings.disclaimerBody', 'This is a planning aid, not a fatwa. Times, distances and rulings are approximate and reflect commonly-held positions. Always confirm with a qualified scholar of your madhab. The author is not responsible for trip decisions made on the basis of this guide.')
         )
       ));
 
