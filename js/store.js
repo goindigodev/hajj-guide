@@ -49,6 +49,7 @@
     packing: {}, // { itemId: true|false }
     audioCache: {}, // { duaId: true } — which audios have been downloaded
     journal: {}, // v2.7 — { 'YYYY-MM-DD': { text: "...", updatedAt: 1234567890 } }
+    stops: {}, // v2.8 — { 'YYYY-MM-DD': [{ id, place, placeId, startTime, endTime }, ...] }
   };
 
   // Deep merge for partial updates

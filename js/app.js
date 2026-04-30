@@ -50,6 +50,11 @@
     // Init Notes (floating button + panel)
     if (window.Notes) Notes.init();
 
+    // v2.8 — preload curated Ziyarat places list so the stop-picker is ready
+    // when the user expands a day card. Fire-and-forget; the UI tolerates
+    // a not-yet-loaded list and fetches lazily if needed.
+    if (window.Stops && Stops.loadPlaces) Stops.loadPlaces();
+
     // Build tab nav
     const tabHost = document.querySelector('.tab-nav__inner');
     if (tabHost && window.Guide) {

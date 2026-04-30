@@ -1987,6 +1987,14 @@
         ));
       }
 
+      // v2.8 — Custom stops (Ziyarat etc.) Inserted between the day's
+      // built-in content and the Reflection textarea. Only shown for
+      // real-date days (skip generic 5-Days-of-Hajj reference cards).
+      if (day.date && window.Stops) {
+        const dateIso = day.date.toISOString().slice(0, 10);
+        inner.appendChild(this.renderStopsSection(dateIso));
+      }
+
       // v2.7 — Reflection / journal section. Only shown when this is a real-date
       // day (skip the generic 5-Days-of-Hajj reference cards). One textarea per
       // day, auto-saves to Journal as the user types.
@@ -2037,6 +2045,263 @@
       });
 
       return card;
+    },
+
+    /**
+     * v2.8 — Render the stops section for a given date (used inside day cards).
+     *
+     * Lists existing stops with edit/delete controls, plus a "+ Add a stop"
+     * affordance that expands to an inline form (combobox + time inputs).
+     *
+     * The combobox uses the curated places list (data/ziyarat-places.json) but
+     * also accepts free-text input. Saving uses Stops.add(); editing uses
+     * Stops.update(); deleting uses Stops.remove().
+     *
+     * The whole section re-renders itself in place when the user makes a change,
+     * so the parent day-card body never needs to know about state shifts.
+     */
+    renderStopsSection(dateIso) {
+      const wrap = el('div', { class: 'day-card__stops' });
+      const head = el('div', { class: 'day-card__stops-head' });
+      head.appendChild(el('h4', { class: 'eyebrow', style: { margin: 0 } }, 'Your stops'));
+      wrap.appendChild(head);
+
+      const listHost = el('div', { class: 'day-card__stops-list' });
+      wrap.appendChild(listHost);
+
+      const formHost = el('div', { class: 'day-card__stops-form-host' });
+      wrap.appendChild(formHost);
+
+      // Re-render only the list + form, leaving the header alone
+      const refresh = () => {
+        listHost.innerHTML = '';
+        const stops = Stops.forDate(dateIso);
+        if (!stops.length) {
+          listHost.appendChild(el('p', { class: 'day-card__stops-empty text-mute italic' },
+            'No stops added for this day yet. Add Ziyarat visits, group activities, or anything else you want to remember.'
+          ));
+        } else {
+          stops.forEach(stop => listHost.appendChild(this._renderStopRow(dateIso, stop, refresh)));
+        }
+        // Reset form area to the "+ Add a stop" button
+        formHost.innerHTML = '';
+        formHost.appendChild(this._renderAddStopAffordance(dateIso, formHost, refresh));
+      };
+
+      refresh();
+      return wrap;
+    },
+
+    /**
+     * v2.8 — Render a single stop as a read-only row with edit/delete buttons.
+     * Clicking edit swaps it inline for a form.
+     */
+    _renderStopRow(dateIso, stop, refresh) {
+      const row = el('div', { class: 'day-card__stop' });
+      const main = el('div', { class: 'day-card__stop-main' });
+
+      // Time chip on the left, if any
+      const timeStr = Stops.formatTimeRange(stop);
+      if (timeStr) {
+        main.appendChild(el('span', { class: 'day-card__stop-time' }, timeStr));
+      } else {
+        // Placeholder dot to keep alignment consistent
+        main.appendChild(el('span', { class: 'day-card__stop-time day-card__stop-time--empty' }, '·'));
+      }
+
+      const placeBlock = el('div', { class: 'day-card__stop-place' });
+      placeBlock.appendChild(el('span', { class: 'day-card__stop-name' }, stop.place));
+      // Show the curated description when picked from list
+      if (stop.placeId && Stops.placesNow().length) {
+        const known = Stops.placesNow().find(p => p.id === stop.placeId);
+        if (known && known.description) {
+          placeBlock.appendChild(el('span', { class: 'day-card__stop-desc' }, known.description));
+        }
+      }
+      main.appendChild(placeBlock);
+      row.appendChild(main);
+
+      // Actions
+      const actions = el('div', { class: 'day-card__stop-actions' });
+      const editBtn = el('button', {
+        type: 'button',
+        class: 'day-card__stop-action',
+        title: 'Edit stop',
+        'aria-label': 'Edit stop',
+      }, 'Edit');
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Replace this row in place with a form
+        const form = this._renderStopForm(dateIso, stop, refresh);
+        row.replaceWith(form);
+        // Focus the place field
+        const inp = form.querySelector('.day-card__stop-place-input');
+        if (inp) inp.focus();
+      });
+      actions.appendChild(editBtn);
+
+      const delBtn = el('button', {
+        type: 'button',
+        class: 'day-card__stop-action day-card__stop-action--danger',
+        title: 'Remove stop',
+        'aria-label': 'Remove stop',
+      }, 'Remove');
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        Stops.remove(dateIso, stop.id);
+        refresh();
+      });
+      actions.appendChild(delBtn);
+      row.appendChild(actions);
+
+      return row;
+    },
+
+    /**
+     * v2.8 — The "+ Add a stop" button that expands to a form.
+     * Returns a single element which is either the button (collapsed) or the
+     * form (when expanded). Caller manages the host container.
+     */
+    _renderAddStopAffordance(dateIso, formHost, refresh) {
+      const btn = el('button', {
+        type: 'button',
+        class: 'day-card__stops-add',
+      }, '+ Add a stop');
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        formHost.innerHTML = '';
+        formHost.appendChild(this._renderStopForm(dateIso, null, refresh));
+        const inp = formHost.querySelector('.day-card__stop-place-input');
+        if (inp) inp.focus();
+      });
+      return btn;
+    },
+
+    /**
+     * v2.8 — The inline edit/add form. If `existing` is provided, it's an edit;
+     * otherwise it's a new-stop form. On save: persist + call refresh(). On
+     * cancel: refresh() to restore the row or the "+ Add a stop" button.
+     */
+    _renderStopForm(dateIso, existing, refresh) {
+      const form = el('div', { class: 'day-card__stop-form' });
+
+      // Place input — combobox-style with a datalist for suggestions
+      // datalist is HTML5 native, supports both picker AND free-text typing.
+      const placeRow = el('div', { class: 'day-card__stop-form-row' });
+      placeRow.appendChild(el('label', { class: 'day-card__stop-form-label' }, 'Place'));
+
+      const datalistId = 'stops-places-' + Math.random().toString(36).slice(2, 8);
+      const dl = el('datalist', { id: datalistId });
+
+      // Group options by city for clarity. <datalist> doesn't support optgroups
+      // but we can prefix the displayed values, which Chrome shows nicely.
+      const placesByCity = (city) => Stops.placesNow().filter(p => p.city === city);
+      const cityLabels = { madinah: 'Madinah', makkah: 'Makkah', other: 'Other' };
+      ['madinah', 'makkah', 'other'].forEach(city => {
+        placesByCity(city).forEach(p => {
+          const opt = el('option', { value: p.name });
+          opt.setAttribute('data-place-id', p.id);
+          opt.setAttribute('data-city', city);
+          // Show city as the displayed hint to disambiguate
+          opt.setAttribute('label', cityLabels[city] || '');
+          dl.appendChild(opt);
+        });
+      });
+
+      const placeInput = el('input', {
+        type: 'text',
+        class: 'field__input day-card__stop-place-input',
+        placeholder: 'Type or pick from list (e.g. Quba Mosque)',
+        list: datalistId,
+        autocomplete: 'off',
+      });
+      if (existing) placeInput.value = existing.place || '';
+      placeRow.appendChild(placeInput);
+      placeRow.appendChild(dl);
+      form.appendChild(placeRow);
+
+      // Times row
+      const timesRow = el('div', { class: 'day-card__stop-form-times' });
+      const startWrap = el('div', { class: 'day-card__stop-form-row' });
+      startWrap.appendChild(el('label', { class: 'day-card__stop-form-label' }, 'Start (optional)'));
+      const startInput = el('input', { type: 'time', class: 'field__input' });
+      if (existing) startInput.value = existing.startTime || '';
+      startWrap.appendChild(startInput);
+      timesRow.appendChild(startWrap);
+
+      const endWrap = el('div', { class: 'day-card__stop-form-row' });
+      endWrap.appendChild(el('label', { class: 'day-card__stop-form-label' }, 'End (optional)'));
+      const endInput = el('input', { type: 'time', class: 'field__input' });
+      if (existing) endInput.value = existing.endTime || '';
+      endWrap.appendChild(endInput);
+      timesRow.appendChild(endWrap);
+      form.appendChild(timesRow);
+
+      // Buttons
+      const btns = el('div', { class: 'day-card__stop-form-actions' });
+      const saveBtn = el('button', {
+        type: 'button',
+        class: 'btn btn--primary day-card__stop-form-save',
+      }, existing ? 'Save' : 'Add stop');
+      const cancelBtn = el('button', {
+        type: 'button',
+        class: 'btn btn--ghost day-card__stop-form-cancel',
+      }, 'Cancel');
+      btns.appendChild(saveBtn);
+      btns.appendChild(cancelBtn);
+      form.appendChild(btns);
+
+      // Validation status line (hidden until needed)
+      const status = el('div', { class: 'day-card__stop-form-status' }, '');
+      form.appendChild(status);
+
+      // Resolve placeId from typed/picked place name
+      const resolvePlaceId = (typedName) => {
+        const t = (typedName || '').trim().toLowerCase();
+        if (!t) return null;
+        const match = Stops.placesNow().find(p => p.name.toLowerCase() === t);
+        return match ? match.id : null;
+      };
+
+      cancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        refresh();
+      });
+
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const place = placeInput.value.trim();
+        if (!place) {
+          status.textContent = 'Please enter or pick a place.';
+          status.classList.add('is-visible');
+          placeInput.focus();
+          return;
+        }
+        const start = startInput.value;
+        const end = endInput.value;
+        if (start && end && end < start) {
+          status.textContent = 'End time is before start time. Adjust or leave one blank.';
+          status.classList.add('is-visible');
+          return;
+        }
+        const placeId = resolvePlaceId(place);
+        if (existing) {
+          Stops.update(dateIso, existing.id, { place, placeId, startTime: start, endTime: end });
+        } else {
+          Stops.add(dateIso, { place, placeId, startTime: start, endTime: end });
+        }
+        refresh();
+      });
+
+      // Pressing Enter in the place input submits
+      placeInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          saveBtn.click();
+        }
+      });
+
+      return form;
     },
 
     /* ─── Build days list from user config ─────────────── */
