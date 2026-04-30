@@ -22,9 +22,21 @@
       // Operator
       operator: { name: '', contactName: '', contactPhone: '', emergencyPhone: '' },
 
-      // Accommodation (place_id from Places API + manual fallback)
-      madinahHotel: { name: '', address: '', placeId: '', lat: null, lng: null },
-      makkahHotel: { name: '', address: '', placeId: '', lat: null, lng: null },
+      // Accommodation (place_id from Places API + manual fallback).
+      // v2.2 — supports multiple hotels per city, each with a date range.
+      // Existing single-hotel data is migrated on load (see migrate() below).
+      // Each entry: { name, address, placeId, lat, lng, fromDate: 'YYYY-MM-DD', toDate: 'YYYY-MM-DD' }
+      madinahHotels: [],
+      makkahHotels: [],
+
+      // v2.2 — Mina camp details. Pilgrims either stay inside the Mina valley
+      // (in a tent, by zone) or in Aziziyah (residential district adjacent to
+      // Mina, used in "shifting" packages). All optional.
+      minaCamp: {
+        type: '',     // 'mina' | 'aziziyah' | 'unsure' | ''
+        zone: '',     // only meaningful when type === 'mina': 'A' | 'B' | 'C' | 'D' | 'unknown'
+        area: '',     // free text — e.g. "Muaisim", "Al-Kabsh", "Camp 12B"
+      },
 
       // Group info
       groupSize: 1,
@@ -71,11 +83,53 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
       const parsed = JSON.parse(raw);
+      // v2.2 — migrate legacy schema before merging
+      migrate(parsed);
       // Merge into default to handle schema additions
       return merge(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
     } catch (e) {
       console.warn('Store: failed to parse, using defaults', e);
       return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+  }
+
+  /**
+   * v2.2 — Migrate legacy state shapes in place. Idempotent: running it twice
+   * on the same object is a no-op. Each migration block converts old → new
+   * and removes the old field so subsequent loads see the new shape.
+   */
+  function migrate(state) {
+    if (!state || !state.config) return;
+    const c = state.config;
+
+    // 1. Single hotel → array of hotels (v2.1 → v2.2)
+    if (c.madinahHotel && !c.madinahHotels) {
+      c.madinahHotels = c.madinahHotel.name
+        ? [{
+            name: c.madinahHotel.name || '',
+            address: c.madinahHotel.address || '',
+            placeId: c.madinahHotel.placeId || '',
+            lat: c.madinahHotel.lat || null,
+            lng: c.madinahHotel.lng || null,
+            fromDate: '',
+            toDate: '',
+          }]
+        : [];
+      delete c.madinahHotel;
+    }
+    if (c.makkahHotel && !c.makkahHotels) {
+      c.makkahHotels = c.makkahHotel.name
+        ? [{
+            name: c.makkahHotel.name || '',
+            address: c.makkahHotel.address || '',
+            placeId: c.makkahHotel.placeId || '',
+            lat: c.makkahHotel.lat || null,
+            lng: c.makkahHotel.lng || null,
+            fromDate: '',
+            toDate: '',
+          }]
+        : [];
+      delete c.makkahHotel;
     }
   }
 

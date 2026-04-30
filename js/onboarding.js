@@ -89,6 +89,15 @@
       if (!this.config.operator) this.config.operator = {};
       if (!('serviceProvider' in this.config.operator))      this.config.operator.serviceProvider = '';
       if (!('serviceProviderOther' in this.config.operator)) this.config.operator.serviceProviderOther = '';
+      // v2.2 — defensive default for Mina camp (existing users from earlier versions)
+      if (!this.config.minaCamp || typeof this.config.minaCamp !== 'object') {
+        this.config.minaCamp = { type: '', zone: '', area: '' };
+      }
+      // v2.2 — defensive default for hotel arrays (Store.migrate runs on load too,
+      // but onboarding clones the config so we re-default if the migration didn't
+      // populate them)
+      if (!Array.isArray(this.config.madinahHotels)) this.config.madinahHotels = [];
+      if (!Array.isArray(this.config.makkahHotels))  this.config.makkahHotels  = [];
 
       // Load Nusuk operator list (cached on window so multiple renders don't refetch)
       if (!window._OPERATOR_LIST) {
@@ -493,30 +502,23 @@
       wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 4 of 5'));
       wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Where you will stay.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        'Knowing your hotels lets the guide calculate distances and embed walking maps.'
+        'If you stay in different hotels (e.g. shifting packages), add each one with its date range.'
       ));
 
+      // Madinah hotels list
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'In Madinah'));
-      const madinahWrap = this.buildPlacesField(
-        'Hotel or building name',
-        'Start typing to search',
-        this.config.madinahHotel,
-        'madinah',
-        (place) => { this.config.madinahHotel = place; }
-      );
-      wrap.appendChild(madinahWrap);
+      wrap.appendChild(this._buildHotelList('madinah'));
 
       wrap.appendChild(el('hr', { class: 'rule' }));
 
+      // Makkah hotels list
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'In Makkah'));
-      const makkahWrap = this.buildPlacesField(
-        'Hotel or building name',
-        'Start typing to search',
-        this.config.makkahHotel,
-        'makkah',
-        (place) => { this.config.makkahHotel = place; }
-      );
-      wrap.appendChild(makkahWrap);
+      wrap.appendChild(this._buildHotelList('makkah'));
+
+      wrap.appendChild(el('hr', { class: 'rule' }));
+
+      // v2.2 — Mina camp section (item 6)
+      wrap.appendChild(this._buildMinaCampSection());
 
       // Note about Places API
       const apiKey = (window.APP_CONFIG && window.APP_CONFIG.googleMapsApiKey) || '';
@@ -526,6 +528,201 @@
         ));
       }
       return wrap;
+    },
+
+    /**
+     * v2.2 — Build the multi-hotel list for one city ('madinah' | 'makkah').
+     * Reads/writes the corresponding array on this.config (e.g. madinahHotels).
+     */
+    _buildHotelList(city) {
+      const arrayKey = city + 'Hotels'; // 'madinahHotels' or 'makkahHotels'
+      const wrap = el('div', { class: 'hotel-list' });
+
+      // Defensive default if user is at this step before init() finished migration
+      if (!Array.isArray(this.config[arrayKey])) {
+        this.config[arrayKey] = [];
+      }
+      // If empty, start with one blank entry so the form isn't entirely empty
+      if (this.config[arrayKey].length === 0) {
+        this.config[arrayKey].push({ name: '', address: '', placeId: '', lat: null, lng: null, fromDate: '', toDate: '' });
+      }
+
+      // Render each hotel entry
+      this.config[arrayKey].forEach((hotel, idx) => {
+        wrap.appendChild(this._buildHotelEntry(city, idx));
+      });
+
+      // "+ Add another hotel" button
+      const addBtn = el('button', {
+        type: 'button',
+        class: 'btn btn--ghost hotel-list__add',
+      }, '+ Add another hotel');
+      addBtn.addEventListener('click', () => {
+        this.config[arrayKey].push({ name: '', address: '', placeId: '', lat: null, lng: null, fromDate: '', toDate: '' });
+        // Re-render this hotel list section in place
+        const next = this._buildHotelList(city);
+        wrap.replaceWith(next);
+      });
+      wrap.appendChild(addBtn);
+      return wrap;
+    },
+
+    /**
+     * v2.2 — Build a single hotel entry (one row in the multi-hotel list).
+     */
+    _buildHotelEntry(city, idx) {
+      const arrayKey = city + 'Hotels';
+      const hotel = this.config[arrayKey][idx];
+      const isFirst = idx === 0;
+      const isOnly  = this.config[arrayKey].length === 1;
+
+      const entry = el('div', { class: 'hotel-entry' });
+
+      // Header row: "Hotel 1" + remove button (hidden if only one)
+      const head = el('div', { class: 'hotel-entry__head' });
+      head.appendChild(el('span', { class: 'hotel-entry__num' }, `Hotel ${idx + 1}`));
+      if (!isOnly) {
+        const remove = el('button', {
+          type: 'button',
+          class: 'hotel-entry__remove',
+          'aria-label': 'Remove this hotel',
+        }, '× Remove');
+        remove.addEventListener('click', () => {
+          this.config[arrayKey].splice(idx, 1);
+          const next = this._buildHotelList(city);
+          // The parent .hotel-list is the entry's parent
+          entry.parentElement.replaceWith(next);
+        });
+        head.appendChild(remove);
+      }
+      entry.appendChild(head);
+
+      // Places autocomplete field — uses the existing buildPlacesField helper.
+      // The third argument is the current hotel object; on selection, the helper
+      // calls our callback with the place data, which we copy into the entry
+      // (preserving existing dates).
+      const placesField = this.buildPlacesField(
+        'Hotel or building name',
+        'Start typing to search',
+        hotel,
+        city + '-' + idx,  // unique key for the autocomplete element
+        (place) => {
+          // Merge place data into the existing entry to preserve date fields
+          const existing = this.config[arrayKey][idx] || {};
+          this.config[arrayKey][idx] = {
+            ...existing,
+            name: place.name || '',
+            address: place.address || '',
+            placeId: place.placeId || '',
+            lat: place.lat,
+            lng: place.lng,
+          };
+        }
+      );
+      entry.appendChild(placesField);
+
+      // Date range row
+      const dateRow = el('div', { class: 'input-row' });
+      dateRow.appendChild(this.buildField(
+        'From date', 'date', '', hotel.fromDate || '',
+        v => { this.config[arrayKey][idx].fromDate = v; }
+      ));
+      dateRow.appendChild(this.buildField(
+        'To date', 'date', '', hotel.toDate || '',
+        v => { this.config[arrayKey][idx].toDate = v; }
+      ));
+      entry.appendChild(dateRow);
+
+      return entry;
+    },
+
+    /**
+     * v2.2 — Mina camp section. Pilgrims either stay inside the Mina valley
+     * (where the type/zone matters for distance to Jamarat) or in Aziziyah
+     * (a residential district adjacent to Mina, used in "shifting" packages).
+     */
+    _buildMinaCampSection() {
+      const cfg = this.config.minaCamp;
+      const section = el('div');
+      section.appendChild(el('h4', { class: 'eyebrow' }, 'During the days of Hajj'));
+      section.appendChild(el('p', { class: 'onboarding__step-desc', style: { marginTop: '4px', marginBottom: '12px' } },
+        'Where will you sleep on the nights of 8th, 11th, 12th of Dhul Hijjah? Skip if not sure — your operator will confirm.'
+      ));
+
+      // Type: radio-style cards
+      const typeWrap = el('div', { class: 'mina-camp-types' });
+      const types = [
+        { id: 'mina',      label: 'Inside Mina valley',     desc: 'Tent in Mina (any zone)' },
+        { id: 'aziziyah',  label: 'In Aziziyah',            desc: 'Residential district adjacent to Mina ("shifting" package)' },
+        { id: 'unsure',    label: "I'm not sure yet",       desc: 'Confirm with your operator before travelling' },
+      ];
+      types.forEach(t => {
+        const card = el('label', {
+          class: 'mina-camp-type' + (cfg.type === t.id ? ' is-selected' : ''),
+        });
+        const radio = el('input', {
+          type: 'radio',
+          name: 'mina-camp-type',
+          value: t.id,
+        });
+        if (cfg.type === t.id) radio.checked = true;
+        radio.addEventListener('change', () => {
+          this.config.minaCamp.type = t.id;
+          // Re-render this section so zone field shows/hides properly
+          const next = this._buildMinaCampSection();
+          section.replaceWith(next);
+        });
+        card.appendChild(radio);
+        const text = el('span', { class: 'mina-camp-type__text' });
+        text.appendChild(el('strong', null, t.label));
+        text.appendChild(el('span', { class: 'mina-camp-type__desc' }, t.desc));
+        card.appendChild(text);
+        typeWrap.appendChild(card);
+      });
+      section.appendChild(typeWrap);
+
+      // Zone (only when type === 'mina')
+      if (cfg.type === 'mina') {
+        const zoneRow = el('div', { class: 'field', style: { marginTop: '12px' } });
+        zoneRow.appendChild(el('label', { class: 'field__label' }, 'Mina zone (if known)'));
+        zoneRow.appendChild(el('div', { class: 'field__hint' },
+          'Zone A is closest to Jamarat (~300–700m); Zone D is furthest (~3–4km). Premium packages tend to be A; standard B/C; economy D and beyond.'
+        ));
+        const select = el('select', { class: 'field__input' });
+        ['', 'A', 'B', 'C', 'D', 'unknown'].forEach(z => {
+          const label = z === '' ? '— select if known —'
+                      : z === 'unknown' ? "Don't know"
+                      : `Zone ${z}`;
+          const opt = el('option', { value: z }, label);
+          if (cfg.zone === z) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', () => {
+          this.config.minaCamp.zone = select.value;
+        });
+        zoneRow.appendChild(select);
+        section.appendChild(zoneRow);
+      }
+
+      // Area / camp number free text (always shown if type is mina or aziziyah)
+      if (cfg.type === 'mina' || cfg.type === 'aziziyah') {
+        const placeholder = cfg.type === 'mina'
+          ? 'e.g. Muaisim, Al-Kabsh, Camp 12B'
+          : 'e.g. building name, Aziziyah block';
+        const fieldWrap = el('div', { class: 'field', style: { marginTop: '12px' } });
+        fieldWrap.appendChild(el('label', { class: 'field__label' },
+          cfg.type === 'mina' ? 'Sub-area or camp number (optional)' : 'Aziziyah location (optional)'
+        ));
+        const input = el('input', {
+          type: 'text', class: 'field__input', placeholder,
+          value: cfg.area || '',
+        });
+        input.addEventListener('input', () => { this.config.minaCamp.area = input.value; });
+        fieldWrap.appendChild(input);
+        section.appendChild(fieldWrap);
+      }
+
+      return section;
     },
 
     stepGroup() {
@@ -608,12 +805,11 @@
       });
 
       input.addEventListener('input', e => {
-        // Manual fallback — store name even without place_id
+        // Manual fallback — store name even without place_id, via the callback.
+        // The callback receives a partial place object; the caller decides how to merge it.
         const v = e.target.value;
-        if (key === 'madinah') {
-          this.config.madinahHotel = { ...this.config.madinahHotel, name: v };
-        } else {
-          this.config.makkahHotel = { ...this.config.makkahHotel, name: v };
+        if (typeof onSelect === 'function') {
+          onSelect({ name: v, address: '', placeId: '', lat: null, lng: null });
         }
       });
 
@@ -622,10 +818,8 @@
       // Hook into Maps Autocomplete if available
       if (window.Maps && Maps.attachAutocomplete) {
         Maps.attachAutocomplete(input, key, (place) => {
-          if (key === 'madinah') {
-            this.config.madinahHotel = place;
-          } else {
-            this.config.makkahHotel = place;
+          if (typeof onSelect === 'function') {
+            onSelect(place);
           }
         });
       }

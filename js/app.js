@@ -12,6 +12,17 @@
     if (window.FontSize)  FontSize.init();
     if (window.Maps)      Maps.init();
 
+    // v2.2 — load operator list (for Emergency Card name resolution)
+    if (!window._OPERATOR_LIST && window.Utils && Utils.fetchJSON) {
+      Utils.fetchJSON('./data/operators.json')
+        .then(data => {
+          window._OPERATOR_LIST = data;
+          // Re-render guide so Emergency Card can resolve provider names
+          if (window.Guide && Guide.render) Guide.render();
+        })
+        .catch(() => { /* fail silently */ });
+    }
+
     // v2.1 — like button (footer)
     if (window.Like && Like.init) Like.init();
 

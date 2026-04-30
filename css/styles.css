@@ -1036,6 +1036,14 @@ hr.rule {
   color: var(--ink);
 }
 
+.day-card__date-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+  flex: 0 0 auto;
+}
+
 .day-card__date {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
@@ -1043,6 +1051,17 @@ hr.rule {
   color: var(--brass-deep);
   letter-spacing: 0.03em;
   min-width: 64px;
+}
+
+/* v2.2 — Hijri sub-label below Gregorian date */
+.day-card__date-hijri {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+  font-style: normal;
+  line-height: 1.2;
 }
 
 .day-card__title {
@@ -2357,4 +2376,122 @@ body.is-disclaimer-open {
   .disclaimer-modal__title { font-size: 26px; }
   .disclaimer-modal__lead { font-size: 17px; }
   .disclaimer-modal__body { font-size: 13.5px; }
+}
+
+/* =============================================================
+   v2.2 — MINA CAMP SECTION (onboarding step 4)
+   ============================================================= */
+
+.mina-camp-types {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+.mina-camp-type {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mina-camp-type:hover {
+  border-color: var(--green);
+  background: rgba(74, 93, 74, 0.03);
+}
+.mina-camp-type.is-selected {
+  border-color: var(--green-deep);
+  background: rgba(74, 93, 74, 0.05);
+}
+.mina-camp-type input[type="radio"] {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+.mina-camp-type__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.mina-camp-type__text strong {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.mina-camp-type__desc {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* v2.2 — emphasis states for journey-map markers */
+.jh-pin-active circle { stroke-width: 1.8; }
+.jh-pin-dim { opacity: 0.55; }
+.jh-pin-aziziyah {
+  fill: #a85d3c;
+  font-weight: 600;
+}
+
+/* =============================================================
+   v2.2 — MULTI-HOTEL ACCOMMODATION
+   ============================================================= */
+
+.hotel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hotel-entry {
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hotel-entry__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hotel-entry__num {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.hotel-entry__remove {
+  background: transparent;
+  border: none;
+  color: var(--ink-mute);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.hotel-entry__remove:hover {
+  color: #a14a2c;
+  background: rgba(161, 74, 44, 0.08);
+}
+
+.hotel-list__add {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 13px;
+  padding: 8px 14px;
 }

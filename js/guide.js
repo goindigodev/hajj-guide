@@ -186,6 +186,19 @@
           )
         ));
         // Still show generic structure
+      } else if (ret && ret.date && Utils.containsHajjPeriod) {
+        // v2.2 — sanity-check the user's date range covers the 8-13 Dhul Hijjah window.
+        // If not, the day labels may be misleading. Warn them clearly but don't block.
+        const containsHajj = Utils.containsHajjPeriod(out.date, ret.date);
+        if (containsHajj === false) {
+          wrap.appendChild(el('div', { class: 'callout callout--warn' },
+            el('p', { style: { margin: 0 } },
+              el('strong', null, 'Heads up: '),
+              'Your flight dates don\'t appear to include the Hajj days (8–13 Dhul Hijjah). ',
+              'The day-by-day itinerary below assumes you\'re going for Hajj — if you\'re going for Umrah only or your dates are different, treat the Hajj-day labels as illustrative.'
+            )
+          ));
+        }
       }
 
       // v2: Journey map hero (Option 1) — geographic infographic of the entire trip
@@ -220,8 +233,16 @@
      */
     renderJourneyMapHero() {
       const cfg = this.config || {};
-      const madinahHotelName = (cfg.madinahHotel && cfg.madinahHotel.name) || 'Masjid an-Nabawi';
-      const makkahHotelName  = (cfg.makkahHotel && cfg.makkahHotel.name)  || 'Masjid al-Haram';
+      const madinahHotelName = this.firstHotelName('madinah', 'Masjid an-Nabawi');
+      const makkahHotelName  = this.firstHotelName('makkah',  'Masjid al-Haram');
+
+      // v2.2 — Determine if we should show the Aziziyah marker and which one is highlighted
+      const minaType = (cfg.minaCamp && cfg.minaCamp.type) || '';
+      const showAziziyah = minaType === 'aziziyah';   // only show when relevant
+      const minaActive = minaType === 'mina' || minaType === '' || minaType === 'unsure';
+      // Class names for conditional emphasis
+      const minaClass = minaActive ? 'jh-pin-active' : 'jh-pin-dim';
+      const aziziyahClass = showAziziyah ? 'jh-pin-active' : '';
 
       const host = el('div', { class: 'journey-hero' });
 
@@ -268,13 +289,30 @@
             <text x="180" y="322" class="jh-pin" text-anchor="middle">Masjid al-Haram</text>
             <text x="180" y="336" class="jh-pin-sub" text-anchor="middle">Day 5: Umrah · Day 13: Wada</text>
 
-            <g transform="translate(290, 250)">
+            <g transform="translate(290, 250)" class="${minaClass}">
               <circle r="11" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
               <path d="M -5 4 L 0 -5 L 5 4 Z" fill="#2f3d2f"/>
               <line x1="-5" y1="4" x2="5" y2="4" stroke="#2f3d2f" stroke-width="0.5"/>
             </g>
-            <text x="290" y="232" class="jh-pin" text-anchor="middle">Mina</text>
-            <text x="290" y="280" class="jh-pin-sub" text-anchor="middle">Days 8 · 10 · 11 · 12</text>
+            <text x="290" y="232" class="jh-pin ${minaClass}" text-anchor="middle">Mina</text>
+            <text x="290" y="280" class="jh-pin-sub ${minaClass}" text-anchor="middle">Days 8 · 10 · 11 · 12</text>
+
+            ${showAziziyah ? `
+            <!-- Aziziyah — residential district between Makkah and Mina, used for shifting packages -->
+            <g transform="translate(232, 218)" class="jh-aziziyah-marker ${aziziyahClass}">
+              <circle r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1.2"/>
+              <!-- Building silhouette to differentiate from Mina's tent -->
+              <rect x="-4" y="-4" width="8" height="8" fill="#a85d3c"/>
+              <rect x="-3" y="-2" width="1" height="1" fill="#fdfbf6"/>
+              <rect x="-1" y="-2" width="1" height="1" fill="#fdfbf6"/>
+              <rect x="1" y="-2" width="1" height="1" fill="#fdfbf6"/>
+              <rect x="-3" y="0" width="1" height="1" fill="#fdfbf6"/>
+              <rect x="-1" y="0" width="1" height="1" fill="#fdfbf6"/>
+              <rect x="1" y="0" width="1" height="1" fill="#fdfbf6"/>
+            </g>
+            <text x="232" y="200" class="jh-pin jh-pin-aziziyah" text-anchor="middle">Aziziyah</text>
+            <text x="232" y="240" class="jh-pin-sub" text-anchor="middle" font-style="italic">your camp</text>
+            ` : ''}
 
             <g transform="translate(380, 290)">
               <circle r="9" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
@@ -470,6 +508,63 @@
         .replace(/'/g, '&#39;');
     },
 
+    /**
+     * v2.2 — Helpers for the multi-hotel schema (madinahHotels / makkahHotels arrays).
+     *
+     * `getHotels(city)` returns the array (always an array, defensive).
+     * `firstHotelName(city)` returns the first non-empty hotel name (used in journey-map caption).
+     * `hotelNameForDate(city, date)` returns the hotel whose date range contains the given date,
+     *   falling back to the first hotel when no date matches.
+     */
+    getHotels(city) {
+      const cfg = this.config || {};
+      const arr = cfg[city + 'Hotels'];
+      return Array.isArray(arr) ? arr : [];
+    },
+
+    firstHotelName(city, fallback) {
+      const list = this.getHotels(city);
+      const named = list.find(h => h && h.name);
+      return named ? named.name : (fallback || '');
+    },
+
+    /**
+     * Pick the right hotel for a given date. ISO yyyy-mm-dd comparison works
+     * because Date object's toISOString gives us a sortable string after slicing.
+     * Returns the hotel whose [fromDate, toDate] window contains the date,
+     * else the first named hotel, else null.
+     */
+    hotelForDate(city, date) {
+      const list = this.getHotels(city);
+      if (!list.length) return null;
+      if (!date) return list.find(h => h && h.name) || null;
+
+      const iso = (date instanceof Date)
+        ? date.toISOString().slice(0, 10)
+        : String(date).slice(0, 10);
+
+      // First try: hotel whose dates contain the day (inclusive on both ends)
+      for (const h of list) {
+        if (!h || !h.name) continue;
+        const f = h.fromDate || '';
+        const t = h.toDate || '';
+        if (f && t) {
+          if (iso >= f && iso <= t) return h;
+        } else if (f && !t) {
+          if (iso >= f) return h;
+        } else if (!f && t) {
+          if (iso <= t) return h;
+        }
+      }
+      // Fallback: first hotel with a name
+      return list.find(h => h && h.name) || null;
+    },
+
+    hotelNameForDate(city, date, fallback) {
+      const h = this.hotelForDate(city, date);
+      return (h && h.name) ? h.name : (fallback || '');
+    },
+
     tabHajjDays() {
       const wrap = el('div');
       wrap.appendChild(el('h1', null, 'The Five Days of Hajj'));
@@ -642,13 +737,13 @@
         { key: 'jamarat', name: 'Jamarat', desc: 'The three pillars (Sughra, Wusta, Aqabah) representing the temptations of Shaytan. Pilgrims throw seven pebbles at each. Distance from most Mina camps: ~2-3 km on foot.' },
       ];
 
-      // User's hotels first
-      if (this.config.madinahHotel && this.config.madinahHotel.name) {
+      // v2.2 — User's hotels (multi-hotel array support).
+      const madinahHotels = this.getHotels('madinah').filter(h => h && h.name);
+      const makkahHotels  = this.getHotels('makkah').filter(h => h && h.name);
+      if (madinahHotels.length || makkahHotels.length) {
         wrap.appendChild(el('h2', { style: { marginTop: 'var(--space-5)' } }, 'Your accommodation'));
-        wrap.appendChild(this.renderHotelCard('madinah', this.config.madinahHotel));
-      }
-      if (this.config.makkahHotel && this.config.makkahHotel.name) {
-        wrap.appendChild(this.renderHotelCard('makkah', this.config.makkahHotel));
+        madinahHotels.forEach(h => wrap.appendChild(this.renderHotelCard('madinah', h)));
+        makkahHotels.forEach(h => wrap.appendChild(this.renderHotelCard('makkah', h)));
       }
 
       wrap.appendChild(el('h2', { style: { marginTop: 'var(--space-7)' } }, 'Holy sites'));
@@ -1086,11 +1181,56 @@
       };
 
       add('Operator', cfg.operator && cfg.operator.name);
+      // v2.2 — also surface Saudi service provider name (resolved from operators.json) if set
+      if (cfg.operator && (cfg.operator.serviceProvider || cfg.operator.serviceProviderOther)) {
+        let provName = '';
+        if (cfg.operator.serviceProvider === '__other__') {
+          provName = cfg.operator.serviceProviderOther || '';
+        } else if (cfg.operator.serviceProvider && window._OPERATOR_LIST && window._OPERATOR_LIST.providers) {
+          const p = window._OPERATOR_LIST.providers.find(x => x.id === cfg.operator.serviceProvider);
+          if (p) provName = p.name;
+        }
+        if (provName) add('Saudi provider', provName);
+      }
       add('Group leader', cfg.operator && cfg.operator.contactName);
       addPhone('Group phone', cfg.operator && cfg.operator.contactPhone);
       addPhone('24-hr line', cfg.operator && cfg.operator.emergencyPhone);
-      add('Madinah hotel', cfg.madinahHotel && cfg.madinahHotel.name);
-      add('Makkah hotel', cfg.makkahHotel && cfg.makkahHotel.name);
+
+      // v2.2 — list each Madinah/Makkah hotel separately.
+      // If a hotel has dates, append them in parentheses for clarity.
+      const fmtHotelLine = (h) => {
+        const hasDates = h.fromDate || h.toDate;
+        if (!hasDates) return h.name;
+        const f = h.fromDate || '?';
+        const t = h.toDate || '?';
+        return `${h.name} (${f} → ${t})`;
+      };
+      this.getHotels('madinah').filter(h => h && h.name).forEach((h, i, arr) => {
+        const label = arr.length > 1 ? `Madinah hotel ${i + 1}` : 'Madinah hotel';
+        add(label, fmtHotelLine(h));
+      });
+      this.getHotels('makkah').filter(h => h && h.name).forEach((h, i, arr) => {
+        const label = arr.length > 1 ? `Makkah hotel ${i + 1}` : 'Makkah hotel';
+        add(label, fmtHotelLine(h));
+      });
+
+      // v2.2 — Mina camp summary
+      if (cfg.minaCamp && cfg.minaCamp.type) {
+        let minaSummary = '';
+        if (cfg.minaCamp.type === 'mina') {
+          minaSummary = 'Mina';
+          if (cfg.minaCamp.zone && cfg.minaCamp.zone !== 'unknown') {
+            minaSummary += ` · Zone ${cfg.minaCamp.zone}`;
+          }
+          if (cfg.minaCamp.area) minaSummary += ` · ${cfg.minaCamp.area}`;
+        } else if (cfg.minaCamp.type === 'aziziyah') {
+          minaSummary = 'Aziziyah';
+          if (cfg.minaCamp.area) minaSummary += ` · ${cfg.minaCamp.area}`;
+        } else if (cfg.minaCamp.type === 'unsure') {
+          minaSummary = 'Mina (camp TBC)';
+        }
+        if (minaSummary) add('Mina camp', minaSummary);
+      }
 
       if ((cfg.groupContacts || []).length) {
         cfg.groupContacts.forEach((c, i) => {
@@ -1143,7 +1283,19 @@
         type: 'button',
         'aria-expanded': 'false',
       });
-      head.appendChild(el('span', { class: 'day-card__date' }, day.dateLabel || `Day ${idx + 1}`));
+
+      // Date column: Gregorian primary + Hijri secondary
+      const dateCol = el('span', { class: 'day-card__date-col' });
+      dateCol.appendChild(el('span', { class: 'day-card__date' }, day.dateLabel || `Day ${idx + 1}`));
+      // Add Hijri sub-label when we have a real Date
+      if (day.date) {
+        const hijri = Utils.formatHijri(day.date);
+        if (hijri) {
+          dateCol.appendChild(el('span', { class: 'day-card__date-hijri' }, hijri));
+        }
+      }
+      head.appendChild(dateCol);
+
       head.appendChild(el('span', { class: 'day-card__title' }, day.title));
       head.appendChild(el('span', { class: 'day-card__location' }, day.location || ''));
       head.appendChild(el('span', { class: 'day-card__chevron' }, '⌄'));
@@ -1207,6 +1359,7 @@
 
       // Departure
       days.push({
+        date: startDate || null,
         dateLabel: day1,
         title: 'Departure',
         location: hasFlights ? `${out.from || 'Home'} → ${out.to || 'MED/JED'}` : 'Travel',
@@ -1222,9 +1375,10 @@
       for (let i = 0; i < madinahDays; i++) {
         const d = startDate ? addDays(startDate, i + 1) : null;
         days.push({
+          date: d,
           dateLabel: d ? formatDate(d) : `Madinah Day ${i + 1}`,
           title: i === 0 ? 'Arrive in Madinah' : `In Madinah · Day ${i + 1}`,
-          location: cfg.madinahHotel && cfg.madinahHotel.name ? cfg.madinahHotel.name : 'Madinah',
+          location: this.hotelNameForDate('madinah', d, 'Madinah'),
           description: i === 0
             ? 'Settle into your accommodation. Aim for the next prayer at Masjid an-Nabawi if time and energy allow. Visit the Rawdah and offer salaams at the Prophet\'s grave.'
             : 'Pray five daily prayers at Masjid an-Nabawi if possible. Each prayer there equals 1,000 elsewhere. Visit Masjid Quba (Saturday morning is sunnah).',
@@ -1242,6 +1396,7 @@
       const offsetUmrah = 1 + madinahDays;
       const dUmrah = startDate ? addDays(startDate, offsetUmrah) : null;
       days.push({
+        date: dUmrah,
         dateLabel: dUmrah ? formatDate(dUmrah) : 'Travel & Umrah Day',
         title: 'Travel to Makkah · Umrah',
         location: 'Madinah → Dhul Hulayfah → Makkah',
@@ -1253,9 +1408,10 @@
       // Rest day
       const dRest = startDate ? addDays(startDate, offsetUmrah + 1) : null;
       days.push({
+        date: dRest,
         dateLabel: dRest ? formatDate(dRest) : 'Rest Day',
         title: 'Rest in Makkah',
-        location: cfg.makkahHotel && cfg.makkahHotel.name ? cfg.makkahHotel.name : 'Makkah',
+        location: this.hotelNameForDate('makkah', dRest, 'Makkah'),
         description: 'A day to recover and orient yourself. Walk to the Haram, identify your group\'s meeting points, locate the entrances closest to your hotel.',
         actions: [
           'Visit the Haram for at least one prayer.',
@@ -1276,6 +1432,7 @@
         if (i === 2) duaIds.push('rami-takbir');
         if (i === 3 || i === 4) duaIds.push('after-jamarah-sughra-wusta', 'rami-takbir');
         days.push({
+          date: d,
           dateLabel: d ? formatDate(d) : `Hajj Day ${i + 1}`,
           title: hd.hijri + ' · ' + hd.name,
           location: hd.location,
@@ -1295,9 +1452,10 @@
       for (let i = 0; i < Math.min(remaining, 6); i++) {
         const d = startDate ? addDays(startDate, postStart + i) : null;
         days.push({
+          date: d,
           dateLabel: d ? formatDate(d) : `Makkah Post-Hajj Day ${i + 1}`,
           title: i === 0 ? 'Recovery in Makkah' : `In Makkah · Day ${i + 1}`,
-          location: cfg.makkahHotel && cfg.makkahHotel.name ? cfg.makkahHotel.name : 'Makkah',
+          location: this.hotelNameForDate('makkah', d, 'Makkah'),
           description: i === 0
             ? 'You have completed the rites. Rest, reflect, and maintain ibadah at the Haram.'
             : 'Continue daily prayers at the Haram. Voluntary Umrah from Tan\'eem or Ji\'irana is a popular option.',
@@ -1309,6 +1467,7 @@
       if (endDate) {
         const dDayBefore = addDays(endDate, -1);
         days.push({
+          date: dDayBefore,
           dateLabel: formatDate(dDayBefore),
           title: 'Tawaf al-Wada',
           location: 'Masjid al-Haram',
@@ -1317,6 +1476,7 @@
           note: 'Wajib in Hanafi/Shafi\'i/Hanbali; sunnah in Maliki. Menstruating women are exempt.',
         });
         days.push({
+          date: endDate,
           dateLabel: formatDate(endDate),
           title: 'Return Home',
           location: hasFlights ? `${ret.from || 'JED'} → ${ret.to || 'Home'}` : 'Travel',
