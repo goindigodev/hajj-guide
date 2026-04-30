@@ -48,6 +48,7 @@
     notes: {}, // { sectionId: "user notes" }
     packing: {}, // { itemId: true|false }
     audioCache: {}, // { duaId: true } — which audios have been downloaded
+    journal: {}, // v2.7 — { 'YYYY-MM-DD': { text: "...", updatedAt: 1234567890 } }
   };
 
   // Deep merge for partial updates

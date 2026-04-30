@@ -203,6 +203,18 @@
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
         'This companion will become a personalised guide to your Hajj — your dates, your flights, your madhab, your accommodation. Everything is stored only on this device. Nothing is sent anywhere.'
       ));
+
+      // v2.7 — pilgrim's name. Used on the emergency card and to attribute
+      // journal entries. Defensive default for existing users from earlier versions.
+      if (typeof this.config.pilgrimName !== 'string') this.config.pilgrimName = '';
+      wrap.appendChild(this.buildField(
+        'Your name (as on your passport)',
+        'text',
+        'e.g. Ahmed Khan',
+        this.config.pilgrimName,
+        v => { this.config.pilgrimName = v; }
+      ));
+
       wrap.appendChild(el('div', { class: 'callout callout--info' },
         el('p', { style: { margin: 0 } },
           el('strong', null, 'A note on what follows: '),

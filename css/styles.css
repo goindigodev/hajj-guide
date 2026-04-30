@@ -3354,3 +3354,379 @@ body.is-modal-open { overflow: hidden; }
 /* Tab nav scrolls horizontally; ensure the new "Today" tab is visible
    on the start side regardless of direction. */
 [dir="rtl"] .tab-nav { direction: rtl; }
+
+/* =============================================================
+   v2.7 — JOURNAL REFLECTION on day cards
+   ============================================================= */
+
+.day-card__reflection {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px dashed var(--rule-soft);
+}
+
+.day-card__reflection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.day-card__reflection-status {
+  font-size: 11px;
+  color: var(--green);
+  font-style: italic;
+  opacity: 0;
+  transition: opacity 0.18s;
+  letter-spacing: 0.02em;
+}
+.day-card__reflection-status.is-visible {
+  opacity: 1;
+}
+
+.day-card__reflection-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  background: rgba(143, 166, 143, 0.04);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  resize: vertical;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.day-card__reflection-textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  background: rgba(143, 166, 143, 0.07);
+}
+.day-card__reflection-textarea::placeholder {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+/* =============================================================
+   v2.7 — JOURNAL TAB
+   ============================================================= */
+
+.journal-empty {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-7) var(--space-5);
+  text-align: center;
+  margin: var(--space-5) 0;
+}
+.journal-empty__lead {
+  font-size: var(--fs-base);
+  color: var(--ink);
+  max-width: 50ch;
+  margin: 0 auto var(--space-3);
+}
+.journal-empty__hint {
+  color: var(--ink-mute);
+  font-size: var(--fs-sm);
+  max-width: 50ch;
+  margin: 0 auto var(--space-5);
+}
+
+.journal-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.journal-entry {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--green);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: var(--space-4) var(--space-5);
+  box-shadow: 0 1px 3px rgba(42, 38, 32, 0.05);
+  transition: box-shadow 0.18s;
+}
+.journal-entry:hover {
+  box-shadow: 0 2px 6px rgba(42, 38, 32, 0.08);
+}
+
+.journal-entry__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.journal-entry__date {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.journal-entry__hijri {
+  font-size: 12px;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+}
+
+.journal-entry__body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  color: var(--ink);
+}
+.journal-entry__body p {
+  margin: 0 0 var(--space-3);
+}
+.journal-entry__body p:last-child {
+  margin-bottom: 0;
+}
+
+.journal-entry__footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule-soft);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.journal-entry__edit {
+  background: transparent;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--brass-deep);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.journal-entry__edit:hover {
+  background: rgba(184, 149, 74, 0.08);
+}
+
+@media (max-width: 600px) {
+  .journal-entry { padding: var(--space-3) var(--space-4); }
+  .journal-entry__date { font-size: var(--fs-base); }
+}
+
+/* =============================================================
+   v2.7 — EMERGENCY CARD (PRINTABLE)
+   The on-screen overlay (#em-print-overlay) is hidden by default —
+   only made visible when body.is-printing-emergency is set.
+   ============================================================= */
+
+#em-print-overlay {
+  display: none;
+}
+
+/* While the print dialog is open, hide everything else and show ONLY the card. */
+@media print {
+  body.is-printing-emergency .site-header,
+  body.is-printing-emergency .tab-nav,
+  body.is-printing-emergency main,
+  body.is-printing-emergency .site-footer,
+  body.is-printing-emergency .notes-fab,
+  body.is-printing-emergency .notes-panel,
+  body.is-printing-emergency .disclaimer-modal,
+  body.is-printing-emergency .share-modal,
+  body.is-printing-emergency .no-print {
+    display: none !important;
+  }
+  body.is-printing-emergency #em-print-overlay {
+    display: block !important;
+    position: static;
+    background: white;
+  }
+  /* No page margins on the emergency card — let the card's own padding handle it */
+  @page { size: A4 portrait; margin: 12mm; }
+}
+
+/* When forced visible (during print) */
+body.is-printing-emergency #em-print-overlay {
+  display: block;
+}
+
+.em-print {
+  font-family: 'Inter', Arial, sans-serif;
+  color: #000;
+  background: #fff;
+  max-width: 190mm;
+  margin: 0 auto;
+  /* Let it fill an A4 page nicely */
+  font-size: 12pt;
+  line-height: 1.4;
+}
+
+.em-print__head {
+  text-align: center;
+  border-bottom: 2.5pt solid #000;
+  padding-bottom: 10pt;
+  margin-bottom: 14pt;
+}
+.em-print__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 26pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.em-print__subtitle {
+  font-size: 11pt;
+  color: #555;
+  margin-top: 2pt;
+  letter-spacing: 0.05em;
+}
+
+.em-print__body {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 18pt;
+  margin-bottom: 14pt;
+}
+
+.em-print__section {
+  margin-bottom: 12pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.em-print__section-label {
+  font-size: 9pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #555;
+  font-weight: 500;
+  border-bottom: 0.5pt solid #888;
+  padding-bottom: 2pt;
+  margin-bottom: 6pt;
+}
+.em-print__row {
+  font-size: 12pt;
+  line-height: 1.55;
+  padding: 1pt 0;
+}
+.em-print__row--sub {
+  font-size: 11pt;
+  color: #555;
+}
+.em-print__row-label {
+  color: #555;
+}
+
+.em-print__pilgrim-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22pt;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.15;
+  margin: 2pt 0 4pt;
+}
+.em-print__pilgrim-meta {
+  font-size: 10pt;
+  color: #555;
+  margin-bottom: 4pt;
+}
+
+.em-print__phone-big {
+  margin-top: 8pt;
+  padding: 8pt 10pt;
+  border: 2pt solid #000;
+  border-radius: 4pt;
+  background: #fff;
+  break-inside: avoid;
+}
+.em-print__phone-big-label {
+  font-size: 9pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000;
+  font-weight: 500;
+}
+.em-print__phone-big-number {
+  font-size: 18pt;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2pt;
+}
+
+.em-print__section--saudi {
+  break-inside: avoid;
+}
+.em-print__saudi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4pt;
+  margin-top: 4pt;
+}
+.em-print__saudi-cell {
+  text-align: center;
+  border: 0.5pt solid #888;
+  border-radius: 3pt;
+  padding: 5pt 3pt;
+}
+.em-print__saudi-num {
+  font-size: 16pt;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.em-print__saudi-label {
+  font-size: 8pt;
+  color: #555;
+  margin-top: 1pt;
+  line-height: 1.2;
+}
+
+.em-print__qr {
+  text-align: center;
+  border: 1pt solid #000;
+  border-radius: 4pt;
+  padding: 10pt;
+  break-inside: avoid;
+}
+.em-print__qr-img {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto;
+}
+.em-print__qr-img svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.em-print__qr-caption {
+  margin-top: 8pt;
+  font-size: 9pt;
+  letter-spacing: 0.05em;
+  color: #555;
+}
+.em-print__qr-tel {
+  margin-top: 4pt;
+  font-size: 13pt;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.em-print__foot {
+  margin-top: 14pt;
+  padding-top: 10pt;
+  border-top: 0.5pt solid #888;
+  text-align: center;
+  font-size: 10pt;
+  color: #444;
+}
+.em-print__foot-small {
+  font-size: 9pt;
+  color: #777;
+  margin-top: 3pt;
+  font-style: italic;
+}

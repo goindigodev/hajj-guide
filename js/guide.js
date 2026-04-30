@@ -21,6 +21,7 @@
     { id: 'packing',     title: 'Packing',      icon: '✓' },
     { id: 'preparation', title: 'Preparation',  icon: '◷' },
     { id: 'wisdom',      title: 'Wisdom & Tips',icon: '✶' },
+    { id: 'journal',     title: 'Journal',       icon: '✎' },
     { id: 'settings',    title: 'Settings',     icon: '⚙' },
   ];
 
@@ -101,6 +102,7 @@
         case 'packing':     return this.tabPacking();
         case 'preparation': return this.tabPreparation();
         case 'wisdom':      return this.tabWisdom();
+        case 'journal':     return this.tabJournal();
         case 'settings':    return this.tabSettings();
       }
       return el('div');
@@ -110,6 +112,18 @@
       this.currentTab = id;
       $$('.tab-content').forEach(t => t.classList.toggle('is-active', t.id === `tab-${id}`));
       $$('.tab-nav__btn').forEach(b => b.classList.toggle('is-active', b.dataset.tab === id));
+
+      // v2.7 — re-render the Journal tab on activation so newly-typed entries
+      // from the Itinerary tab appear immediately. The Journal renders from
+      // Store, so we need a fresh build each time it's shown.
+      if (id === 'journal') {
+        const panel = document.getElementById('tab-journal');
+        if (panel) {
+          panel.innerHTML = '';
+          panel.appendChild(this.tabJournal());
+        }
+      }
+
       // Update notes section context
       if (window.Notes && Notes.setSection) {
         const tabDef = TABS.find(t => t.id === id);
@@ -443,9 +457,20 @@
       if (this.config.operator && (this.config.operator.name || this.config.operator.contactPhone)) {
         wrap.appendChild(el('h2', { style: { marginTop: 'var(--space-7)' } }, 'Emergency Card'));
         wrap.appendChild(el('p', { class: 'text-mute', style: { fontSize: 'var(--fs-sm)' } },
-          'Print this section and keep a copy in each bag. ',
-          el('a', { href: '#', onclick: e => { e.preventDefault(); window.Print && Print.printActiveTab(); } }, 'Print')
+          'A printable card with your operator details, hotels, and Saudi emergency numbers. ',
+          'Includes a QR code for the 24-hr line. Keep a copy in each bag.'
         ));
+        // v2.7 — dedicated print button (uses the new single-page printable layout)
+        const printBtn = el('button', {
+          class: 'btn btn--primary',
+          style: { marginBottom: 'var(--space-4)' },
+        }, '🖨 Print emergency card');
+        printBtn.addEventListener('click', () => {
+          if (window.Print && Print.printEmergencyCard) Print.printEmergencyCard();
+          else window.print();
+        });
+        wrap.appendChild(printBtn);
+        // The on-screen card stays as a quick reference (without the QR code)
         wrap.appendChild(this.renderEmergencyCard());
       }
 
@@ -1251,6 +1276,123 @@
       return wrap;
     },
 
+    /* v2.7 — Journal tab. Aggregates entries from all day cards into a
+       chronological list. Empty state when nothing written yet. */
+    tabJournal() {
+      const wrap = el('div');
+      wrap.appendChild(el('h1', null, 'Journal'));
+      wrap.appendChild(el('p', { class: 'lead' },
+        'Reflections from your Hajj — what stayed with you, lessons, gratitude, duas accepted. ' +
+        'Entries also appear inline with each day in the Itinerary.'
+      ));
+
+      const entries = (window.Journal && Journal.all()) || [];
+
+      // Header row with count + export button
+      const header = el('div', {
+        class: 'journal-header',
+        style: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 'var(--space-3)', flexWrap: 'wrap', margin: 'var(--space-5) 0' }
+      });
+      header.appendChild(el('div', { class: 'eyebrow', style: { margin: 0 } },
+        entries.length === 0 ? 'No entries yet'
+          : `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`
+      ));
+      if (entries.length) {
+        const exportBtn = el('button', { class: 'btn btn--ghost' }, 'Export as text');
+        exportBtn.addEventListener('click', () => Journal.exportAll());
+        header.appendChild(exportBtn);
+      }
+      wrap.appendChild(header);
+
+      if (!entries.length) {
+        // Empty state
+        const empty = el('div', { class: 'journal-empty' });
+        empty.appendChild(el('p', { class: 'journal-empty__lead' },
+          'Open any day in the Itinerary tab and write a reflection. Your entries will collect here.'
+        ));
+        empty.appendChild(el('p', { class: 'journal-empty__hint text-mute italic' },
+          'A small written reflection each day — even a sentence — becomes a precious record after the trip is over.'
+        ));
+        const goBtn = el('button', { class: 'btn btn--primary' }, 'Open Itinerary →');
+        goBtn.addEventListener('click', () => this.switchTab('itinerary'));
+        empty.appendChild(goBtn);
+        wrap.appendChild(empty);
+        return wrap;
+      }
+
+      // Render each entry as a card
+      const list = el('div', { class: 'journal-list' });
+      // Most recent first
+      entries.slice().reverse().forEach(entry => {
+        const card = el('article', { class: 'journal-entry' });
+
+        const head = el('header', { class: 'journal-entry__head' });
+        let dateLine = entry.dateIso;
+        try {
+          const d = new Date(entry.dateIso + 'T00:00:00');
+          dateLine = d.toLocaleDateString(undefined, {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+          });
+        } catch (e) { /* keep iso */ }
+        head.appendChild(el('div', { class: 'journal-entry__date' }, dateLine));
+        // Hijri date sub-line
+        const hijri = (() => {
+          try { return Utils.formatHijri(new Date(entry.dateIso + 'T00:00:00')); }
+          catch (e) { return ''; }
+        })();
+        if (hijri) head.appendChild(el('div', { class: 'journal-entry__hijri' }, hijri));
+        card.appendChild(head);
+
+        // Body — preserve the user's line breaks
+        const body = el('div', { class: 'journal-entry__body' });
+        // Split on \n and render <p> for each non-empty paragraph
+        const paras = entry.text.split(/\n\s*\n/);
+        paras.forEach(p => {
+          const trimmed = p.trim();
+          if (trimmed) {
+            // Within paragraph, single \n becomes <br>
+            const para = el('p');
+            const lines = trimmed.split(/\n/);
+            lines.forEach((line, i) => {
+              para.appendChild(document.createTextNode(line));
+              if (i < lines.length - 1) para.appendChild(el('br'));
+            });
+            body.appendChild(para);
+          }
+        });
+        card.appendChild(body);
+
+        // Footer — jump-to-day link
+        const footer = el('footer', { class: 'journal-entry__footer' });
+        const editLink = el('button', {
+          class: 'journal-entry__edit',
+          type: 'button',
+        }, 'Edit on the Itinerary →');
+        editLink.addEventListener('click', () => {
+          this.switchTab('itinerary');
+          // Try to scroll to that day's card
+          requestAnimationFrame(() => {
+            const cards = document.querySelectorAll('#tab-itinerary .day-card');
+            for (const c of cards) {
+              const dateEl = c.querySelector('.day-card__date');
+              // We can't easily match by ISO, so just scroll to the first one for now
+              // (The user lands on the itinerary; scrolling to the exact day is a nice-to-have.)
+              break;
+            }
+            const target = document.querySelector('#tab-itinerary');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+        footer.appendChild(editLink);
+        card.appendChild(footer);
+
+        list.appendChild(card);
+      });
+      wrap.appendChild(list);
+
+      return wrap;
+    },
+
     tabSettings() {
       const wrap = el('div');
       wrap.appendChild(el('h1', null, 'Settings'));
@@ -1258,7 +1400,30 @@
         'Adjust your preferences and trip details.'
       ));
 
+      // v2.7 — pilgrim's name (used on emergency card + journal export).
+      // Inline editable field — auto-saves to config on blur.
+      const nameCard = el('div', { class: 'settings-card', style: { gridColumn: '1 / -1' } });
+      nameCard.appendChild(el('h3', null, 'Your name'));
+      nameCard.appendChild(el('p', { class: 'text-mute', style: { margin: '0 0 var(--space-3)' } },
+        'Used on your printed emergency card and as a header on your journal export.'
+      ));
+      const nameInput = el('input', {
+        type: 'text',
+        class: 'field__input',
+        placeholder: 'e.g. Ahmed Khan',
+        value: (this.config && this.config.pilgrimName) || '',
+        style: { maxWidth: '420px' },
+      });
+      nameInput.addEventListener('blur', () => {
+        const cfg = Store.getConfig() || {};
+        cfg.pilgrimName = nameInput.value.trim();
+        Store.set({ config: cfg });
+        this.config = cfg;
+      });
+      nameCard.appendChild(nameInput);
+
       const grid = el('div', { class: 'settings-grid' });
+      grid.appendChild(nameCard);
 
       // Edit setup
       const editCard = el('div', { class: 'settings-card' });
@@ -1532,6 +1697,217 @@
       return card;
     },
 
+    /**
+     * v2.7 — Build the PRINT-optimised emergency card.
+     * Single A4 page, large fonts, QR code for the operator emergency phone.
+     * Used by Print.printEmergencyCard().
+     */
+    renderEmergencyCardPrintable() {
+      const cfg = this.config || {};
+      const op = cfg.operator || {};
+      const card = el('div', { class: 'em-print' });
+
+      // Header — pilgrim name + Hajj year
+      const head = el('div', { class: 'em-print__head' });
+      const hijriYear = (() => {
+        try {
+          const out = cfg.outboundFlight && cfg.outboundFlight.date;
+          const d = out ? new Date(out) : new Date();
+          const hijri = Utils.formatHijri(d) || '';
+          // formatHijri returns something like "10 Dhul Qa'dah 1447" — pull the year
+          const m = hijri.match(/(\d{4})/);
+          return m ? m[1] : '';
+        } catch (e) { return ''; }
+      })();
+      const titleLine = el('div', { class: 'em-print__title' }, 'Emergency Card');
+      head.appendChild(titleLine);
+      if (hijriYear) head.appendChild(el('div', { class: 'em-print__subtitle' }, `Hajj ${hijriYear} AH`));
+      card.appendChild(head);
+
+      // Two-column body: pilgrim info on the left, QR code on the right
+      const body = el('div', { class: 'em-print__body' });
+      const left = el('div', { class: 'em-print__left' });
+      const right = el('div', { class: 'em-print__right' });
+
+      // PILGRIM section
+      const pilgrim = el('div', { class: 'em-print__section' });
+      pilgrim.appendChild(el('div', { class: 'em-print__section-label' }, 'Pilgrim'));
+      const name = (cfg.pilgrimName || '').trim() || '[Your name]';
+      pilgrim.appendChild(el('div', { class: 'em-print__pilgrim-name' }, name));
+      const meta = [];
+      if (cfg.madhab) meta.push(cfg.madhab.charAt(0).toUpperCase() + cfg.madhab.slice(1) + ' madhab');
+      if (cfg.groupSize && cfg.groupSize > 1) meta.push(`Party of ${cfg.groupSize}`);
+      if (meta.length) pilgrim.appendChild(el('div', { class: 'em-print__pilgrim-meta' }, meta.join(' · ')));
+      left.appendChild(pilgrim);
+
+      // OPERATOR section
+      const opSection = el('div', { class: 'em-print__section' });
+      opSection.appendChild(el('div', { class: 'em-print__section-label' }, 'Hajj operator'));
+      if (op.name) opSection.appendChild(el('div', { class: 'em-print__row' }, op.name));
+      // Saudi service provider, if known
+      let provName = '';
+      if (op.serviceProvider === '__other__') {
+        provName = op.serviceProviderOther || '';
+      } else if (op.serviceProvider && window._OPERATOR_LIST && window._OPERATOR_LIST.providers) {
+        const p = window._OPERATOR_LIST.providers.find(x => x.id === op.serviceProvider);
+        if (p) provName = p.name;
+      }
+      if (provName) {
+        opSection.appendChild(el('div', { class: 'em-print__row em-print__row--sub' }, `Saudi provider: ${provName}`));
+      }
+      // Group leader
+      if (op.contactName || op.contactPhone) {
+        const leaderRow = el('div', { class: 'em-print__row' });
+        if (op.contactName) {
+          leaderRow.appendChild(el('span', { class: 'em-print__row-label' }, 'Group leader: '));
+          leaderRow.appendChild(document.createTextNode(op.contactName));
+          if (op.contactPhone) leaderRow.appendChild(document.createTextNode(' · '));
+        }
+        if (op.contactPhone) leaderRow.appendChild(el('strong', null, op.contactPhone));
+        opSection.appendChild(leaderRow);
+      }
+      // 24-hour emergency line — this is the big one
+      if (op.emergencyPhone) {
+        const big = el('div', { class: 'em-print__phone-big' });
+        big.appendChild(el('div', { class: 'em-print__phone-big-label' }, '24-hr emergency line'));
+        big.appendChild(el('div', { class: 'em-print__phone-big-number' }, op.emergencyPhone));
+        opSection.appendChild(big);
+      }
+      left.appendChild(opSection);
+
+      // ACCOMMODATION section
+      const accom = el('div', { class: 'em-print__section' });
+      accom.appendChild(el('div', { class: 'em-print__section-label' }, 'Accommodation'));
+      const fmtHotel = (h) => {
+        const dates = (h.fromDate || h.toDate)
+          ? ` (${h.fromDate || '?'} → ${h.toDate || '?'})` : '';
+        return h.name + dates;
+      };
+      const madinahHotels = this.getHotels('madinah').filter(h => h && h.name);
+      const makkahHotels  = this.getHotels('makkah').filter(h => h && h.name);
+      if (madinahHotels.length) {
+        madinahHotels.forEach((h, i, arr) => {
+          const lab = arr.length > 1 ? `Madinah ${i + 1}: ` : 'Madinah: ';
+          const r = el('div', { class: 'em-print__row' });
+          r.appendChild(el('span', { class: 'em-print__row-label' }, lab));
+          r.appendChild(document.createTextNode(fmtHotel(h)));
+          accom.appendChild(r);
+        });
+      }
+      if (makkahHotels.length) {
+        makkahHotels.forEach((h, i, arr) => {
+          const lab = arr.length > 1 ? `Makkah ${i + 1}: ` : 'Makkah: ';
+          const r = el('div', { class: 'em-print__row' });
+          r.appendChild(el('span', { class: 'em-print__row-label' }, lab));
+          r.appendChild(document.createTextNode(fmtHotel(h)));
+          accom.appendChild(r);
+        });
+      }
+      // Mina camp
+      if (cfg.minaCamp && cfg.minaCamp.type) {
+        let m = '';
+        if (cfg.minaCamp.type === 'mina') {
+          m = 'Mina';
+          if (cfg.minaCamp.zone && cfg.minaCamp.zone !== 'unknown') m += ` · Zone ${cfg.minaCamp.zone}`;
+          if (cfg.minaCamp.area) m += ` · ${cfg.minaCamp.area}`;
+        } else if (cfg.minaCamp.type === 'aziziyah') {
+          m = 'Aziziyah';
+          if (cfg.minaCamp.area) m += ` · ${cfg.minaCamp.area}`;
+        } else if (cfg.minaCamp.type === 'unsure') {
+          m = 'Mina (TBC)';
+        }
+        if (m) {
+          const r = el('div', { class: 'em-print__row' });
+          r.appendChild(el('span', { class: 'em-print__row-label' }, 'Hajj days: '));
+          r.appendChild(document.createTextNode(m));
+          accom.appendChild(r);
+        }
+      }
+      left.appendChild(accom);
+
+      // SAUDI EMERGENCY NUMBERS — always shown, public info, anyone can call
+      const saudi = el('div', { class: 'em-print__section em-print__section--saudi' });
+      saudi.appendChild(el('div', { class: 'em-print__section-label' }, 'Saudi Arabia emergency numbers'));
+      const grid = el('div', { class: 'em-print__saudi-grid' });
+      [
+        { num: '911', label: 'All emergencies (unified)' },
+        { num: '997', label: 'Red Crescent (ambulance)' },
+        { num: '999', label: 'Police' },
+        { num: '998', label: 'Civil defence (fire)' },
+        { num: '930', label: 'Tourist help line' },
+      ].forEach(item => {
+        const cell = el('div', { class: 'em-print__saudi-cell' });
+        cell.appendChild(el('div', { class: 'em-print__saudi-num' }, item.num));
+        cell.appendChild(el('div', { class: 'em-print__saudi-label' }, item.label));
+        grid.appendChild(cell);
+      });
+      saudi.appendChild(grid);
+      left.appendChild(saudi);
+
+      // GROUP CONTACTS — if present
+      if ((cfg.groupContacts || []).filter(c => c && (c.name || c.phone)).length) {
+        const contacts = el('div', { class: 'em-print__section' });
+        contacts.appendChild(el('div', { class: 'em-print__section-label' }, 'Travel companions'));
+        cfg.groupContacts.forEach(c => {
+          if (!c || (!c.name && !c.phone)) return;
+          const r = el('div', { class: 'em-print__row' });
+          if (c.name) r.appendChild(document.createTextNode(c.name));
+          if (c.phone) {
+            r.appendChild(document.createTextNode(' · '));
+            r.appendChild(el('strong', null, c.phone));
+          }
+          contacts.appendChild(r);
+        });
+        left.appendChild(contacts);
+      }
+
+      // RIGHT COLUMN — QR code
+      if (op.emergencyPhone && window.QRCode) {
+        const qrSection = el('div', { class: 'em-print__qr' });
+        const telUrl = 'tel:' + String(op.emergencyPhone).replace(/\s/g, '');
+        try {
+          const qr = new QRCode({
+            content: telUrl,
+            container: 'svg-viewbox',
+            join: true,
+            padding: 1,
+            width: 220,
+            height: 220,
+            ecl: 'M',
+            xmlDeclaration: false,
+            pretty: false,
+          });
+          // Output a string — inject as innerHTML so the SVG renders
+          const svgString = qr.svg();
+          const wrap = el('div', { class: 'em-print__qr-img' });
+          wrap.innerHTML = svgString;
+          qrSection.appendChild(wrap);
+          qrSection.appendChild(el('div', { class: 'em-print__qr-caption' }, 'Scan to call the 24-hr line'));
+          qrSection.appendChild(el('div', { class: 'em-print__qr-tel' }, op.emergencyPhone));
+        } catch (e) {
+          console.warn('QR generation failed:', e);
+          // Fallback: skip QR but show the number prominently
+          qrSection.appendChild(el('div', { class: 'em-print__qr-caption' }, 'Emergency number'));
+          qrSection.appendChild(el('div', { class: 'em-print__qr-tel' }, op.emergencyPhone));
+        }
+        right.appendChild(qrSection);
+      }
+
+      // Footer reminder
+      const foot = el('div', { class: 'em-print__foot' });
+      foot.appendChild(el('div', null, 'Keep this card with you at all times. Show to authorities if separated from your group.'));
+      foot.appendChild(el('div', { class: 'em-print__foot-small' },
+        'Saudi emergency numbers are publicly known and may be called from any phone, free of charge.'
+      ));
+
+      body.appendChild(left);
+      body.appendChild(right);
+      card.appendChild(body);
+      card.appendChild(foot);
+
+      return card;
+    },
+
     renderDuaCard(dua) {
       const card = el('div', { class: 'dua-card' });
       const head = el('div', { class: 'dua-card__header' });
@@ -1610,6 +1986,48 @@
           el('p', { style: { margin: 0 } }, day.note)
         ));
       }
+
+      // v2.7 — Reflection / journal section. Only shown when this is a real-date
+      // day (skip the generic 5-Days-of-Hajj reference cards). One textarea per
+      // day, auto-saves to Journal as the user types.
+      if (day.date && window.Journal) {
+        const dateIso = day.date.toISOString().slice(0, 10);
+        const existing = Journal.get(dateIso);
+
+        const reflWrap = el('div', { class: 'day-card__reflection' });
+        const reflHead = el('div', { class: 'day-card__reflection-head' });
+        reflHead.appendChild(el('h4', { class: 'eyebrow', style: { margin: 0 } }, 'Reflection'));
+        const status = el('span', { class: 'day-card__reflection-status' }, '');
+        reflHead.appendChild(status);
+        reflWrap.appendChild(reflHead);
+
+        const ta = el('textarea', {
+          class: 'day-card__reflection-textarea',
+          placeholder: 'What stayed with you today? Notes, duas accepted, lessons, gratitude…',
+          rows: 4,
+        });
+        ta.value = (existing && existing.text) || '';
+
+        const showSaved = () => {
+          status.textContent = '✓ Saved';
+          status.classList.add('is-visible');
+          clearTimeout(status._t);
+          status._t = setTimeout(() => status.classList.remove('is-visible'), 1400);
+        };
+
+        ta.addEventListener('input', () => {
+          Journal.set(dateIso, ta.value, showSaved);
+        });
+        ta.addEventListener('blur', () => {
+          // Force-flush on blur so the user always sees their writing persisted
+          Journal.flush();
+          showSaved();
+        });
+
+        reflWrap.appendChild(ta);
+        inner.appendChild(reflWrap);
+      }
+
       body.appendChild(inner);
       card.appendChild(body);
 

@@ -57,6 +57,37 @@
     },
 
     /**
+     * v2.7 — Print the dedicated emergency card.
+     * Builds the card, mounts it in an overlay, marks body so the print stylesheet
+     * shows ONLY the card, calls window.print(), then cleans up.
+     */
+    printEmergencyCard() {
+      if (!window.Guide || !Guide.renderEmergencyCardPrintable) {
+        console.warn('Print.printEmergencyCard: Guide module unavailable');
+        window.print();
+        return;
+      }
+      // Build the printable card and mount in an overlay
+      const card = Guide.renderEmergencyCardPrintable();
+      const overlay = Utils.el('div', { id: 'em-print-overlay' });
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      document.body.classList.add('is-printing-emergency');
+
+      // Wait two frames for layout + SVG QR rasterisation, then print
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print();
+          // Clean up after the print dialog closes
+          setTimeout(() => {
+            overlay.remove();
+            document.body.classList.remove('is-printing-emergency');
+          }, 600);
+        });
+      });
+    },
+
+    /**
      * Add a print button to a section.
      */
     addPrintButton(container, label) {

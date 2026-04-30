@@ -65,6 +65,7 @@
         { id: 'packing',     title: 'Packing' },
         { id: 'preparation', title: 'Preparation' },
         { id: 'wisdom',      title: 'Wisdom' },
+        { id: 'journal',     title: 'Journal' },
         { id: 'settings',    title: 'Settings' },
       ];
       // Build all buttons; we mark the active one after Guide.init() decides
