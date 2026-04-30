@@ -125,11 +125,19 @@
     formatHijri(date) {
       const h = this.toHijri(date);
       if (!h) return '';
-      // Normalise the ʻ ʼ characters that Intl returns
-      const month = h.month
-        .replace(/ʻ|ʼ|ʿ/g, '\u2019')
+      // Intl returns slightly varying transliterations across browsers
+      // (e.g. "Dhuʻl-Hijjah", "Dhu'l-Hijjah", "Dhuʼl Hijjah"). Normalise
+      // common variants to the spellings most familiar to English-speaking
+      // pilgrims.
+      let month = h.month
+        .replace(/[ʻʼʿ‘’]/g, '\u2019')          // standardise quote characters
         .replace(/Dhu\u2019l[- ]Hijjah/i, 'Dhul Hijjah')
-        .replace(/Dhu\u2019l[- ]Qa\u2019dah/i, "Dhul Qa'dah");
+        .replace(/Dhu\u2019l[- ]Qa\u2019?dah/i, "Dhul Qa'dah")
+        .replace(/Dhu\u2019l[- ]Qi\u2019?dah/i, "Dhul Qa'dah")  // alt spelling
+        .replace(/Rabi\u2019\s*I\b/i,  'Rabi I')
+        .replace(/Rabi\u2019\s*II\b/i, 'Rabi II')
+        .replace(/Jumada\s*I\b/i,      'Jumada I')
+        .replace(/Jumada\s*II\b/i,     'Jumada II');
       return `${h.day} ${month} ${h.year}`;
     },
 
@@ -156,6 +164,163 @@
       } catch (e) {
         return null;
       }
+    },
+
+    /**
+     * v2.4 — Validate hotel date ranges for a given city.
+     * Takes the hotels array and (optionally) the user's overall trip window
+     * (outboundDate, returnDate as ISO yyyy-mm-dd strings or Date objects).
+     * Returns an array of warning objects: { level: 'warn' | 'info', message: string, hotelIndices: number[] }.
+     * An empty array means everything looks fine.
+     *
+     * Detected issues:
+     *   - Single hotel: toDate before fromDate
+     *   - Two hotels overlap (user is in two places at once)
+     *   - Two consecutive hotels have a gap night
+     *   - Hotel range extends outside the flight window
+     *   - The combined hotels don't cover every night between flights (city-specific)
+     *
+     * Note: this validates WITHIN a city. Caller decides which window to pass.
+     * For multi-city pilgrims, run twice — once for Madinah, once for Makkah.
+     */
+    validateHotelDateRanges(hotels, options) {
+      const opts = options || {};
+      const warnings = [];
+      // Filter out incomplete entries — only validate hotels with both dates
+      const named = (hotels || [])
+        .map((h, i) => ({ ...h, _idx: i }))
+        .filter(h => h && h.name);
+      const dated = named.filter(h => h.fromDate && h.toDate);
+
+      // 1. Single-hotel reverse-order check (treat each hotel independently first)
+      named.forEach(h => {
+        if (h.fromDate && h.toDate && h.toDate < h.fromDate) {
+          warnings.push({
+            level: 'warn',
+            message: `${h.name}: check-out date (${h.toDate}) is before check-in date (${h.fromDate}).`,
+            hotelIndices: [h._idx],
+          });
+        }
+      });
+
+      // Sort by fromDate for adjacency checks
+      const sorted = dated.slice().sort((a, b) =>
+        a.fromDate < b.fromDate ? -1 : a.fromDate > b.fromDate ? 1 : 0
+      );
+
+      // 2. Overlap + 3. Gap (between consecutive hotels)
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const a = sorted[i];
+        const b = sorted[i + 1];
+        if (a.toDate && b.fromDate) {
+          if (b.fromDate < a.toDate) {
+            warnings.push({
+              level: 'warn',
+              message: `${a.name} (until ${a.toDate}) overlaps with ${b.name} (from ${b.fromDate}). You can\'t be in two hotels at once.`,
+              hotelIndices: [a._idx, b._idx],
+            });
+          } else if (b.fromDate > a.toDate) {
+            // Compute the gap days
+            const gap = this._daysBetweenIso(a.toDate, b.fromDate) - 1;
+            if (gap > 0) {
+              warnings.push({
+                level: 'warn',
+                message: `Gap of ${gap} night${gap === 1 ? '' : 's'} between ${a.name} (ends ${a.toDate}) and ${b.name} (starts ${b.fromDate}). Where are you sleeping in between?`,
+                hotelIndices: [a._idx, b._idx],
+              });
+            }
+            // gap === 0 means b.fromDate is exactly the day after a.toDate (e.g.
+            // checkout 25 May, check-in 26 May) — clean handoff, no warning.
+          }
+        }
+      }
+
+      // 4. Outside flight window (if window provided)
+      if (opts.outboundDate || opts.returnDate) {
+        const outIso = this._toIso(opts.outboundDate);
+        const retIso = this._toIso(opts.returnDate);
+        named.forEach(h => {
+          if (outIso && h.fromDate && h.fromDate < outIso) {
+            warnings.push({
+              level: 'info',
+              message: `${h.name} starts (${h.fromDate}) before your outbound flight (${outIso}). Is the date correct?`,
+              hotelIndices: [h._idx],
+            });
+          }
+          if (retIso && h.toDate && h.toDate > retIso) {
+            warnings.push({
+              level: 'info',
+              message: `${h.name} ends (${h.toDate}) after your return flight (${retIso}). Is the date correct?`,
+              hotelIndices: [h._idx],
+            });
+          }
+        });
+      }
+
+      // 5. Coverage — does the combined hotel window cover the city's expected nights?
+      // Caller passes optional cityWindow {start, end} for coverage check; we don't
+      // try to infer it from the trip itinerary here (too many assumptions).
+      if (opts.cityWindow && opts.cityWindow.start && opts.cityWindow.end) {
+        const winStart = this._toIso(opts.cityWindow.start);
+        const winEnd   = this._toIso(opts.cityWindow.end);
+        if (winStart && winEnd && dated.length) {
+          // Build a set of covered ISO dates
+          const covered = new Set();
+          dated.forEach(h => {
+            const start = h.fromDate;
+            const end = h.toDate;
+            if (!start || !end) return;
+            let d = new Date(start);
+            const stop = new Date(end);
+            // Cover every night from start to (end - 1) — checkout day's night is at
+            // the next hotel. So nights covered = [fromDate, toDate-1].
+            // For the last hotel of a city before moving on, "toDate" is checkout.
+            for (let i = 0; i < 60 && d < stop; i++) {
+              covered.add(d.toISOString().slice(0, 10));
+              d.setDate(d.getDate() + 1);
+            }
+          });
+          // Walk the expected window and find missing nights
+          const missing = [];
+          let cursor = new Date(winStart);
+          const winStop = new Date(winEnd);
+          for (let i = 0; i < 60 && cursor < winStop; i++) {
+            const iso = cursor.toISOString().slice(0, 10);
+            if (!covered.has(iso)) missing.push(iso);
+            cursor.setDate(cursor.getDate() + 1);
+          }
+          if (missing.length) {
+            const previewDates = missing.slice(0, 3).join(', ');
+            const more = missing.length > 3 ? ` (+${missing.length - 3} more)` : '';
+            warnings.push({
+              level: 'info',
+              message: `${missing.length} night${missing.length === 1 ? '' : 's'} not covered by any hotel: ${previewDates}${more}.`,
+              hotelIndices: [],
+            });
+          }
+        }
+      }
+
+      return warnings;
+    },
+
+    /** Internal helper: integer days between two ISO yyyy-mm-dd strings (b - a). */
+    _daysBetweenIso(a, b) {
+      const da = new Date(a + 'T00:00:00Z');
+      const db = new Date(b + 'T00:00:00Z');
+      return Math.round((db - da) / 86400000);
+    },
+
+    /** Internal helper: normalise to ISO yyyy-mm-dd (Date or string in). */
+    _toIso(v) {
+      if (!v) return '';
+      if (v instanceof Date) return v.toISOString().slice(0, 10);
+      const s = String(v);
+      // If looks like ISO already, return first 10 chars
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+      // Try to parse
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
     },
 
     /**

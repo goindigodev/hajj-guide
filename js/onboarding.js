@@ -692,6 +692,14 @@
       wrap.appendChild(el('h4', { class: 'eyebrow' }, 'In Makkah'));
       wrap.appendChild(this._buildHotelList('makkah'));
 
+      // v2.4 — Trip-wide coverage warning (any night not covered by any hotel)
+      wrap.appendChild(el('div', {
+        class: 'hotel-warnings hotel-warnings--coverage',
+        'data-trip-coverage': 'true',
+      }));
+      // Initial check after mount
+      requestAnimationFrame(() => this._refreshTripCoverageWarning());
+
       wrap.appendChild(el('hr', { class: 'rule' }));
 
       // v2.2 — Mina camp section (item 6)
@@ -741,7 +749,108 @@
         wrap.replaceWith(next);
       });
       wrap.appendChild(addBtn);
+
+      // v2.4 — Validation warnings panel. Updated as the user types (no full re-render).
+      const warningsPanel = el('div', {
+        class: 'hotel-warnings',
+        'data-hotel-warnings': city,
+      });
+      wrap.appendChild(warningsPanel);
+      // Run an initial validation pass after this list is mounted in the DOM
+      requestAnimationFrame(() => this._refreshHotelWarnings(city));
+
       return wrap;
+    },
+
+    /**
+     * v2.4 — Re-run validation for one city's hotels and re-render the warnings panel.
+     * Called from hotel-entry onChange handlers without re-rendering the whole list.
+     *
+     * Per-city checks: order/overlap/gap, plus dates outside flight window.
+     * Combined coverage (does ANY hotel cover every trip night?) is handled
+     * separately by _refreshTripCoverageWarning() so it doesn't appear twice.
+     */
+    _refreshHotelWarnings(city) {
+      const arrayKey = city + 'Hotels';
+      const hotels = this.config[arrayKey] || [];
+      const panel = document.querySelector(`[data-hotel-warnings="${city}"]`);
+      if (!panel) return;
+
+      const opts = {
+        outboundDate: this.config.outboundFlight && this.config.outboundFlight.date,
+        returnDate:   this.config.returnFlight   && this.config.returnFlight.date,
+        // No cityWindow — coverage is a combined check, see _refreshTripCoverageWarning
+      };
+
+      const warnings = Utils.validateHotelDateRanges(hotels, opts);
+      panel.innerHTML = '';
+      if (warnings.length) {
+        warnings.forEach(w => {
+          const cls = 'hotel-warnings__item hotel-warnings__item--' + (w.level === 'warn' ? 'warn' : 'info');
+          const item = el('div', { class: cls });
+          item.appendChild(el('span', { class: 'hotel-warnings__icon', 'aria-hidden': 'true' },
+            w.level === 'warn' ? '⚠' : 'ℹ'
+          ));
+          item.appendChild(el('span', { class: 'hotel-warnings__text' }, w.message));
+          panel.appendChild(item);
+        });
+      }
+
+      // Always also refresh the trip-wide coverage warning when any city's
+      // dates change, since adding a Madinah night may close a coverage gap.
+      this._refreshTripCoverageWarning();
+    },
+
+    /**
+     * v2.4 — Combined coverage warning: do ALL the user's hotels (Madinah + Makkah
+     * together) cover every night between outbound and return flights?
+     * Renders into [data-trip-coverage] panel which is added beneath both city sections.
+     */
+    _refreshTripCoverageWarning() {
+      const panel = document.querySelector('[data-trip-coverage]');
+      if (!panel) return;
+
+      const out = this.config.outboundFlight && this.config.outboundFlight.date;
+      const ret = this.config.returnFlight   && this.config.returnFlight.date;
+      panel.innerHTML = '';
+      if (!out || !ret) return;
+
+      const allHotels = [
+        ...(this.config.madinahHotels || []),
+        ...(this.config.makkahHotels  || []),
+      ];
+      const dated = allHotels.filter(h => h && h.name && h.fromDate && h.toDate);
+      if (!dated.length) return;
+
+      // Walk every night between outbound and return; flag those not covered
+      // by any hotel. "Night X" means the night starting on day X.
+      const covered = new Set();
+      dated.forEach(h => {
+        let d = new Date(h.fromDate);
+        const stop = new Date(h.toDate);
+        for (let i = 0; i < 60 && d < stop; i++) {
+          covered.add(d.toISOString().slice(0, 10));
+          d.setDate(d.getDate() + 1);
+        }
+      });
+      const missing = [];
+      let cursor = new Date(out);
+      const winStop = new Date(ret);
+      for (let i = 0; i < 60 && cursor < winStop; i++) {
+        const iso = cursor.toISOString().slice(0, 10);
+        if (!covered.has(iso)) missing.push(iso);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      if (!missing.length) return;
+
+      const previewDates = missing.slice(0, 3).join(', ');
+      const more = missing.length > 3 ? ` (+${missing.length - 3} more)` : '';
+      const item = el('div', { class: 'hotel-warnings__item hotel-warnings__item--info' });
+      item.appendChild(el('span', { class: 'hotel-warnings__icon', 'aria-hidden': 'true' }, 'ℹ'));
+      item.appendChild(el('span', { class: 'hotel-warnings__text' },
+        `${missing.length} night${missing.length === 1 ? '' : 's'} between your flights have no hotel: ${previewDates}${more}. Are you in Mina/Aziziyah those nights?`
+      ));
+      panel.appendChild(item);
     },
 
     /**
@@ -802,11 +911,17 @@
       const dateRow = el('div', { class: 'input-row' });
       dateRow.appendChild(this.buildField(
         'From date', 'date', '', hotel.fromDate || '',
-        v => { this.config[arrayKey][idx].fromDate = v; }
+        v => {
+          this.config[arrayKey][idx].fromDate = v;
+          this._refreshHotelWarnings(city);
+        }
       ));
       dateRow.appendChild(this.buildField(
         'To date', 'date', '', hotel.toDate || '',
-        v => { this.config[arrayKey][idx].toDate = v; }
+        v => {
+          this.config[arrayKey][idx].toDate = v;
+          this._refreshHotelWarnings(city);
+        }
       ));
       entry.appendChild(dateRow);
 

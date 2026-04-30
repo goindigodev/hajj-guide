@@ -1,141 +1,110 @@
-# Hajj Guide v2.3 — UI fixes & share button
+# Hajj Guide v2.4 — hotel validation + Today tab
 
-8 modified files + 2 new files. No deletions.
+5 modified files. No new files. No deletions.
 
 ---
 
-## What's in this drop
+## Items shipped
 
-### Footer & header refinements
-- **Removed** GitHub link from footer (both index.html and app.html)
-- **Added** "Support this page with your Duas" preamble before the like chip
-- **Added** Share button next to the like chip
-- "Send feedback" + "Reset my data" moved to a quieter secondary footer row
+### 1. Hotel date-range validation
+Live warnings appear beneath each city's hotel list as the user types dates:
 
-### UI consistency fixes
-- The Saudi service provider dropdown, Mina zone select, and sub-area text inputs
-  used `field__input` class which was undefined — now defined to match `.input`
-  styling (Lora font, sage focus border, paper background)
-- Native `<select>` elements get a custom chevron via SVG background-image
-  so they match the rest of the form
+- **Reverse dates** — checkout before check-in
+- **Overlap** — two hotels claim the same nights ("you can't be in two hotels at once")
+- **Gap** — missing nights between two consecutive hotels ("Where are you sleeping in between?")
+- **Outside flight window** — hotel dates fall before outbound or after return
+- **Combined coverage** — combined hotels don't cover every night between flights ("Are you in Mina/Aziziyah those nights?")
 
-### Mobile day-card layout
-- On screens ≤600px wide, day-card headers now stack vertically:
-  date row at top (Greg + Hijri inline), title on its own line, location below,
-  chevron always right-aligned. Stops the header from wrapping into 4–5 lines.
+Two warning levels: amber-red `⚠` (real conflicts) and brass `ℹ` (informational). Validation re-runs on every date change.
 
-### Flight step rebuild
-- **Two new checkboxes**: "Entry by road (no flight)" on the outbound leg,
-  "Exit by road (no flight)" on the return leg. Independent. When checked,
-  the flight number + departure airport + arrival airport fields hide for
-  that leg. Date/time still visible.
-- **Type-ahead airport combobox** for departure and home airports. Search
-  by city, IATA code, country, or airport name. ~80 worldwide airports curated.
-- **Saudi-only combobox** for arrival airport on outbound and "from" airport
-  on return — JED, MED, RUH, DMM.
-- Itinerary day cards adapt: when byRoad is set, departure/return cards say
-  "Departure (by road)" and show "Land crossing → KSA" instead of flight info.
+### 2. New "Today" tab — Hajj Day Plan view
+Placed first in the tab nav (left of Overview). Shows different content based on trip state:
 
-### Share button & counter
-- New `data/api/share` endpoint in the Worker, identical pattern to `/api/like`
-- Same KV namespace (LIKES) — share counter stored under key `share-total`
-- Share modal with WhatsApp, Telegram, Email, Copy-link tiles
-- Each click increments the counter
-- Counter visible at bottom of modal (e.g. "Shared 47 times")
+**Pre-trip** (today < outbound flight):
+- Big Gregorian + Hijri date hero
+- Large countdown number ("30 days until your Hajj begins")
+- Outbound flight summary
+- Suggestions for productive prep tabs
+
+**On-trip** (within flight window):
+- Big Gregorian + Hijri date hero
+- **Today** section — today's day card pre-expanded with full instructions + actions
+- **Today's duas** — pulled from the day card's `duaIds`
+- **Yesterday** section — slightly dimmed, collapsed by default
+- **Tomorrow** section — preview, collapsed by default
+- **Quick contacts** strip — operator, group leader, 24-hr line, group contacts. Each is a tap-to-call link.
+
+**Post-trip** (today > return flight):
+- "Your Hajj has concluded. May Allah accept your pilgrimage…"
+- Trip dates summary
+- Pointer to Itinerary tab (for the day-by-day record) and Wisdom tab (for post-Hajj reflections)
+
+**No flight data**: Prompt to complete onboarding.
+
+#### Smart default
+When the user lands on the app and they're currently mid-trip, the Today tab is selected automatically. Otherwise the app behaves as before (lands on Overview).
+
+### Bonus: Hijri month transliteration cleanup
+The browser's Intl API returns Hijri months with curly Unicode quotes and varying spellings (e.g. "Dhuʻl-Qiʻdah" vs "Dhuʼl-Qa'dah"). `Utils.formatHijri()` now normalises to friendly readings: "Dhul Hijjah", "Dhul Qa'dah", "Rabi I", "Jumada II", etc.
 
 ---
 
 ## Files changed
 
-**Modified:**
-- `_worker.js` — generalised `handleCounter()` for like + share, added `/api/share` route
-- `index.html` — footer rebuild, share.js script tag
-- `app.html` — footer rebuild, share.js script tag
-- `css/styles.css` — `.field__input` definitions, native select chevron, mobile
-  day-card grid, footer refinements, combobox, travel-mode checkbox, share modal
-- `js/store.js` — `outboundFlight.byRoad` + `returnFlight.byRoad` fields (default false)
-- `js/onboarding.js` — flights step rebuilt with byRoad + airport combobox; airports list loaded
-- `js/guide.js` — departure/return day cards adapt to byRoad
-- `js/app.js` — Share module init
-
-**New:**
-- `js/share.js` — share modal logic
-- `data/airports.json` — curated worldwide + Saudi airport list
-
-**No deletions.**
+- `js/utils.js` — `validateHotelDateRanges()` + helpers; better Hijri month normalisation
+- `js/onboarding.js` — validation panel under each hotel list, trip-coverage warning, hooks on date inputs
+- `js/guide.js` — `tabToday()` + sub-renders, `_isOnTrip()`, smart default, tab nav config + dispatch
+- `js/app.js` — Today added to TAB_LIST, smart-default sync after `Guide.init()` resolves
+- `css/styles.css` — `.hotel-warnings*`, `.today-tab*`, `.today-hero*`, `.today-countdown*`, `.today-section*`, `.today-contacts*`
 
 ---
 
 ## Deployment
 
-### Step 1 — replace these files in `~/Downloads/hajj-app21/`:
-- `_worker.js`
-- `index.html`, `app.html`
+Replace these 5 files in `~/Downloads/hajj-app21/`:
 - `css/styles.css`
-- `js/store.js`, `js/onboarding.js`, `js/guide.js`, `js/app.js`
-- `js/share.js` (new — drop in)
-- `data/airports.json` (new — drop in)
+- `js/utils.js`
+- `js/onboarding.js`
+- `js/guide.js`
+- `js/app.js`
 
-### Step 2 — commit and push
+Then:
 ```bash
 cd ~/Downloads/hajj-app21
 git add .
-git commit -m "v2.3: footer cleanup, share button, byRoad flights, airport combobox, mobile day-card fix"
+git commit -m "v2.4: hotel date-range validation + Today tab (Hajj Day Plan)"
 git push
 ```
 
-### Step 3 — verify on hajjguide.net (fresh incognito)
+---
 
-**Footer:**
-- ✅ No GitHub link
-- ✅ "Support this page with your Duas" before the heart chip
-- ✅ "Share" button next to heart chip
-- ✅ Click Share → modal opens with 4 tiles
-- ✅ Click WhatsApp tile → wa.me opens with prefilled message
-- ✅ Click Copy → button shows "Copied ✓" briefly
+## Verify on hajjguide.net (fresh incognito)
 
-**Onboarding flights step:**
-- ✅ Outbound section has "Entry by road (no flight)" checkbox at top
-- ✅ Return section has "Exit by road (no flight)" checkbox at top
-- ✅ Untick: flight + airport fields visible
-- ✅ Tick: flight + airport fields hide; date/time remain
-- ✅ Departure airport: type "lon" → 4 London airports + Barcelona
-- ✅ Arrival airport: type "jed" → JED Jeddah only (Saudi-restricted)
-- ✅ All inputs use the same Lora font and styling
+**Hotel validation (onboarding step 4):**
+- Add two Madinah hotels with overlapping dates → see ⚠ overlap warning
+- Add a Madinah hotel that ends before the next Makkah hotel begins → see ℹ gap warning
+- Set a hotel's `to` date earlier than `from` → see ⚠ reverse warning
+- Leave nights uncovered between flights → see ℹ "X nights between your flights have no hotel"
 
-**Mobile (open dev tools, switch to iPhone view):**
-- ✅ Day cards in Itinerary stack cleanly
-- ✅ Day cards in 5 Days of Hajj stack cleanly
-- ✅ Header doesn't wrap into 4+ lines
+**Today tab — pre-trip:**
+- Default tab on load: Overview (unchanged)
+- Click "Today" tab → countdown number + Hijri date + flight summary
 
-**Operator step (existing):**
-- ✅ Saudi Service Provider dropdown matches form styling
-- ✅ Mina zone dropdown (when "Inside Mina valley" selected) matches form styling
+**Today tab — on-trip (test by setting your outbound date to yesterday + return to next week):**
+- App lands on **Today** tab automatically
+- Today's day card is expanded with day actions visible
+- Yesterday + Tomorrow sections appear below
+
+**Today tab — post-trip (set both flight dates to last month):**
+- Default tab on load: Overview
+- Click "Today" tab → "Your Hajj has concluded" message
 
 ---
 
 ## Risk profile
 
-- 🟢 Footer changes: pure HTML/CSS, no logic
-- 🟢 UI consistency: defines a previously-undefined CSS class
-- 🟢 Mobile day-card: pure CSS, scoped to ≤600px viewport
-- 🟢 Airport combobox: new component, isolated
-- 🟢 byRoad checkboxes: schema-additive (default `false`); existing user data unaffected
-- 🟢 Share button: same Worker pattern as like, KV already configured
-
-The KV namespace is already in place (you mentioned the like counter works),
-so `/api/share` will work immediately without dashboard changes.
+- 🟢 Hotel validation: contained to onboarding accommodation step + new pure function in Utils
+- 🟢 Today tab: additive — existing tabs unchanged. Smart default only triggers when mid-trip (zero impact on most users most of the time)
+- 🟡 The `_isOnTrip` check uses the device's local timezone. If a user's phone clock is on UK time but they're physically in Saudi Arabia, the day boundary shifts by 3 hours. This is an acceptable tradeoff — most pilgrims have their phone clocks set to local time.
 
 If anything breaks: `git revert HEAD && git push`.
-
----
-
-## Known limitations
-
-- **Airport list** is curated, not exhaustive (~80 airports). Smaller hubs aren't
-  listed but users can still type the IATA code manually — the input accepts free
-  text if no match is found.
-- The Saudi list has the 4 international airports (JED, MED, RUH, DMM). Domestic
-  Saudi airports aren't included.
-- Share counter starts at 0 separate from the like counter (different KV key).
-

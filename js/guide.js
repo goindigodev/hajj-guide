@@ -10,6 +10,7 @@
 
   // ─── Tab definitions ──────────────────────────────────────
   const TABS = [
+    { id: 'today',       title: 'Today',        icon: '◐' },
     { id: 'overview',    title: 'Overview',     icon: '☉' },
     { id: 'itinerary',   title: 'Itinerary',    icon: '✦' },
     { id: 'hajj-days',   title: '5 Days of Hajj', icon: '۞' },
@@ -48,7 +49,29 @@
         return;
       }
 
+      // v2.4 — If the user is currently on their trip, default to the Today tab.
+      // Otherwise, the Today tab still exists but Overview is a friendlier landing.
+      if (this._isOnTrip()) {
+        this.currentTab = 'today';
+      }
+
       this.render();
+    },
+
+    /**
+     * v2.4 — Are we currently mid-trip? Returns true iff today's date falls
+     * within [outboundDate, returnDate] inclusive. False if dates are missing.
+     */
+    _isOnTrip() {
+      const out = this.config && this.config.outboundFlight && this.config.outboundFlight.date;
+      const ret = this.config && this.config.returnFlight   && this.config.returnFlight.date;
+      if (!out || !ret) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(out);
+      const end   = new Date(ret);
+      end.setHours(23, 59, 59, 999);
+      return today >= start && today <= end;
     },
 
     render() {
@@ -67,6 +90,7 @@
 
     renderTab(id) {
       switch (id) {
+        case 'today':       return this.tabToday();
         case 'overview':    return this.tabOverview();
         case 'itinerary':   return this.tabItinerary();
         case 'hajj-days':   return this.tabHajjDays();
@@ -95,6 +119,267 @@
     },
 
     /* ─── TABS ────────────────────────────────────────────── */
+
+    /**
+     * v2.4 — TODAY tab. The "what's happening right now" focused view.
+     * Three states:
+     *   - pre-trip: friendly countdown to outbound flight
+     *   - on-trip: today's day card + yesterday recap + tomorrow preview + duas + group contacts
+     *   - post-trip: brief Hajj-concluded message with link to Overview for the emergency card
+     *   - no flight data: prompt to complete onboarding
+     */
+    tabToday() {
+      const cfg = this.config || {};
+      const out = cfg.outboundFlight && cfg.outboundFlight.date;
+      const ret = cfg.returnFlight   && cfg.returnFlight.date;
+
+      if (!out) {
+        return this._tabTodayNoFlights();
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = new Date(out);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = ret ? new Date(ret) : null;
+      if (endDate) endDate.setHours(23, 59, 59, 999);
+
+      if (today < startDate) {
+        return this._tabTodayCountdown(startDate);
+      }
+      if (endDate && today > endDate) {
+        return this._tabTodayConcluded(startDate, endDate);
+      }
+      return this._tabTodayOnTrip(today);
+    },
+
+    _tabTodayNoFlights() {
+      const wrap = el('div');
+      wrap.appendChild(el('h1', null, 'Today'));
+      wrap.appendChild(el('div', { class: 'callout callout--info' },
+        el('p', { style: { margin: 0 } },
+          'Add your flight dates to see your daily plan. ',
+          el('a', { href: './index.html' }, 'Open setup'),
+          '.'
+        )
+      ));
+      return wrap;
+    },
+
+    _tabTodayCountdown(startDate) {
+      const wrap = el('div', { class: 'today-tab today-tab--countdown' });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = Math.round((startDate - today) / 86400000);
+
+      // Hijri date for today (large, prominent)
+      const todayHijri = Utils.formatHijri(today) || '';
+      const startHijri = Utils.formatHijri(startDate) || '';
+
+      wrap.appendChild(el('div', { class: 'today-hero' },
+        el('div', { class: 'today-hero__greg' }, Utils.formatDate(today, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })),
+        todayHijri ? el('div', { class: 'today-hero__hijri' }, todayHijri) : null
+      ));
+
+      // Big countdown
+      const count = el('div', { class: 'today-countdown' });
+      count.appendChild(el('div', { class: 'today-countdown__num' }, String(days)));
+      count.appendChild(el('div', { class: 'today-countdown__label' },
+        days === 0 ? 'Your Hajj begins today.' :
+        days === 1 ? 'day until your Hajj begins' :
+        'days until your Hajj begins'
+      ));
+      wrap.appendChild(count);
+
+      const sub = el('p', { class: 'today-countdown__sub' });
+      sub.appendChild(document.createTextNode('Outbound: '));
+      sub.appendChild(el('strong', null, Utils.formatDate(startDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })));
+      if (startHijri) {
+        sub.appendChild(document.createTextNode(' · '));
+        sub.appendChild(el('em', null, startHijri));
+      }
+      wrap.appendChild(sub);
+
+      // Suggestion to use the Preparation/Packing tabs while waiting
+      wrap.appendChild(el('div', { class: 'callout', style: { marginTop: 'var(--space-6)' } },
+        el('p', { style: { margin: 0 } },
+          'While you wait: review the ',
+          el('a', { href: '#', 'data-jump-tab': 'preparation' }, 'Preparation'),
+          ', ',
+          el('a', { href: '#', 'data-jump-tab': 'packing' }, 'Packing'),
+          ', and ',
+          el('a', { href: '#', 'data-jump-tab': 'duas' }, 'Duas'),
+          ' tabs.'
+        )
+      ));
+
+      // Wire tab-jump links
+      requestAnimationFrame(() => this._wireTabJumpLinks(wrap));
+      return wrap;
+    },
+
+    _tabTodayConcluded(startDate, endDate) {
+      const wrap = el('div', { class: 'today-tab today-tab--concluded' });
+      wrap.appendChild(el('div', { class: 'today-hero' },
+        el('div', { class: 'today-hero__greg' }, Utils.formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })),
+        el('div', { class: 'today-hero__hijri' }, Utils.formatHijri(new Date()) || '')
+      ));
+
+      wrap.appendChild(el('h2', { class: 'today-concluded__heading' }, 'Your Hajj has concluded.'));
+      wrap.appendChild(el('p', { class: 'today-concluded__lead' },
+        'May Allah accept your pilgrimage and grant you Hajj Mabroor.'
+      ));
+      wrap.appendChild(el('p', { class: 'today-concluded__sub' },
+        `Your trip ran from ${Utils.formatDate(startDate, { day: 'numeric', month: 'short', year: 'numeric' })} to ${Utils.formatDate(endDate, { day: 'numeric', month: 'short', year: 'numeric' })}.`
+      ));
+
+      wrap.appendChild(el('div', { class: 'callout callout--info', style: { marginTop: 'var(--space-6)' } },
+        el('p', { style: { margin: 0 } },
+          'The full guide is still available — visit the ',
+          el('a', { href: '#', 'data-jump-tab': 'itinerary' }, 'Itinerary'),
+          ' tab for your day-by-day record, or the ',
+          el('a', { href: '#', 'data-jump-tab': 'wisdom' }, 'Wisdom & Tips'),
+          ' tab for post-Hajj reflections.'
+        )
+      ));
+      requestAnimationFrame(() => this._wireTabJumpLinks(wrap));
+      return wrap;
+    },
+
+    _tabTodayOnTrip(today) {
+      const wrap = el('div', { class: 'today-tab today-tab--on-trip' });
+
+      // Big Hijri + Gregorian header
+      const todayHijri = Utils.formatHijri(today) || '';
+      const heroGreg = Utils.formatDate(today, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      wrap.appendChild(el('div', { class: 'today-hero' },
+        el('div', { class: 'today-hero__greg' }, heroGreg),
+        todayHijri ? el('div', { class: 'today-hero__hijri' }, todayHijri) : null
+      ));
+
+      // Build the full itinerary day list and find today / yesterday / tomorrow
+      const allDays = this.buildItineraryDays();
+      const todayIso = today.toISOString().slice(0, 10);
+      const findDay = (iso) => allDays.find(d => d.date && d.date.toISOString().slice(0, 10) === iso) || null;
+
+      const yesterdayIso = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
+      const tomorrowIso  = new Date(today.getTime() + 86400000).toISOString().slice(0, 10);
+
+      const dayToday     = findDay(todayIso);
+      const dayYesterday = findDay(yesterdayIso);
+      const dayTomorrow  = findDay(tomorrowIso);
+
+      // ── Today's plan (expanded) ────────────────────────────
+      if (dayToday) {
+        const todaySection = el('div', { class: 'today-section today-section--main' });
+        todaySection.appendChild(el('h2', { class: 'today-section__heading' }, 'Today'));
+
+        const card = this.renderDayCard(dayToday, 0);
+        // Expand it by default — that's the whole point of this view
+        const head = card.querySelector('.day-card__header');
+        const body = card.querySelector('.day-card__body');
+        if (head && body) {
+          card.classList.add('is-open');
+          head.setAttribute('aria-expanded', 'true');
+        }
+        todaySection.appendChild(card);
+        wrap.appendChild(todaySection);
+
+        // Today's duas (separate section so they're glanceable)
+        if (dayToday.duaIds && dayToday.duaIds.length && this.data.duas) {
+          const duaSection = el('div', { class: 'today-section' });
+          duaSection.appendChild(el('h2', { class: 'today-section__heading' }, 'Duas for today'));
+          dayToday.duaIds.forEach(id => {
+            const dua = this.data.duas.find(d => d.id === id);
+            if (dua) duaSection.appendChild(this.renderDuaCard(dua));
+          });
+          wrap.appendChild(duaSection);
+        }
+      } else {
+        // Edge case: today's date is in the trip window but no day card matches
+        // (shouldn't happen but possible if itinerary build skips a day)
+        wrap.appendChild(el('div', { class: 'callout' },
+          el('p', { style: { margin: 0 } },
+            'No specific plan recorded for today — see the ',
+            el('a', { href: '#', 'data-jump-tab': 'itinerary' }, 'Itinerary'),
+            ' tab for the full schedule.'
+          )
+        ));
+      }
+
+      // ── Yesterday recap ─────────────────────────────────────
+      if (dayYesterday) {
+        const ySection = el('div', { class: 'today-section today-section--past' });
+        ySection.appendChild(el('h2', { class: 'today-section__heading' }, 'Yesterday'));
+        ySection.appendChild(this.renderDayCard(dayYesterday, 0));
+        wrap.appendChild(ySection);
+      }
+
+      // ── Tomorrow preview ────────────────────────────────────
+      if (dayTomorrow) {
+        const tSection = el('div', { class: 'today-section today-section--future' });
+        tSection.appendChild(el('h2', { class: 'today-section__heading' }, 'Tomorrow'));
+        tSection.appendChild(this.renderDayCard(dayTomorrow, 0));
+        wrap.appendChild(tSection);
+      }
+
+      // ── Quick group contacts strip ─────────────────────────
+      const contacts = this._buildQuickContacts();
+      if (contacts) wrap.appendChild(contacts);
+
+      // Wire collapsible day-cards is already attached inside renderDayCard().
+      // We just need to wire the tab-jump links here.
+      requestAnimationFrame(() => {
+        this._wireTabJumpLinks(wrap);
+      });
+
+      return wrap;
+    },
+
+    /**
+     * v2.4 — Compact contacts strip for the Today tab. Pulls operator + group leader
+     * + extra contacts. Each phone is a tap-to-call link.
+     */
+    _buildQuickContacts() {
+      const cfg = this.config || {};
+      const op = cfg.operator || {};
+      const all = [];
+      if (op.contactName || op.contactPhone) all.push({ name: op.contactName || 'Group leader', phone: op.contactPhone, role: 'Group leader' });
+      if (op.emergencyPhone) all.push({ name: '24-hr emergency line', phone: op.emergencyPhone, role: 'Emergency' });
+      (cfg.groupContacts || []).forEach((c, i) => {
+        if (c.name || c.phone) all.push({ name: c.name || `Contact ${i + 1}`, phone: c.phone, role: '' });
+      });
+      if (!all.length) return null;
+
+      const section = el('div', { class: 'today-section today-contacts' });
+      section.appendChild(el('h2', { class: 'today-section__heading' }, 'Quick contacts'));
+      const list = el('div', { class: 'today-contacts__list' });
+      all.forEach(c => {
+        const row = el('a', {
+          class: 'today-contact',
+          href: c.phone ? `tel:${String(c.phone).replace(/\s/g, '')}` : '#',
+        });
+        const text = el('div', { class: 'today-contact__text' });
+        text.appendChild(el('span', { class: 'today-contact__name' }, c.name));
+        if (c.role) text.appendChild(el('span', { class: 'today-contact__role' }, c.role));
+        row.appendChild(text);
+        if (c.phone) row.appendChild(el('span', { class: 'today-contact__phone' }, c.phone));
+        list.appendChild(row);
+      });
+      section.appendChild(list);
+      return section;
+    },
+
+    /** Helper: wire any anchor with [data-jump-tab="..."] to switch tabs. */
+    _wireTabJumpLinks(root) {
+      root.querySelectorAll('[data-jump-tab]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tabId = a.getAttribute('data-jump-tab');
+          if (tabId) this.switchTab(tabId);
+        });
+      });
+    },
 
     tabOverview() {
       const wrap = el('div');

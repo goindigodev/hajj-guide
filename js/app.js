@@ -54,6 +54,7 @@
     const tabHost = document.querySelector('.tab-nav__inner');
     if (tabHost && window.Guide) {
       const TAB_LIST = [
+        { id: 'today',       title: 'Today' },
         { id: 'overview',    title: 'Overview' },
         { id: 'itinerary',   title: 'Itinerary' },
         { id: 'hajj-days',   title: '5 Days of Hajj' },
@@ -66,9 +67,11 @@
         { id: 'wisdom',      title: 'Wisdom' },
         { id: 'settings',    title: 'Settings' },
       ];
-      TAB_LIST.forEach((t, i) => {
+      // Build all buttons; we mark the active one after Guide.init() decides
+      // which tab to land on (smart default based on trip state).
+      TAB_LIST.forEach((t) => {
         const btn = document.createElement('button');
-        btn.className = 'tab-nav__btn' + (i === 0 ? ' is-active' : '');
+        btn.className = 'tab-nav__btn';
         btn.dataset.tab = t.id;
         btn.textContent = t.title;
         btn.setAttribute('role', 'tab');
@@ -79,9 +82,19 @@
 
     // Initialise Guide (renders all tabs from data files)
     Guide.init(document.getElementById('content-host')).then(() => {
+      // After Guide.init, the smart default may have set a tab other than 'overview'.
+      // Sync the nav and tab-content visibility with whatever Guide picked.
+      const initialTab = Guide.currentTab || 'overview';
+      document.querySelectorAll('.tab-nav__btn').forEach(b => {
+        b.classList.toggle('is-active', b.dataset.tab === initialTab);
+      });
+      document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.toggle('is-active', t.id === 'tab-' + initialTab);
+      });
       // Set initial notes context
       if (window.Notes && Notes.setSection) {
-        Notes.setSection('overview', 'Overview');
+        const tabTitleMap = { today: 'Today', overview: 'Overview' };
+        Notes.setSection(initialTab, tabTitleMap[initialTab] || initialTab);
       }
       // Hide loader
       const loader = document.getElementById('boot-loader');

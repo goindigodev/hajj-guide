@@ -2912,3 +2912,262 @@ body.is-modal-open { overflow: hidden; }
   .share-modal__title { font-size: 22px; }
   .share-modal__grid { gap: 8px; }
 }
+
+/* =============================================================
+   v2.4 — HOTEL DATE-RANGE VALIDATION WARNINGS
+   ============================================================= */
+
+.hotel-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.hotel-warnings:empty {
+  display: none;
+}
+
+.hotel-warnings--coverage {
+  margin-top: 16px;
+}
+
+.hotel-warnings__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  border: 1px solid transparent;
+}
+
+.hotel-warnings__item--warn {
+  background: rgba(168, 90, 60, 0.08);
+  border-color: rgba(168, 90, 60, 0.25);
+  color: #6b3220;
+}
+
+.hotel-warnings__item--info {
+  background: rgba(184, 149, 74, 0.08);
+  border-color: rgba(184, 149, 74, 0.25);
+  color: var(--brass-deep);
+}
+
+.hotel-warnings__icon {
+  flex: 0 0 auto;
+  font-size: 14px;
+  line-height: 1.45;
+  margin-top: 0;
+}
+
+.hotel-warnings__text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =============================================================
+   v2.4 — TODAY TAB (Hajj Day Plan)
+   ============================================================= */
+
+.today-tab {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Hero block: big Gregorian + Hijri date at top of the tab */
+.today-hero {
+  text-align: center;
+  margin: var(--space-3) 0 var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.today-hero__greg {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+
+.today-hero__hijri {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--brass-deep);
+  letter-spacing: 0.04em;
+  margin-top: 6px;
+}
+
+/* Pre-trip countdown (renamed from .countdown to avoid collision with the
+   existing 4-cell journey-countdown grid widget) */
+.today-tab--countdown {
+  text-align: center;
+}
+
+.today-countdown {
+  display: block;
+  margin: var(--space-7) 0 var(--space-3);
+  /* Override any grid layout the other .countdown might inherit */
+  grid-template-columns: none;
+}
+
+.today-countdown__num {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 96px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--green-deep);
+  letter-spacing: -0.03em;
+}
+
+.today-countdown__label {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--brass-deep);
+  margin-top: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.today-countdown__sub {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0;
+  text-align: center;
+}
+
+.today-countdown__sub strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Concluded state */
+.today-tab--concluded {
+  text-align: center;
+}
+
+.today-concluded__heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--green-deep);
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.today-concluded__lead {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--brass-deep);
+  margin: 0 0 var(--space-3);
+}
+
+.today-concluded__sub {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+/* On-trip sections */
+.today-section {
+  margin-bottom: var(--space-6);
+}
+
+.today-section__heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass-deep);
+  margin: 0 0 var(--space-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.today-section--main .day-card {
+  border-color: var(--brass);
+  box-shadow: 0 2px 12px rgba(184, 149, 74, 0.1);
+}
+
+/* Yesterday recap is dimmed slightly to signal "in the past" */
+.today-section--past {
+  opacity: 0.78;
+}
+.today-section--past .today-section__heading {
+  color: var(--ink-mute);
+}
+
+/* Tomorrow preview keeps full opacity but uses a subtle marker */
+.today-section--future .today-section__heading::after {
+  content: ' · preview';
+  font-style: italic;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* Quick contacts */
+.today-contacts__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.today-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.15s, border-color 0.15s;
+}
+.today-contact:hover {
+  background: rgba(74, 93, 74, 0.04);
+  border-color: var(--green);
+}
+
+.today-contact__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.today-contact__name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.today-contact__role {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.today-contact__phone {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--green-deep);
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .today-countdown__num { font-size: 72px; }
+  .today-hero__greg { font-size: 22px; }
+  .today-section__heading { font-size: 12px; letter-spacing: 0.14em; }
+}
