@@ -1,142 +1,121 @@
-# Hajj Guide v2.7 — Hajj Journal + Print-optimised Emergency Card
+# Hajj Guide v2.8 — Custom stops on itinerary day cards
 
-Two features in this release:
+Pilgrims can now add their own stops to any itinerary day. Each stop has a place (chosen from a curated Ziyarat list, or typed in as free text) and optional start/end times.
 
-1. **Hajj Journal** — a place for pilgrims to record daily reflections, both inline with the itinerary and in a dedicated tab
-2. **Print-optimised Emergency Card** — single A4 page with all critical contact info, large fonts, and a QR code for the operator's emergency line
+## What changed
 
----
+The stops feature is **purely additive** — the existing day card content (description, "What to do" actions, Duas, notes, Reflection) is untouched. Stops appear in a new "Your stops" section between the day's content and the Reflection textarea.
 
-## 1. Hajj Journal
+### How it works
 
-Journal entries live in two places:
+When a day card is expanded:
+1. **"Your stops" section** appears with all the user's added stops, sorted chronologically
+2. **"+ Add a stop"** button below the list opens an inline form
+3. Form fields: **Place** (combobox with type-ahead from the curated list, OR free text), **Start time** (optional), **End time** (optional)
+4. Each stop has **Edit** and **Remove** actions
+5. Curated places show their description as a sub-line; free-text entries don't
 
-- **Inline on each day card in the Itinerary tab.** When a day card is expanded, a "Reflection" textarea appears at the bottom. Pilgrims can write directly next to that day's plan. Auto-saves as they type (600ms debounce). Shows a "✓ Saved" indicator briefly.
-- **A dedicated Journal tab** (13th tab, between Wisdom and Settings). Aggregates all entries chronologically, most recent first. Each entry shows the day-of-week + Hijri date + body text with paragraph breaks preserved. Includes "Export as text" button that downloads `hajj-journal.txt`.
+The combobox uses HTML5 `<datalist>` for native picker behaviour — works on all browsers, mobile keyboards show suggestions automatically, and free text always works.
 
-### Empty state
-Friendly callout: "Open any day in the Itinerary tab and write a reflection. Your entries will collect here." Plus an "Open Itinerary →" jump button.
+### Curated Ziyarat list (21 places)
+
+**Madinah (8)**: Quba Mosque, Masjid Qiblatain, Mount Uhud and the Martyrs' Cemetery, Jannat al-Baqi, Masjid al-Jumu'ah, The Seven Mosques (Sab'a Masajid), Wadi-e-Jinn (the magnetic valley), Date market and farms.
+
+**Makkah (9)**: Jabal an-Nour (Cave of Hira), Jabal Thawr (Cave of Thawr), Jannat al-Mu'alla, Birthplace of the Prophet ﷺ (Mawlid), Masjid A'isha (at-Tan'eem), Masjid al-Khayf, Masjid Namirah (at Arafah), Masjid al-Mash'ar al-Haram, Clock Tower (Abraj al-Bait) viewing.
+
+**Other (4)**: Operator-organised tour, Group meal, Shopping or errands, Rest at hotel.
+
+For sites where rulings vary (Cave of Hira, Cave of Thawr, etc.), descriptions are factual and neutral ("not part of Hajj rites", "optional cultural visit"). Pilgrims and their scholars decide.
+
+### Validation
+
+- Place required: empty submissions show "Please enter or pick a place."
+- Time sanity: if both times are given and end < start, shows "End time is before start time. Adjust or leave one blank."
+- Empty stops auto-delete on save (storage hygiene)
 
 ### Storage
-New key `hajj-companion-v1.journal` of shape `{ 'YYYY-MM-DD': { text, updatedAt } }`. Defensive default added to `Store.js`. Empty entries auto-delete (storage hygiene). Force-flush on page hide / blur / unload so the last few keystrokes always persist.
 
----
+New key `hajj-companion-v1.stops` of shape:
 
-## 2. Print-optimised Emergency Card
+```js
+{
+  '2026-04-30': [
+    { id: 's_1761...', place: 'Quba Mosque', placeId: 'quba',
+      startTime: '07:00', endTime: '09:00' },
+    ...
+  ]
+}
+```
 
-A new "Print emergency card" button on the **Overview tab** (replacing the old discrete print link).
+`placeId` is set when the user picks from the curated list (so we can show the curated description). For free-text entries, `placeId: null`.
 
-When clicked, the card mounts in a print overlay and triggers `window.print()`. The print stylesheet hides everything else; only the card prints.
+### Print
 
-### What's on the card
-- **Pilgrim**: name (in big serif, taken from onboarding) + madhab + party size
-- **Hajj operator**: name, Saudi service provider (if known), group leader name + phone
-- **24-hr emergency line**: in a big bordered box, prominent
-- **Accommodation**: every Madinah/Makkah hotel with check-in dates if known + Mina camp / zone / Aziziyah area
-- **Saudi Arabia emergency numbers**: 5-cell grid showing 911 / 997 / 999 / 998 / 930 with role labels
-- **Travel companions**: list of group contacts (if any)
-- **QR code (right side)**: encodes `tel:+966...` for the operator emergency phone, so a Saudi local can scan and call. Falls back to displaying just the number if QR generation fails.
-- **Footer reminder**: "Keep this card with you at all times. Show to authorities if separated from your group."
-
-### Page format
-- A4 portrait, 12mm margins
-- Single page — fits comfortably even with multiple hotels and group contacts
-- Larger fonts: 22pt for the pilgrim's name, 18pt for the emergency line, 16pt for Saudi numbers, 12pt body
-- Pure black on white (no decorative colour) — survives B&W printers and photocopying
-
-### Pilgrim name handling
-A new "Your name" field is added to:
-- The first step of onboarding (welcome step). New users fill it in here.
-- The Settings tab. Existing users from v2.4 who never had this field can fill it in here without re-onboarding.
-- Defensive default of empty string if missing — the card prints `[Your name]` placeholder.
+When printing the active tab, the "+ Add a stop" button, edit/remove actions, and any open forms are hidden. The stops list itself is preserved with simplified styling (no green tint background, just a left border) so a printed itinerary still shows your custom stops.
 
 ---
 
 ## Files in this drop
 
-**New (v2.7):**
-- `js/journal.js` — Journal module (~150 lines)
-- `js/vendor/qrcode.min.js` — `qrcode-svg` library v1.1.0 by papnkukn, MIT licensed (18.6KB minified)
+**New (v2.8):**
+- `js/stops.js` — Stops module (~150 lines)
+- `data/ziyarat-places.json` — 21 curated places
 
-**Modified (v2.7):**
-- `index.html` — no changes (rebundled for safety)
-- `app.html` — added qrcode.min.js + journal.js script tags
-- `css/styles.css` — appended journal reflection styles, journal tab styles, emergency card styles + print rules
-- `js/app.js` — added "Journal" entry to TAB_LIST
-- `js/onboarding.js` — added pilgrim name field to welcome step
-- `js/guide.js` — TABS list + tabJournal() + renderEmergencyCardPrintable() + Settings name field + Overview print button + journal tab re-render on switchTab
-- `js/print.js` — added Print.printEmergencyCard() method
-- `js/store.js` — added `journal: {}` to default state
+**Modified (v2.8):**
+- `app.html` — added stops.js script tag
+- `css/styles.css` — appended stops UI styles + print rules
+- `js/app.js` — preload places list at boot
+- `js/guide.js` — renderDayCard hooks in stops section + 3 new render helpers
+- `js/store.js` — added `stops: {}` to default state
 
 ---
 
 ## Deployment
 
-### 1. Replace these 8 files in `~/Downloads/hajj-app21/`
-
-From this zip:
-- `index.html`
+Replace these 5 files in `~/Downloads/hajj-app21/`:
 - `app.html`
 - `css/styles.css`
 - `js/app.js`
 - `js/guide.js`
-- `js/onboarding.js`
-- `js/print.js`
 - `js/store.js`
 
-### 2. Add these 2 new files
-
-- `js/journal.js` (drop into `js/`)
-- `js/vendor/qrcode.min.js` (you'll need to create the `js/vendor/` subdirectory first — `mkdir -p js/vendor` from the project root)
+Add these 2 new files:
+- `js/stops.js` (drop into `js/`)
+- `data/ziyarat-places.json` (drop into `data/`)
 
 ```bash
 cd ~/Downloads/hajj-app21
-mkdir -p js/vendor
-# Then copy js/vendor/qrcode.min.js from the zip into js/vendor/
 git add .
-git commit -m "v2.7: Hajj journal + print-optimised emergency card"
+git commit -m "v2.8: custom stops on itinerary day cards"
 git push
 ```
 
----
+## Verify on hajjguide.net
 
-## Verify after deploy
-
-In a fresh tab on hajjguide.net:
-
-### Journal
-1. Click **Itinerary** → expand any day card → see the "Reflection" section with a textarea
-2. Type something → wait a moment → see "✓ Saved" appear briefly
-3. Switch to the **Journal** tab → your entry appears with date + body
-4. Click **Export as text** → downloads `hajj-journal.txt` containing the entry
-
-### Emergency card
-1. Open **Overview** → scroll to "Emergency Card" → see "🖨 Print emergency card" button
-2. Click it → browser print dialog appears showing the single-page card with QR code
-3. Scan the QR code with a phone camera → it should open a `tel:` dialer with your operator emergency number
-
-### Pilgrim name
-1. **Settings** → top of page should show "Your name" field
-2. Or, if you reset and onboard from scratch → the welcome step now asks for your name
-
----
+In a fresh tab:
+1. Open **Itinerary**, expand any day card
+2. See the new **"Your stops"** section between Duas (or note) and Reflection
+3. Click **"+ Add a stop"** — inline form appears
+4. Type "Qu" — picker suggests "Quba Mosque" (and "Masjid Qiblatain")
+5. Pick Quba, set times 07:00 – 09:00, click "Add stop"
+6. Stop appears with sage left edge, time chip, name, and curated description
+7. Click **Edit** — form pre-fills with current values
+8. Click **Remove** — stop disappears
+9. Try a free-text entry: type "Visit cousin in old city", no time, save — stop appears without a description (free text)
+10. Try invalid times (end before start) — see the validation error
+11. Open the **Today** tab — today's day card automatically shows the stops too (uses the same `renderDayCard()`)
+12. Print the itinerary — stops are preserved, but edit/remove buttons are hidden
 
 ## Risk
 
-🟢 **Moderate.** New code is well-isolated:
-- Journal is purely additive (new module, new tab, new storage key). If broken, the rest of the app still works.
-- Emergency card uses an overlay that only renders during the print flow — doesn't affect normal viewing.
-- The `qrcode-svg` library is small, well-tested, MIT licensed, no dependencies.
-- Existing emergency card on the Overview tab (the old summary view) is preserved alongside the new print button.
+🟢 **Low.** Purely additive feature:
+- New module in its own file
+- New storage key (`stops`) — separate from everything else
+- Existing day card content untouched (verified — same description / actions / duas / note / reflection in the same order)
+- If broken, just delete `js/stops.js` and the section disappears; everything else still works
+- No change to public APIs, no change to the existing render functions' signatures
 
 If anything breaks:
 ```bash
 git revert HEAD && git push
 ```
-
-## What's NOT in this drop
-
-- Journal entries are stored locally only. There's no sync, no backup. If a pilgrim resets their data or clears localStorage, entries are lost. Export-as-text is the only persistence option.
-- The QR code encodes the operator emergency phone only. If you want a more general "scan to call any of my contacts" QR, that's a follow-up.
-- Emergency card doesn't yet include flight numbers (could be added if useful — currently it's about who to call, not the trip schedule).
-- The on-screen Emergency Card on the Overview tab still uses the old simpler layout — the print version is the new richer one. Consolidating them is possible but optional.

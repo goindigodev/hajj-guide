@@ -1,0 +1,28 @@
+{
+  "_note": "Curated list of common stops pilgrims add to their itinerary. Each entry has a stable id (used as the saved value when picked from the list), a display name, a city/category, and a short neutral description. Free-text entries are stored with id=null.",
+  "places": [
+    { "id": "quba", "name": "Quba Mosque", "city": "madinah", "description": "The first mosque in Islam. Sunnah to visit on Saturday morning." },
+    { "id": "qiblatain", "name": "Masjid Qiblatain", "city": "madinah", "description": "Where the qibla changed from Jerusalem to the Ka'bah." },
+    { "id": "uhud", "name": "Mount Uhud and the Martyrs' Cemetery", "city": "madinah", "description": "Site of the Battle of Uhud and the resting place of Hamza (RA) and 70 other martyrs." },
+    { "id": "baqi", "name": "Jannat al-Baqi", "city": "madinah", "description": "The Madinan cemetery, resting place of many Companions and family of the Prophet ﷺ. Open after Fajr and Asr for men." },
+    { "id": "jumuah", "name": "Masjid al-Jumu'ah", "city": "madinah", "description": "Where the Prophet ﷺ led the first Friday prayer in Madinah." },
+    { "id": "seven-mosques", "name": "The Seven Mosques (Sab'a Masajid)", "city": "madinah", "description": "Cluster of historic mosques near the site of the Battle of the Trench." },
+    { "id": "wadi-jinn", "name": "Wadi-e-Jinn (the magnetic valley)", "city": "madinah", "description": "Natural curiosity outside Madinah, popular with tour groups. Optional cultural visit." },
+    { "id": "date-market", "name": "Date market and farms", "city": "madinah", "description": "Madinah's famous date varieties (Ajwa, Anbara, Sukkari)." },
+
+    { "id": "jabal-nour", "name": "Jabal an-Nour (Cave of Hira)", "city": "makkah", "description": "Mountain where the first revelation came to the Prophet ﷺ. Visit is optional and not part of Hajj rites — climb is steep." },
+    { "id": "jabal-thawr", "name": "Jabal Thawr (Cave of Thawr)", "city": "makkah", "description": "Where the Prophet ﷺ and Abu Bakr (RA) sheltered during the Hijrah. Optional, not part of Hajj rites." },
+    { "id": "muala", "name": "Jannat al-Mu'alla", "city": "makkah", "description": "Historic Makkan cemetery, including the grave of Khadijah (RA), the Prophet's first wife." },
+    { "id": "mawlid", "name": "Birthplace of the Prophet ﷺ (Mawlid)", "city": "makkah", "description": "Now a library (Maktabah Makkah al-Mukarramah) near Marwah. Site significance only." },
+    { "id": "aisha-taneem", "name": "Masjid A'isha (at-Tan'eem)", "city": "makkah", "description": "Closest miqat to Makkah. Pilgrims commonly travel here to enter ihram for additional Umrahs." },
+    { "id": "khayf", "name": "Masjid al-Khayf", "city": "makkah", "description": "Historic mosque in Mina where the Prophet ﷺ prayed during Hajj." },
+    { "id": "namirah", "name": "Masjid Namirah (at Arafah)", "city": "makkah", "description": "Where the Prophet ﷺ delivered the Farewell Sermon. Visited on the Day of Arafah." },
+    { "id": "masharil-haram", "name": "Masjid al-Mash'ar al-Haram", "city": "makkah", "description": "Mosque in Muzdalifah. Pilgrims pray Maghrib and Isha here on the night of the 9th of Dhul Hijjah." },
+    { "id": "clock-tower", "name": "Clock Tower (Abraj al-Bait) viewing", "city": "makkah", "description": "Museum and viewing deck overlooking the Haram. Optional cultural visit." },
+
+    { "id": "operator-tour", "name": "Operator-organised tour", "city": "other", "description": "Generic catch-all for whatever your group leader has planned." },
+    { "id": "group-meal", "name": "Group meal", "city": "other", "description": "Iftar or dinner gathering with companions." },
+    { "id": "shopping", "name": "Shopping or errands", "city": "other", "description": "Souvenirs, clothing, gifts." },
+    { "id": "rest", "name": "Rest at hotel", "city": "other", "description": "Recovery, especially during the days of Hajj." }
+  ]
+}
