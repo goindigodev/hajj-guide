@@ -4608,3 +4608,80 @@ body.userguide-open {
 @media print {
   .userguide-overlay { display: none !important; }
 }
+
+/* =============================================================
+   v3.3 — "Add accommodation dates" CTA on the Itinerary tab
+   Shown when the user has no hotel dates configured. More
+   prominent than a regular callout because this is an
+   actionable problem, not a notification.
+   ============================================================= */
+
+.itinerary-cta {
+  margin: var(--space-4) 0 var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border-left-width: 4px;
+  border-left-color: var(--brass);
+  background: linear-gradient(
+    to right,
+    rgba(184, 149, 74, 0.10) 0%,
+    rgba(184, 149, 74, 0.04) 100%
+  );
+}
+
+.itinerary-cta__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.itinerary-cta__text {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.itinerary-cta__title {
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin-bottom: 4px;
+}
+
+.itinerary-cta__body {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.itinerary-cta__btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 14px;
+  /* Slightly larger tap target for the primary action */
+  padding: 12px 20px;
+}
+
+@media (max-width: 600px) {
+  .itinerary-cta {
+    padding: var(--space-3) var(--space-4);
+  }
+  .itinerary-cta__inner {
+    gap: var(--space-3);
+  }
+  .itinerary-cta__title {
+    font-size: 19px;
+  }
+  .itinerary-cta__btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Hide the CTA in print */
+@media print {
+  .itinerary-cta { display: none !important; }
+}

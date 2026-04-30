@@ -551,6 +551,63 @@
         }
       }
 
+      // v3.3 — Prominent prompt when hotel dates are missing.
+      // The day-by-day Madinah/Makkah labelling is driven by hotel check-in/out
+      // dates. Without those, we show a generic reference itinerary — but tell
+      // the user clearly so they can personalise it.
+      const madinahDated = this.getHotels('madinah').some(h => h && h.fromDate && h.toDate);
+      const makkahDated  = this.getHotels('makkah').some(h => h && h.fromDate && h.toDate);
+      if (!madinahDated && !makkahDated) {
+        const banner = el('div', { class: 'itinerary-cta callout callout--info' });
+        const inner = el('div', { class: 'itinerary-cta__inner' });
+
+        const txt = el('div', { class: 'itinerary-cta__text' });
+        txt.appendChild(el('strong', { class: 'itinerary-cta__title' },
+          'Make this itinerary yours'));
+        txt.appendChild(el('p', { class: 'itinerary-cta__body' },
+          'The plan below is a generic Hajj reference. Add your accommodation check-in and check-out dates and the Madinah/Makkah days will reshape around your actual stay. Hajj days (8–12 Dhul Hijjah) stay fixed regardless.'
+        ));
+        inner.appendChild(txt);
+
+        const btn = el('button', {
+          type: 'button',
+          class: 'btn btn--primary itinerary-cta__btn',
+        }, 'Add accommodation dates →');
+        btn.addEventListener('click', () => this.switchTab('settings'));
+        inner.appendChild(btn);
+
+        banner.appendChild(inner);
+        wrap.appendChild(banner);
+      } else if (madinahDated && !makkahDated) {
+        // Madinah but no Makkah — softer nudge
+        wrap.appendChild(el('div', { class: 'callout callout--info' },
+          el('p', { style: { margin: 0 } },
+            el('strong', null, 'Almost there: '),
+            'You\'ve added Madinah dates but not Makkah. ',
+            (() => {
+              const a = el('a', { href: '#' }, 'Add Makkah dates');
+              a.addEventListener('click', (e) => { e.preventDefault(); this.switchTab('settings'); });
+              return a;
+            })(),
+            ' to complete your personalised itinerary.'
+          )
+        ));
+      } else if (!madinahDated && makkahDated) {
+        // Makkah but no Madinah — softer nudge
+        wrap.appendChild(el('div', { class: 'callout callout--info' },
+          el('p', { style: { margin: 0 } },
+            el('strong', null, 'Almost there: '),
+            'You\'ve added Makkah dates but not Madinah. ',
+            (() => {
+              const a = el('a', { href: '#' }, 'Add Madinah dates');
+              a.addEventListener('click', (e) => { e.preventDefault(); this.switchTab('settings'); });
+              return a;
+            })(),
+            ' to complete your personalised itinerary.'
+          )
+        ));
+      }
+
       // v2: Journey map hero (Option 1) — geographic infographic of the entire trip
       wrap.appendChild(this.renderJourneyMapHero());
 
@@ -2526,52 +2583,422 @@
 
     /* ─── Build days list from user config ─────────────── */
 
+    /**
+     * v3.3 — Build the full day-by-day itinerary list.
+     *
+     * The major change in v3.3 is that this function is now driven by the
+     * user's HOTEL DATES, not their flight dates. Previously, the
+     * Madinah/Makkah split was a hardcoded heuristic ("first 3 days are
+     * Madinah unless trip is short"). Now:
+     *
+     *  - Each day in the trip is checked against the user's actual hotel
+     *    bookings to determine "In Madinah" vs "In Makkah" labelling.
+     *  - The 5 Hajj days (8-12 Dhul Hijjah) are anchored to actual Hijri
+     *    dates using Utils.toHijri(), regardless of where they fall in
+     *    the trip. This was previously also flight-offset which misaligned
+     *    when flight dates didn't match the Hajj period.
+     *  - When hotels lack dates, we fall back to a sensible default split
+     *    so the page never shows nothing.
+     *
+     * Returns an array of day objects with shape:
+     *   { date, dateLabel, title, location, description, duaIds, actions, note }
+     */
     buildItineraryDays() {
-      const cfg = this.config;
+      const cfg = this.config || {};
       const out = cfg.outboundFlight;
       const ret = cfg.returnFlight;
 
-      // Try to find Hajj day 8 from flight date — assume user has scheduled around it.
-      // Without complex Hijri math we just use day offsets from departure.
-      // Generic structure: arrive → Madinah → travel → Makkah/Umrah → 5 Hajj days → Makkah → home
       const startDate = out && out.date ? new Date(out.date) : null;
-      const endDate = ret && ret.date ? new Date(ret.date) : null;
+      const endDate   = ret && ret.date ? new Date(ret.date) : null;
       const hasFlights = !!(startDate && endDate);
 
-      // Fallback example length 14 days
-      const totalDays = hasFlights ? Math.max(1, daysBetween(startDate, endDate) + 1) : 14;
+      // ── Helpers ──────────────────────────────────────────────
+      const isoOf = (d) => (d instanceof Date)
+        ? d.toISOString().slice(0, 10)
+        : (d ? String(d).slice(0, 10) : '');
 
-      // Phases sized proportionally
+      const sameIso = (a, b) => a && b && isoOf(a) === isoOf(b);
+
+      // Returns true if `iso` falls within any hotel of `city` whose dates
+      // are populated. Hotels with missing dates are skipped (they don't
+      // claim any specific day; they're just notional accommodation).
+      const inHotelRange = (city, iso) => {
+        if (!iso) return false;
+        const list = this.getHotels(city);
+        for (const h of list) {
+          if (!h || !h.fromDate || !h.toDate) continue;
+          if (iso >= h.fromDate && iso <= h.toDate) return true;
+        }
+        return false;
+      };
+
+      // Are any hotels for this city configured with a `name`?
+      const hasNamedHotels = (city) =>
+        this.getHotels(city).some(h => h && h.name);
+
+      // Are any hotels for this city configured with both fromDate AND toDate?
+      const hasDatedHotels = (city) =>
+        this.getHotels(city).some(h => h && h.fromDate && h.toDate);
+
+      const madinahDated = hasDatedHotels('madinah');
+      const makkahDated  = hasDatedHotels('makkah');
+
+      // Earliest/latest dates across all hotels for each city. Used to detect
+      // travel-day boundaries and to fall back when a date is "near" but not
+      // strictly within a hotel range.
+      const hotelExtremes = (city) => {
+        const list = this.getHotels(city)
+          .filter(h => h && h.fromDate && h.toDate);
+        if (!list.length) return null;
+        const froms = list.map(h => h.fromDate).sort();
+        const tos   = list.map(h => h.toDate).sort();
+        return { earliest: froms[0], latest: tos[tos.length - 1] };
+      };
+
+      const madinahRange = hotelExtremes('madinah');
+      const makkahRange  = hotelExtremes('makkah');
+
+      // Hajj phase data — Hajj days have stable templates regardless of
+      // where they fall in the trip.
+      const hajjData = (this.data && this.data.itinerary &&
+                       this.data.itinerary.phases.find(p => p.id === 'hajj-days')) || null;
+      const hajjDayList = hajjData ? hajjData.days : [];
+
+      // Try to detect "is `date` 8/9/10/11/12 Dhul Hijjah?"
+      // Returns the index 0-4 of the matching Hajj day, or -1.
+      const hajjIndexFor = (date) => {
+        if (!date || !Utils.toHijri) return -1;
+        const h = Utils.toHijri(date);
+        if (!h || !/Hijjah/i.test(h.month)) return -1;
+        if (h.day >= 8 && h.day <= 12) return h.day - 8;
+        return -1;
+      };
+
+      // ── Fallback: no flights at all ──────────────────────────
+      // Show a generic 14-day reference itinerary so the user sees what
+      // the app can do. Madinah and Makkah days use the (possibly named)
+      // hotel for context; if no hotels, just say "Madinah" / "Makkah".
+      if (!hasFlights) {
+        return this._buildDefaultItinerary();
+      }
+
+      // ── Walk the trip day by day ─────────────────────────────
       const days = [];
-      const day1 = startDate ? formatDate(startDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'Day 1';
+      const totalDays = Math.max(1, daysBetween(startDate, endDate) + 1);
+
+      // Counters for "Day N" labelling within a phase
+      let madinahCounter = 0;
+      let makkahCounter  = 0;
+      let postHajjCounter = 0;
+
+      // Did we already insert a "Travel to Makkah · Umrah" card?
+      let umrahInserted = false;
+
+      // Detect the day immediately AFTER the last Madinah hotel range
+      // (or the day Makkah starts, or the overlap day if both happen on the
+      // same date — i.e. the user's last Madinah night IS their first Makkah
+      // night). That's the natural slot for the Travel-to-Makkah / Umrah day.
+      const travelDayIso = (() => {
+        // Case 1: Madinah-end and Makkah-start are the same day → that IS the travel day
+        if (madinahRange && makkahRange &&
+            madinahRange.latest === makkahRange.earliest) {
+          return madinahRange.latest;
+        }
+        // Case 2: Distinct end and start with a gap → use Makkah-start
+        // (user spends the gap day(s) travelling)
+        if (makkahRange && makkahRange.earliest) {
+          return makkahRange.earliest;
+        }
+        // Case 3: Madinah only (no Makkah) → day after Madinah ends
+        if (madinahRange && madinahRange.latest) {
+          const after = addDays(new Date(madinahRange.latest), 1);
+          return isoOf(after);
+        }
+        return null;
+      })();
+
+      for (let i = 0; i < totalDays; i++) {
+        const d = addDays(startDate, i);
+        const iso = isoOf(d);
+        const dateLabel = formatDate(d);
+
+        // 1) Departure day (flight day) ──────────────────────────
+        if (sameIso(d, startDate)) {
+          const outByRoad = !!(out && out.byRoad);
+          days.push({
+            date: d,
+            dateLabel,
+            title: outByRoad ? 'Departure (by road)' : 'Departure',
+            location: outByRoad
+              ? 'Land crossing → KSA'
+              : `${out.from || 'Home'} → ${out.to || 'MED/JED'}`,
+            description: outByRoad
+              ? 'Travelling overland into Saudi Arabia. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Be ready to enter Ihram if your route bypasses a designated miqat — confirm with your group leader.'
+              : `Flight ${out.number || ''} departs at ${out.time || '—'}. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Begin the journey calmly.`,
+            duaIds: ['leaving-home', 'travelers-dua', 'boarding-transport'],
+            note: 'For Tamattu\' pilgrims, you do NOT need to be in Ihram on this leg if heading directly to Madinah. Ihram is donned later.',
+          });
+          continue;
+        }
+
+        // 2) Return day (flight day) ─────────────────────────────
+        if (sameIso(d, endDate)) {
+          const retByRoad = !!(ret && ret.byRoad);
+          days.push({
+            date: d,
+            dateLabel,
+            title: retByRoad ? 'Return Home (by road)' : 'Return Home',
+            location: retByRoad
+              ? 'Land crossing → home'
+              : `${ret.from || 'JED'} → ${ret.to || 'Home'}`,
+            description: retByRoad
+              ? 'Travelling home overland. Recite the returning dua as you approach home.'
+              : `Flight ${ret.number || ''} departs at ${ret.time || '—'}. Recite the returning dua as you approach home.`,
+            duaIds: ['returning-home', 'travelers-dua'],
+          });
+          continue;
+        }
+
+        // 3) Day before return → Tawaf al-Wada ───────────────────
+        if (sameIso(d, addDays(endDate, -1))) {
+          days.push({
+            date: d,
+            dateLabel,
+            title: 'Tawaf al-Wada',
+            location: 'Masjid al-Haram',
+            description: 'The Farewell Tawaf — the final ritual before leaving Makkah. Perform it as close to your departure as possible. After it, no extended stay or shopping should occur.',
+            duaIds: ['multazam'],
+            note: 'Wajib in Hanafi/Shafi\'i/Hanbali; sunnah in Maliki. Menstruating women are exempt.',
+          });
+          continue;
+        }
+
+        // 4) Hajj days (anchored to Hijri 8-12 Dhul Hijjah) ──────
+        const hi = hajjIndexFor(d);
+        if (hi >= 0 && hajjDayList[hi]) {
+          const hd = hajjDayList[hi];
+          const duaIds = [];
+          if (hi === 0) duaIds.push('niyyah-hajj', 'talbiyah');
+          if (hi === 1) duaIds.push('best-dua-arafah', 'arafah-comprehensive', 'mashar-al-haram');
+          if (hi === 2) duaIds.push('rami-takbir');
+          if (hi === 3 || hi === 4) duaIds.push('after-jamarah-sughra-wusta', 'rami-takbir');
+          days.push({
+            date: d,
+            dateLabel,
+            title: hd.hijri + ' · ' + hd.name,
+            location: hd.location,
+            description: hd.summary,
+            duaIds,
+          });
+          continue;
+        }
+
+        // 5) Travel-to-Makkah / Umrah day ────────────────────────
+        // The boundary day right after Madinah ends. Skip if we'd
+        // already classify this as a Hajj day (handled above) or if
+        // the user has no hotels at all (then we let the simple
+        // logic below handle it).
+        if (travelDayIso && iso === travelDayIso && !umrahInserted) {
+          umrahInserted = true;
+          days.push({
+            date: d,
+            dateLabel,
+            title: 'Travel to Makkah · Umrah',
+            location: 'Madinah → Dhul Hulayfah → Makkah',
+            description: 'Stop at Dhul Hulayfah (Bir Ali) — the miqat — to enter Ihram. Make niyyah for Umrah, pray two rakahs of Ihram, begin Talbiyah. On reaching Makkah, perform Tawaf, Sa\'i and shorten/shave to release from Ihram.',
+            duaIds: ['niyyah-umrah', 'talbiyah', 'first-sight-kabah', 'tawaf-start', 'rabbana-atina', 'maqam-ibrahim', 'zamzam', 'safa-marwah-verse', 'safa-marwah-summit'],
+            note: 'After Umrah, you are out of Ihram until the 8th of Dhul Hijjah. Use this time to rest, perform additional voluntary Tawaf, and prepare for the 5 days.',
+          });
+          continue;
+        }
+
+        // 6) In Madinah ──────────────────────────────────────────
+        if (madinahDated && inHotelRange('madinah', iso)) {
+          madinahCounter++;
+          const isFirstMadinahDay = madinahCounter === 1;
+          days.push({
+            date: d,
+            dateLabel,
+            title: isFirstMadinahDay ? 'Arrive in Madinah' : `In Madinah · Day ${madinahCounter}`,
+            location: this.hotelNameForDate('madinah', d, 'Madinah'),
+            description: isFirstMadinahDay
+              ? 'Settle into your accommodation. Aim for the next prayer at Masjid an-Nabawi if time and energy allow. Visit the Rawdah and offer salaams at the Prophet\'s grave.'
+              : 'Pray five daily prayers at Masjid an-Nabawi if possible. Each prayer there equals 1,000 elsewhere. Visit Masjid Quba (Saturday morning is sunnah).',
+            duaIds: isFirstMadinahDay ? ['first-sight-kabah'] : [],
+            actions: isFirstMadinahDay ? [
+              'Check in and rest if exhausted from travel.',
+              'Make ghusl or wudu before going to the mosque.',
+              'Enter Masjid an-Nabawi with right foot, recite the dua for entering a mosque.',
+              'Greet the Prophet ﷺ at the Rawdah (currently requires Nusuk app booking).',
+            ] : null,
+          });
+          continue;
+        }
+
+        // 7) In Makkah ───────────────────────────────────────────
+        if (makkahDated && inHotelRange('makkah', iso)) {
+          makkahCounter++;
+          // Decide if it's pre-Hajj rest, post-Hajj recovery, or just a Makkah day.
+          // We can know "post-Hajj" by checking if iso > 12-Dhul-Hijjah-equivalent.
+          // Simpler: track whether we've passed the Hajj days yet.
+          const passedHajj = days.some(x => x.title && /Yawm at-Tashreeq|Tashreeq|Yawm an-Nahr/i.test(x.title));
+          const hasUmrahed = umrahInserted;
+          const isFirstPostHajj = passedHajj && postHajjCounter === 0;
+          const isFirstMakkah = !hasUmrahed && makkahCounter === 1;
+
+          let title, description, duaIds = [];
+          if (isFirstPostHajj) {
+            postHajjCounter++;
+            title = 'Recovery in Makkah';
+            description = 'You have completed the rites. Rest, reflect, and maintain ibadah at the Haram.';
+            duaIds = ['multazam'];
+          } else if (passedHajj) {
+            postHajjCounter++;
+            title = `In Makkah · Day ${postHajjCounter}`;
+            description = 'Continue daily prayers at the Haram. Voluntary Umrah from Tan\'eem or Ji\'irana is a popular option.';
+          } else if (isFirstMakkah) {
+            // Arrived in Makkah but didn't pass through a separate "Travel + Umrah" day.
+            // This happens when there's no Madinah hotel and the user goes straight to Makkah.
+            title = 'Arrive in Makkah';
+            description = 'Settle into your accommodation. Walk to the Haram, identify your group\'s meeting points, locate the entrances closest to your hotel.';
+            duaIds = ['first-sight-kabah'];
+          } else {
+            // Pre-Hajj rest day in Makkah after Umrah — fires only ONCE,
+            // on the very first Makkah day after Umrah was inserted.
+            const isRestDay = umrahInserted && makkahCounter === 1;
+            title = isRestDay ? 'Rest in Makkah' : `In Makkah · Day ${makkahCounter}`;
+            description = isRestDay
+              ? 'A day to recover and orient yourself. Walk to the Haram, identify your group\'s meeting points, locate the entrances closest to your hotel.'
+              : 'Continue ibadah at the Haram. Voluntary Tawaf and additional Umrah are popular at this time.';
+            if (isRestDay) {
+              days.push({
+                date: d,
+                dateLabel,
+                title,
+                location: this.hotelNameForDate('makkah', d, 'Makkah'),
+                description,
+                actions: [
+                  'Visit the Haram for at least one prayer.',
+                  'Voluntary Tawaf is highly rewarding in this period.',
+                  'Drink Zamzam abundantly.',
+                  'Confirm Mina arrangements with your group leader.',
+                ],
+              });
+              continue;
+            }
+          }
+          days.push({
+            date: d,
+            dateLabel,
+            title,
+            location: this.hotelNameForDate('makkah', d, 'Makkah'),
+            description,
+            duaIds,
+          });
+          continue;
+        }
+
+        // 8) Fallback — day in trip that's neither in Madinah nor Makkah
+        //    nor a flight/Hajj/Wada day. There are two sub-cases:
+        //
+        //    (a) After the Travel-to-Makkah day already fired, remaining
+        //        unclaimed days are de-facto in Makkah. Treat as such even
+        //        when the user hasn't entered a Makkah hotel range. They
+        //        get the same Makkah day-card treatment, just without a
+        //        named hotel in the location field.
+        //
+        //    (b) Before any Madinah/Makkah anchor — typically the user
+        //        only configured one city's hotel and there's a gap. Show
+        //        a neutral placeholder.
+        if (umrahInserted) {
+          makkahCounter++;
+          const isRestDay = makkahCounter === 1;
+          days.push({
+            date: d,
+            dateLabel,
+            title: isRestDay ? 'Rest in Makkah' : `In Makkah · Day ${makkahCounter}`,
+            location: this.firstHotelName('makkah', 'Makkah'),
+            description: isRestDay
+              ? 'A day to recover and orient yourself. Walk to the Haram, identify your group\'s meeting points, locate the entrances closest to your hotel.'
+              : 'Continue ibadah at the Haram. Voluntary Tawaf and additional Umrah are popular at this time.',
+            duaIds: [],
+            actions: isRestDay ? [
+              'Visit the Haram for at least one prayer.',
+              'Voluntary Tawaf is highly rewarding in this period.',
+              'Drink Zamzam abundantly.',
+              'Confirm Mina arrangements with your group leader.',
+            ] : null,
+          });
+          continue;
+        }
+        days.push({
+          date: d,
+          dateLabel,
+          title: 'Day in Saudi Arabia',
+          location: 'Travel / between cities',
+          description: 'A day not yet anchored to a specific city. Add or adjust your accommodation dates in Settings to see the right details for this day.',
+          duaIds: [],
+        });
+      }
+
+      // If the user has no hotel dates configured at all, the loop above
+      // produces a row of "Day in Saudi Arabia" cards which is not useful.
+      // Detect that and substitute a sensible default split so the page
+      // still tells a story. The Itinerary tab's banner separately tells
+      // them to add hotels.
+      if (!madinahDated && !makkahDated) {
+        return this._buildDefaultItinerary();
+      }
+
+      return days;
+    },
+
+    /**
+     * v3.3 — Build a generic reference itinerary used when the user hasn't
+     * provided hotel dates (or even flight dates). Same shape as the live
+     * itinerary so the rest of the app renders correctly. The Itinerary
+     * tab shows a callout encouraging the user to add their accommodation
+     * dates so this generic structure can become personalised.
+     */
+    _buildDefaultItinerary() {
+      const cfg = this.config || {};
+      const out = cfg.outboundFlight;
+      const ret = cfg.returnFlight;
+      const startDate = out && out.date ? new Date(out.date) : null;
+      const endDate   = ret && ret.date ? new Date(ret.date) : null;
+
+      // If we have flight dates but no hotels, we still know the trip length.
+      const totalDays = (startDate && endDate)
+        ? Math.max(1, daysBetween(startDate, endDate) + 1)
+        : 14;
+
+      const days = [];
+      const offset = (n) => startDate ? addDays(startDate, n) : null;
+      const lbl = (d) => d ? formatDate(d) : '';
 
       // Departure
-      const outByRoad = !!(out && out.byRoad);
+      const day0 = offset(0);
       days.push({
-        date: startDate || null,
-        dateLabel: day1,
-        title: outByRoad ? 'Departure (by road)' : 'Departure',
-        location: outByRoad
-          ? 'Land crossing → KSA'
-          : (hasFlights ? `${out.from || 'Home'} → ${out.to || 'MED/JED'}` : 'Travel'),
-        description: outByRoad
-          ? 'Travelling overland into Saudi Arabia. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Be ready to enter Ihram if your route bypasses a designated miqat — confirm with your group leader.'
-          : (hasFlights
-            ? `Flight ${out.number || ''} departs at ${out.time || '—'}. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua. Begin the journey calmly.`
-            : 'Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua.'),
+        date: day0,
+        dateLabel: lbl(day0) || 'Day 1',
+        title: 'Departure',
+        location: out && out.from ? `${out.from} → ${out.to || 'KSA'}` : 'Travel',
+        description: out && out.number
+          ? `Flight ${out.number} departs at ${out.time || '—'}. Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua.`
+          : 'Take ghusl before leaving home, recite the dua for leaving home and the traveller\'s dua.',
         duaIds: ['leaving-home', 'travelers-dua', 'boarding-transport'],
         note: 'For Tamattu\' pilgrims, you do NOT need to be in Ihram on this leg if heading directly to Madinah. Ihram is donned later.',
       });
 
-      // Madinah days (estimate first ~3 days unless trip is short)
+      // Madinah days — first ~3
       const madinahDays = totalDays >= 12 ? 3 : Math.max(1, Math.floor(totalDays / 4));
       for (let i = 0; i < madinahDays; i++) {
-        const d = startDate ? addDays(startDate, i + 1) : null;
+        const d = offset(i + 1);
         days.push({
           date: d,
-          dateLabel: d ? formatDate(d) : `Madinah Day ${i + 1}`,
+          dateLabel: lbl(d) || `Madinah Day ${i + 1}`,
           title: i === 0 ? 'Arrive in Madinah' : `In Madinah · Day ${i + 1}`,
-          location: this.hotelNameForDate('madinah', d, 'Madinah'),
+          location: this.firstHotelName('madinah', 'Madinah'),
           description: i === 0
             ? 'Settle into your accommodation. Aim for the next prayer at Masjid an-Nabawi if time and energy allow. Visit the Rawdah and offer salaams at the Prophet\'s grave.'
             : 'Pray five daily prayers at Masjid an-Nabawi if possible. Each prayer there equals 1,000 elsewhere. Visit Masjid Quba (Saturday morning is sunnah).',
@@ -2585,12 +3012,12 @@
         });
       }
 
-      // Travel to Makkah + Umrah
+      // Travel + Umrah
       const offsetUmrah = 1 + madinahDays;
-      const dUmrah = startDate ? addDays(startDate, offsetUmrah) : null;
+      const dUmrah = offset(offsetUmrah);
       days.push({
         date: dUmrah,
-        dateLabel: dUmrah ? formatDate(dUmrah) : 'Travel & Umrah Day',
+        dateLabel: lbl(dUmrah) || 'Travel & Umrah Day',
         title: 'Travel to Makkah · Umrah',
         location: 'Madinah → Dhul Hulayfah → Makkah',
         description: 'Stop at Dhul Hulayfah (Bir Ali) — the miqat — to enter Ihram. Make niyyah for Umrah, pray two rakahs of Ihram, begin Talbiyah. On reaching Makkah, perform Tawaf, Sa\'i and shorten/shave to release from Ihram.',
@@ -2598,13 +3025,13 @@
         note: 'After Umrah, you are out of Ihram until the 8th of Dhul Hijjah. Use this time to rest, perform additional voluntary Tawaf, and prepare for the 5 days.',
       });
 
-      // Rest day
-      const dRest = startDate ? addDays(startDate, offsetUmrah + 1) : null;
+      // Rest day in Makkah
+      const dRest = offset(offsetUmrah + 1);
       days.push({
         date: dRest,
-        dateLabel: dRest ? formatDate(dRest) : 'Rest Day',
+        dateLabel: lbl(dRest) || 'Rest Day',
         title: 'Rest in Makkah',
-        location: this.hotelNameForDate('makkah', dRest, 'Makkah'),
+        location: this.firstHotelName('makkah', 'Makkah'),
         description: 'A day to recover and orient yourself. Walk to the Haram, identify your group\'s meeting points, locate the entrances closest to your hotel.',
         actions: [
           'Visit the Haram for at least one prayer.',
@@ -2614,11 +3041,13 @@
         ],
       });
 
-      // The 5 Hajj days
+      // 5 Hajj days (always at fixed positions in the default fallback)
       const hajjStart = offsetUmrah + 2;
-      const hajjDays = this.data.itinerary.phases.find(p => p.id === 'hajj-days').days;
-      hajjDays.forEach((hd, i) => {
-        const d = startDate ? addDays(startDate, hajjStart + i) : null;
+      const hajjData = (this.data && this.data.itinerary &&
+                       this.data.itinerary.phases.find(p => p.id === 'hajj-days')) || null;
+      const hajjDayList = hajjData ? hajjData.days : [];
+      hajjDayList.forEach((hd, i) => {
+        const d = offset(hajjStart + i);
         const duaIds = [];
         if (i === 0) duaIds.push('niyyah-hajj', 'talbiyah');
         if (i === 1) duaIds.push('best-dua-arafah', 'arafah-comprehensive', 'mashar-al-haram');
@@ -2626,29 +3055,26 @@
         if (i === 3 || i === 4) duaIds.push('after-jamarah-sughra-wusta', 'rami-takbir');
         days.push({
           date: d,
-          dateLabel: d ? formatDate(d) : `Hajj Day ${i + 1}`,
+          dateLabel: lbl(d) || `Hajj Day ${i + 1}`,
           title: hd.hijri + ' · ' + hd.name,
           location: hd.location,
           description: hd.summary,
-          duaIds: duaIds,
+          duaIds,
         });
       });
 
-      // Post-Hajj Makkah days fill the gap.
-      // We need to reserve the last 2 days for Tawaf al-Wada (day before flight)
-      // and Return Home (flight day) when endDate is known.
+      // Post-Hajj Makkah days — fill gap before Wada/return
       const postStart = hajjStart + 5;
       const remaining = endDate
-        ? Math.max(0, daysBetween(startDate, endDate) - postStart - 1) // leave 1 day for Wada (return is endDate itself)
+        ? Math.max(0, daysBetween(startDate, endDate) - postStart - 1)
         : 4;
-
       for (let i = 0; i < Math.min(remaining, 6); i++) {
-        const d = startDate ? addDays(startDate, postStart + i) : null;
+        const d = offset(postStart + i);
         days.push({
           date: d,
-          dateLabel: d ? formatDate(d) : `Makkah Post-Hajj Day ${i + 1}`,
+          dateLabel: lbl(d) || `Makkah Post-Hajj Day ${i + 1}`,
           title: i === 0 ? 'Recovery in Makkah' : `In Makkah · Day ${i + 1}`,
-          location: this.hotelNameForDate('makkah', d, 'Makkah'),
+          location: this.firstHotelName('makkah', 'Makkah'),
           description: i === 0
             ? 'You have completed the rites. Rest, reflect, and maintain ibadah at the Haram.'
             : 'Continue daily prayers at the Haram. Voluntary Umrah from Tan\'eem or Ji\'irana is a popular option.',
@@ -2656,12 +3082,12 @@
         });
       }
 
-      // Wada + return
+      // Wada + return (only if we have an end date)
       if (endDate) {
         const dDayBefore = addDays(endDate, -1);
         days.push({
           date: dDayBefore,
-          dateLabel: formatDate(dDayBefore),
+          dateLabel: lbl(dDayBefore),
           title: 'Tawaf al-Wada',
           location: 'Masjid al-Haram',
           description: 'The Farewell Tawaf — the final ritual before leaving Makkah. Perform it as close to your departure as possible. After it, no extended stay or shopping should occur.',
@@ -2671,15 +3097,15 @@
         const retByRoad = !!(ret && ret.byRoad);
         days.push({
           date: endDate,
-          dateLabel: formatDate(endDate),
+          dateLabel: lbl(endDate),
           title: retByRoad ? 'Return Home (by road)' : 'Return Home',
           location: retByRoad
             ? 'Land crossing → home'
-            : (hasFlights ? `${ret.from || 'JED'} → ${ret.to || 'Home'}` : 'Travel'),
+            : (ret && ret.from ? `${ret.from} → ${ret.to || 'Home'}` : 'Travel'),
           description: retByRoad
             ? 'Travelling home overland. Recite the returning dua as you approach home.'
-            : (hasFlights
-              ? `Flight ${ret.number || ''} departs at ${ret.time || '—'}. Recite the returning dua as you approach home.`
+            : (ret && ret.number
+              ? `Flight ${ret.number} departs at ${ret.time || '—'}. Recite the returning dua as you approach home.`
               : 'Recite the returning dua as you approach home.'),
           duaIds: ['returning-home', 'travelers-dua'],
         });
