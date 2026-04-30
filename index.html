@@ -5,28 +5,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f6f1e6">
 
-<title>Hajj Guide · A personalised companion for pilgrims</title>
-<meta name="description" content="A free, personalised Hajj companion. Itinerary built around your flight dates, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+<title>Hajj Guide — free personalised companion for pilgrims | hajjguide.net</title>
+<meta name="description" content="A free, personalised Hajj companion built around your flight dates and madhab. Day-by-day itinerary, duas with audio, rulings (Hanafi, Shafi'i, Maliki, Hanbali), packing checklist, journal, printable emergency card. Works offline. No sign-up required.">
+<meta name="keywords" content="hajj, hajj guide, umrah, hajj itinerary, hajj duas, hajj rulings, madhab, hanafi, shafi'i, maliki, hanbali, ziyarat, mecca, medina, makkah, madinah, hajj planner, hajj companion, hajj app, free hajj guide">
+<meta name="author" content="Hajj Guide">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="googlebot" content="index, follow">
 
-<!-- Canonical -->
+<!-- Canonical (apex domain — www. redirects here via Worker) -->
 <link rel="canonical" href="https://hajjguide.net/">
 
 <!-- Open Graph / WhatsApp / Facebook / iMessage -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hajjguide.net/">
-<meta property="og:title" content="Hajj Guide · A personalised companion for pilgrims">
-<meta property="og:description" content="A free, personalised Hajj companion. Itinerary, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+<meta property="og:title" content="Hajj Guide — free personalised companion for pilgrims">
+<meta property="og:description" content="Day-by-day itinerary built around your flight dates. Duas with audio, rulings by madhab, packing checklist, journal, printable emergency card. Works offline. Free.">
 <meta property="og:image" content="https://hajjguide.net/icons/icon-512.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="Hajj Guide — a personalised companion for pilgrims">
 <meta property="og:locale" content="en_GB">
 <meta property="og:site_name" content="Hajj Guide">
 
-<!-- Twitter -->
+<!-- Twitter / X -->
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hajj Guide · A personalised companion for pilgrims">
-<meta name="twitter:description" content="Itinerary built around your flight dates, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline. Free.">
+<meta name="twitter:title" content="Hajj Guide — free personalised companion for pilgrims">
+<meta name="twitter:description" content="Itinerary, duas with audio, rulings by madhab, packing checklist, journal, printable emergency card. Works offline. Free.">
 <meta name="twitter:image" content="https://hajjguide.net/icons/icon-512.png">
+<meta name="twitter:image:alt" content="Hajj Guide — a personalised companion for pilgrims">
+
+<!-- v3.1 — Structured data: WebApplication + FAQ.
+     Helps Google show this in rich results and understand what the site is. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://hajjguide.net/#webapp",
+      "name": "Hajj Guide",
+      "url": "https://hajjguide.net/",
+      "description": "A free, personalised Hajj companion built around your flight dates and madhab. Day-by-day itinerary, duas with audio, rulings, packing checklist, journal, printable emergency card. Works offline.",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern web browser with JavaScript enabled.",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "GBP"
+      },
+      "inLanguage": "en",
+      "audience": {
+        "@type": "Audience",
+        "audienceType": "Muslim pilgrims preparing for Hajj or Umrah"
+      },
+      "featureList": [
+        "Personalised day-by-day itinerary based on your flight dates",
+        "Duas with Arabic, transliteration, translation and audio",
+        "Rulings by madhab (Hanafi, Shafi'i, Maliki, Hanbali)",
+        "Custom Ziyarat stops with start and end times",
+        "Hajj journal with daily reflections and text export",
+        "Printable emergency card with QR code for the operator phone",
+        "Printable full itinerary",
+        "Packing checklist",
+        "Maps of Madinah and Makkah",
+        "Works offline once loaded"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://hajjguide.net/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Hajj Guide free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Hajj Guide is completely free. There are no ads, no paid tiers, no sign-up. It is a planning aid built and maintained as a sadaqah jariyah."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Hajj Guide work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Once you have loaded the site at least once on your phone, every section works offline — useful in tents at Mina, in crowds at the Haram, or anywhere with poor signal."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Hajj Guide cover the four Sunni madhabs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Rulings section presents the position of each madhab — Hanafi, Shafi'i, Maliki and Hanbali — side by side, so you can confirm what your school holds. Always confirm with a qualified scholar of your madhab before acting on any ruling."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where is my data stored?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "All your data — flights, hotels, journal entries, custom stops — is stored only in your browser on your own device. Nothing is sent anywhere. Hajj Guide does not require a sign-up and does not have a server-side database for user content."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I print my itinerary and emergency card?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Itinerary tab includes a Print full itinerary button which produces a single-document PDF-ready printout of every day of your trip including any custom stops you have added. The Overview tab includes a Print emergency card button which produces a single A4 sheet with your operator details, hotels, Saudi emergency numbers and a QR code for the 24-hour operator line."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a fatwa or religious ruling?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Hajj Guide is a planning aid, not a fatwa. It summarises commonly-held positions for educational purposes only. Always confirm specific rulings with a qualified scholar of your madhab before acting on them."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
 
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
@@ -110,6 +213,58 @@
 
     <!-- Onboarding wizard (shown after Begin) -->
     <section id="onboarding-host" class="onboarding hidden"></section>
+
+    <!-- v3.1 — Visible FAQ for SEO. Mirrors the FAQPage JSON-LD above so we are
+         not cloaking. Hidden from print. Section is collapsed-on-load to keep
+         the visual hierarchy clean; users can expand individual questions. -->
+    <section class="faq no-print" id="faq" aria-labelledby="faq-heading">
+      <div class="faq__inner">
+        <h2 class="faq__heading" id="faq-heading">Common questions</h2>
+        <p class="faq__lead">A few things people often ask about Hajj Guide.</p>
+
+        <details class="faq__item">
+          <summary>Is Hajj Guide free?</summary>
+          <div class="faq__answer">
+            <p>Yes. Hajj Guide is completely free. There are no ads, no paid tiers, no sign-up. It is a planning aid built and maintained as a <em>sadaqah jariyah</em>.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary>Does it work offline?</summary>
+          <div class="faq__answer">
+            <p>Yes. Once you have loaded the site at least once on your phone, every section works offline — useful in tents at Mina, in crowds at the Haram, or anywhere with poor signal.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary>Does it cover the four Sunni madhabs?</summary>
+          <div class="faq__answer">
+            <p>Yes. The Rulings section presents the position of each madhab — Hanafi, Shafi'i, Maliki and Hanbali — side by side, so you can confirm what your school holds. Always confirm with a qualified scholar of your madhab before acting on any ruling.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary>Where is my data stored?</summary>
+          <div class="faq__answer">
+            <p>All your data — flights, hotels, journal entries, custom stops — is stored only in your browser on your own device. Nothing is sent anywhere. Hajj Guide does not require a sign-up and does not have a server-side database for user content.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary>Can I print my itinerary and emergency card?</summary>
+          <div class="faq__answer">
+            <p>Yes. The Itinerary tab includes a <strong>Print full itinerary</strong> button that produces a single-document printout of every day of your trip, including any custom stops you have added. The Overview tab includes a <strong>Print emergency card</strong> button that produces a single A4 sheet with your operator details, hotels, Saudi emergency numbers, and a QR code for the 24-hour operator line.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary>Is this a fatwa or religious ruling?</summary>
+          <div class="faq__answer">
+            <p>No. Hajj Guide is a planning aid, not a fatwa. It summarises commonly-held positions for educational purposes only. Always confirm specific rulings with a qualified scholar of your madhab before acting on them.</p>
+          </div>
+        </details>
+      </div>
+    </section>
 
   </div>
 </main>

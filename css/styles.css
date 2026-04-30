@@ -4268,3 +4268,84 @@ body.is-printing-itinerary #it-print-overlay {
   font-size: 8pt;
   color: #888;
 }
+
+/* =============================================================
+   v3.1 — FAQ section on index.html (SEO + visible content)
+   ============================================================= */
+
+.faq {
+  max-width: 780px;
+  margin: var(--space-7) auto var(--space-7);
+  padding: 0 var(--space-2);
+}
+
+.faq__heading {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.faq__lead {
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: var(--fs-sm);
+  margin: 0 0 var(--space-5);
+  font-style: italic;
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--rule-soft);
+  padding: 14px 4px;
+  cursor: pointer;
+}
+.faq__item:first-of-type {
+  border-top: 1px solid var(--rule-soft);
+}
+
+.faq__item summary {
+  list-style: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  padding-right: 24px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.15s ease;
+}
+.faq__item summary::-webkit-details-marker { display: none; }
+
+.faq__item summary::after {
+  content: '+';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--brass);
+  font-weight: 400;
+  line-height: 1;
+  transition: transform 0.18s ease, color 0.15s ease;
+}
+.faq__item[open] summary::after {
+  content: '−';
+  color: var(--green-deep);
+}
+
+.faq__item:hover summary { color: var(--green-deep); }
+
+.faq__answer {
+  margin-top: var(--space-3);
+  padding-right: 24px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: var(--fs-base);
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.faq__answer p { margin: 0; }
+.faq__answer p + p { margin-top: var(--space-3); }

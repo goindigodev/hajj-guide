@@ -1,4 +1,31 @@
+# Hajj Guide — robots policy
+# https://hajjguide.net/
+
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /js/config.js
+
+# Major search-engine crawlers — explicit allow
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+# AI crawlers — allow indexing but keep API endpoints out
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
 
 Sitemap: https://hajjguide.net/sitemap.xml

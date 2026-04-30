@@ -94,6 +94,16 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // v3.1 — Canonical host enforcement.
+    // hajjguide.net is the canonical host. www.hajjguide.net redirects with 301
+    // so search engines consolidate signals on a single canonical URL.
+    // The redirect preserves the path, query string and fragment.
+    if (url.hostname === 'www.hajjguide.net') {
+      const canonical = new URL(request.url);
+      canonical.hostname = 'hajjguide.net';
+      return Response.redirect(canonical.toString(), 301);
+    }
+
     if (url.pathname === '/js/config.js') return handleConfig(env);
     if (url.pathname === '/api/like')     return handleLike(request, env);
     if (url.pathname === '/api/share')    return handleShare(request, env);

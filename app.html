@@ -6,16 +6,24 @@
 <meta name="theme-color" content="#f6f1e6">
 
 <title>Your Guide · Hajj Guide</title>
-<meta name="description" content="Your personalised Hajj guide.">
+<meta name="description" content="Your personalised Hajj guide. Day-by-day itinerary, duas, rulings, custom stops, journal and emergency card.">
 
-<link rel="canonical" href="https://hajjguide.net/app.html">
+<!-- v3.1 — noindex so search engines don't surface this empty app shell.
+     index.html is the page we want ranking. follow keeps internal links valid. -->
+<meta name="robots" content="noindex, follow">
 
-<!-- Open Graph -->
+<!-- Canonical points to the home page since app.html is a personal shell -->
+<link rel="canonical" href="https://hajjguide.net/">
+
+<!-- Open Graph (so links to app.html from journal exports etc. still preview nicely) -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://hajjguide.net/app.html">
-<meta property="og:title" content="Hajj Guide · A personalised companion for pilgrims">
-<meta property="og:description" content="Itinerary, duas with audio, rulings by madhab, packing checklist, maps and notes. Works offline.">
+<meta property="og:url" content="https://hajjguide.net/">
+<meta property="og:title" content="Hajj Guide — free personalised companion for pilgrims">
+<meta property="og:description" content="Itinerary built around your flight dates, duas with audio, rulings by madhab, packing checklist, journal, printable emergency card. Works offline.">
 <meta property="og:image" content="https://hajjguide.net/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:locale" content="en_GB">
 <meta property="og:site_name" content="Hajj Guide">
 
 <link rel="manifest" href="./manifest.json">
