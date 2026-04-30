@@ -7,10 +7,49 @@
 (function () {
   'use strict';
 
-  function boot() {
+  async function boot() {
+    // v2.5 — Initialise i18n FIRST (loads strings, sets dir/lang on <html>).
+    // Other modules call I18n.t() so this must complete before their UI renders.
+    if (window.I18n && I18n.init) await I18n.init();
+
     // Initialise core modules
     if (window.FontSize)  FontSize.init();
     if (window.Maps)      Maps.init();
+
+    // v2.5 — Render language switcher in header
+    const langHost = document.getElementById('lang-switcher-host');
+    if (langHost && window.I18n) {
+      I18n.renderSwitcher(langHost);
+      // When the user switches language, re-render the Guide so all tabs refresh.
+      I18n.onChange(() => {
+        // Tab nav button labels are static in the DOM — refresh them
+        document.querySelectorAll('.tab-nav__btn').forEach(btn => {
+          if (btn.dataset.i18nKey) {
+            btn.textContent = I18n.t(btn.dataset.i18nKey);
+          }
+        });
+        // Re-render the Guide (re-runs all tab render functions)
+        if (window.Guide && Guide.render) Guide.render();
+        // Re-apply static i18n bits
+        _applyStaticTranslations();
+      });
+    }
+
+    function _applyStaticTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) el.textContent = I18n.t(key);
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (key) el.placeholder = I18n.t(key);
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+        const key = el.getAttribute('data-i18n-aria');
+        if (key) el.setAttribute('aria-label', I18n.t(key));
+      });
+    }
+    _applyStaticTranslations();
 
     // v2.2 — load operator list (for Emergency Card name resolution)
     if (!window._OPERATOR_LIST && window.Utils && Utils.fetchJSON) {
@@ -53,27 +92,27 @@
     // Build tab nav
     const tabHost = document.querySelector('.tab-nav__inner');
     if (tabHost && window.Guide) {
+      // Tab IDs (the i18n key conversion: 'hajj-days' → 'tabs.hajjDays')
       const TAB_LIST = [
-        { id: 'today',       title: 'Today' },
-        { id: 'overview',    title: 'Overview' },
-        { id: 'itinerary',   title: 'Itinerary' },
-        { id: 'hajj-days',   title: '5 Days of Hajj' },
-        { id: 'umrah',       title: 'Umrah' },
-        { id: 'duas',        title: 'Duas' },
-        { id: 'rulings',     title: 'Rulings' },
-        { id: 'locations',   title: 'Locations' },
-        { id: 'packing',     title: 'Packing' },
-        { id: 'preparation', title: 'Preparation' },
-        { id: 'wisdom',      title: 'Wisdom' },
-        { id: 'settings',    title: 'Settings' },
+        { id: 'today',       i18nKey: 'tabs.today' },
+        { id: 'overview',    i18nKey: 'tabs.overview' },
+        { id: 'itinerary',   i18nKey: 'tabs.itinerary' },
+        { id: 'hajj-days',   i18nKey: 'tabs.hajjDays' },
+        { id: 'umrah',       i18nKey: 'tabs.umrah' },
+        { id: 'duas',        i18nKey: 'tabs.duas' },
+        { id: 'rulings',     i18nKey: 'tabs.rulings' },
+        { id: 'locations',   i18nKey: 'tabs.locations' },
+        { id: 'packing',     i18nKey: 'tabs.packing' },
+        { id: 'preparation', i18nKey: 'tabs.preparation' },
+        { id: 'wisdom',      i18nKey: 'tabs.wisdom' },
+        { id: 'settings',    i18nKey: 'tabs.settings' },
       ];
-      // Build all buttons; we mark the active one after Guide.init() decides
-      // which tab to land on (smart default based on trip state).
       TAB_LIST.forEach((t) => {
         const btn = document.createElement('button');
         btn.className = 'tab-nav__btn';
         btn.dataset.tab = t.id;
-        btn.textContent = t.title;
+        btn.dataset.i18nKey = t.i18nKey; // for refresh on locale change
+        btn.textContent = window.I18n ? I18n.t(t.i18nKey) : t.id;
         btn.setAttribute('role', 'tab');
         btn.addEventListener('click', () => Guide.switchTab(t.id));
         tabHost.appendChild(btn);
