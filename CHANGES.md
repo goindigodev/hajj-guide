@@ -1,129 +1,103 @@
-# Hajj Guide v2.1 — engagement + flight helpers
+# Hajj Guide v2.2-part1 — audio removal, disclaimer, operator dropdown
 
-## What this drop contains
+## Items shipped in this drop
 
-**Modified files:**
-- `_worker.js` — adds `/api/feedback` (Resend) and `/api/like` (KV) routes
-- `wrangler.jsonc` — declares KV binding + plain vars for feedback addresses
-- `css/styles.css` — feedback modal + footer + like button + flight hint styles
-- `js/onboarding.js` — smart flight helpers (auto-uppercase, IATA detection, verify links, date warning)
-- `js/app.js` — wires Feedback.init() and Like.init() on app boot
-- `index.html` — new footer with like button + feedback link, scripts wired
-- `app.html` — same footer additions, scripts wired, analytics placeholder
+1. **Audio feature removed completely** — until proper recordings are sourced
+2. **Disclaimer popup** on first page load
+3. **Tour operator dropdown** with the 12 Nusuk-approved Saudi providers + free-text "Other"
+4. **Hijri conversion helpers** added to Utils (not yet wired to UI — coming next session)
 
-**New files:**
-- `js/feedback.js` — modal feedback form module
-- `js/like.js` — like button counter module
+## Items deferred to v2.2-part2 (next session)
 
-## What changed and why
+5. Wire Hijri dates into day cards + "your flights don't contain Hajj" warning
+6. Two Mina camps support (regular vs Mina Jadeed)
+7. Multi-hotel accommodation (with localStorage migration for existing users)
 
-### 1. Smart flight helpers
-- Auto-uppercases flight numbers as user types ("ba 147" → "BA147")
-- Detects IATA prefix (first 2 chars), shows airline name beneath the field
-- Adds "Verify on airline website ↗" link to that carrier's flight status page
-- Warns if return date is the same as or before outbound date
-- Falls back gracefully if airline unknown — no hint, no error
-- ~25 carriers covered (Saudia, Emirates, Qatar, Turkish, BA, Delta, etc.)
+These three are bigger and touch the data schema. Better to do them fresh.
 
-### 2. Feedback form (Resend)
-- Footer "Send feedback" link opens a centered modal
-- Optional name + email, required message, honeypot anti-bot field
-- Esc/backdrop/Cancel all close the modal
-- Submit POSTs to /api/feedback, which calls Resend's REST API
-- Resend sends an HTML email to FEEDBACK_TO with the message + meta (IP, country, UA)
-- Reply-To set to user's email if they provided one
+---
 
-### 3. Like button (Workers KV)
-- Footer button shows global "♥ N pilgrims" count
-- One-click increment, blocked from re-counting via localStorage
-- KV is eventually consistent — small races accepted
+## What changed in this drop
 
-### 4. Cloudflare Web Analytics
-- Placeholder script in both HTML files, commented out
-- Replace YOUR_BEACON_TOKEN and uncomment after enabling in dashboard
+### Modified files
+- `index.html` — disclaimer.js script tag, init call, reset hook
+- `app.html` — disclaimer.js script tag (audio.js removed)
+- `css/styles.css` — disclaimer modal styles added; audio progress bar styles removed
+- `js/utils.js` — `toHijri()`, `formatHijri()`, `containsHajjPeriod()` helpers added
+- `js/guide.js` — Settings audio card + per-dua audio + bulk download all stripped; reset description updated
+- `js/app.js` — Disclaimer init, Audio init removed, header comment updated
+- `js/onboarding.js` — operator step rebuilt with local-agency text + Saudi-provider dropdown
 
-## What did NOT change
+### New files
+- `js/disclaimer.js` — first-visit modal with calligraphic ornament
+- `data/operators.json` — Nusuk-approved Saudi service provider list
 
-- localStorage schema (`hajj-companion-v1`) untouched (one new key
-  `hajj-companion-v1.likedAt` outside the Store object)
-- Maps integration unchanged
-- Tab structure unchanged
-- All data files unchanged
-- All other modules unchanged
+### Deleted
+- `js/audio.js` — removed (must `git rm` locally)
 
-## Deployment steps (in order)
+---
 
-### Step 1 — Drop in the new files
+## Deployment
 
-Replace these in your project (~/Downloads/hajj-app/):
-- `_worker.js`
-- `wrangler.jsonc`
-- `css/styles.css`
-- `js/onboarding.js`
-- `js/feedback.js` (new)
-- `js/like.js` (new)
-- `js/app.js`
+### Step 1 — drop in the new files
+Replace these in your project (~/Downloads/hajj-app21/):
 - `index.html`
 - `app.html`
+- `css/styles.css`
+- `js/utils.js`
+- `js/guide.js`
+- `js/app.js`
+- `js/onboarding.js`
+- `js/disclaimer.js` (new — drop in)
+- `data/operators.json` (new — drop in)
 
-### Step 2 — Create the KV namespace for likes
-
-In Cloudflare Dashboard:
-1. Workers & Pages → KV → **Create namespace**
-2. Name: `hajj-likes`
-3. Click **Create**
-4. Copy the **Namespace ID**
-5. Open `wrangler.jsonc` and replace `REPLACE_WITH_YOUR_KV_NAMESPACE_ID`
-
-### Step 3 — Set FEEDBACK_TO in wrangler.jsonc
-
-Replace `REPLACE_WITH_YOUR_EMAIL` with your email address.
-
-### Step 4 — Verify your domain on Resend
-
-EMAILS WON'T SEND UNTIL THIS IS DONE.
-
-1. Sign up at https://resend.com (free tier)
-2. Resend dashboard → **Domains** → **Add Domain** → enter `hajjguide.net`
-3. They give you 3 DNS records to add (SPF, DKIM, MX-style)
-4. Add those in Cloudflare DNS → wait 5-15 min for verification
-5. When status shows "Verified", domain is ready
-6. Resend dashboard → **API Keys** → **Create API Key** → copy value
-
-### Step 5 — Set the Resend secret
-
+### Step 2 — delete the orphaned audio.js
 ```bash
-cd ~/Downloads/hajj-app
-wrangler secret put RESEND_API_KEY
+cd ~/Downloads/hajj-app21
+rm js/audio.js
 ```
-Paste the key when prompted.
 
-### Step 6 — Enable Cloudflare Web Analytics
+### Step 3 — verify the operator list
 
-1. Cloudflare Dashboard → **Analytics** → **Web Analytics**
-2. **Add a site** → `hajjguide.net`
-3. Copy the beacon token from the snippet
-4. In `index.html` and `app.html`, find the commented analytics block at the bottom,
-   replace `YOUR_BEACON_TOKEN`, remove the `<!-- ... -->`
+**IMPORTANT.** I included 13 providers in `data/operators.json` based on what I could see from the Nusuk public site. The news article from Hajj Reporters said "12 providers" approved for 1447H — there's a discrepancy worth checking.
 
-### Step 7 — Push everything
+Visit https://hajj.nusuk.sa/ServiceProviders and confirm:
+- The exact count (12 or 13?)
+- The exact spelling of each name (the Nusuk page uses different formatting from press releases)
 
+Edit `data/operators.json` to match the official list before pushing.
+
+The current file flags this in `_note` and `_lastVerified` fields at the top.
+
+### Step 4 — commit and push
 ```bash
-cd ~/Downloads/hajj-app
+cd ~/Downloads/hajj-app21
 git add .
-git commit -m "v2.1: feedback form, like button, flight helpers, analytics"
+git commit -m "v2.2-part1: remove audio, add disclaimer, operator dropdown"
 git push
 ```
 
-### Step 8 — Verify
+### Step 5 — verify on hajjguide.net (fresh incognito)
+- First visit: disclaimer modal appears with "Before you begin"
+- Click "I understand" → modal dismisses (with fade-out animation)
+- Refresh page → modal does NOT reappear (acknowledged)
+- Open onboarding → step 3 (operator) shows local-agency text + Saudi Service Provider dropdown
+- Pick a provider from the dropdown OR pick "Other" → text field appears
+- Open the Settings tab → no "Offline audio" card; no audio-related copy in reset card
+- Open the Duas tab → no "Download all audio" button; no audio players on dua cards
 
-In fresh incognito:
-- Footer visible on every page
-- "Send feedback" → modal opens
-- Submit → "Thank you" state, email arrives in your inbox
-- Like button → count increments, button stays "liked" on refresh
-- Onboarding → type "BA22" → "British Airways · BA22" shows
-- Return date < outbound date → warning appears
+---
+
+## Risk profile
+
+- ✅ Audio removal: clean — everything that referenced audio has been updated
+- ✅ Disclaimer: isolated module, separate localStorage key, won't conflict with anything
+- ✅ Operator dropdown: SCHEMA-ADDITIVE (adds `serviceProvider` and `serviceProviderOther` to `operator`). Existing users with older data are defensively defaulted in onboarding.init.
+- ✅ Hijri helpers: pure additions to Utils, no callers yet
+
+No localStorage schema breakage. No Worker changes. No KV / Resend / Maps changes.
+
+---
 
 ## Rollback
 
@@ -132,16 +106,11 @@ git revert HEAD
 git push
 ```
 
-## Known gotchas
+---
 
-- **Feedback won't work until Resend domain is verified** — graceful 503 until then
-- **Likes won't persist until KV namespace is created** — graceful 0 until then
-- **Analytics won't track until you uncomment the snippet** — placeholder is commented
+## Post-deploy notes
 
-Each piece is independently enableable. You can ship the code immediately
-and complete Resend / KV / Analytics setup at your own pace.
+- The disclaimer storage key is `hajj-companion-v1.disclaimerAcknowledgedAt` (separate from main user data). Reset of user data in Settings ALSO clears the ack so users see the disclaimer again.
+- If you ever change the disclaimer wording, bump `DISCLAIMER_VERSION` in `js/disclaimer.js` (currently '1') so all users see the new version once.
+- The operator dropdown silently falls back to "Other" + free-text if `data/operators.json` fails to load (rare, but defensive).
 
-## Deferred to v2.2
-
-- Audio audit + sourced duas
-- Nusuk operator list

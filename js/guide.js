@@ -560,40 +560,8 @@
       const wrap = el('div');
       wrap.appendChild(el('h1', null, 'Duas'));
       wrap.appendChild(el('p', { class: 'lead' },
-        'Every supplication you need for the journey, with Arabic, transliteration, English and (where available) audio.'
+        'Every supplication you need for the journey, with Arabic, transliteration, and English.'
       ));
-
-      // Audio bulk download control
-      const withAudio = this.data.duas.filter(d => d.audioUrl);
-      if (withAudio.length > 0) {
-        const audioRow = el('div', { class: 'card', style: { marginBottom: 'var(--space-5)' } });
-        audioRow.appendChild(el('h3', { style: { marginTop: 0 } }, 'Offline audio'));
-        audioRow.appendChild(el('p', { class: 'text-mute', style: { fontSize: 'var(--fs-sm)' } },
-          `${withAudio.length} duas have audio recordings (reciter: Mishary Rashid Alafasy). Download them once for offline use during your trip.`
-        ));
-        const dlAllBtn = el('button', { class: 'btn btn--primary' }, '⬇ Download all audio for offline');
-        const progressEl = el('div', { class: 'audio-progress hidden' },
-          el('div', { class: 'audio-progress__bar', style: { width: '0%' } })
-        );
-        const statusEl = el('div', { class: 'text-mute', style: { fontSize: 'var(--fs-sm)', marginTop: '8px' } });
-
-        dlAllBtn.addEventListener('click', async () => {
-          dlAllBtn.disabled = true;
-          progressEl.classList.remove('hidden');
-          await AudioMod.downloadAll(withAudio, (done, total) => {
-            const pct = Math.round(done * 100 / total);
-            progressEl.querySelector('.audio-progress__bar').style.width = pct + '%';
-            statusEl.textContent = `Downloaded ${done} of ${total}…`;
-          });
-          dlAllBtn.textContent = '✓ Downloaded';
-          statusEl.textContent = 'All available audio is saved offline.';
-        });
-
-        audioRow.appendChild(dlAllBtn);
-        audioRow.appendChild(progressEl);
-        audioRow.appendChild(statusEl);
-        wrap.appendChild(audioRow);
-      }
 
       // Render each dua
       this.data.duas.forEach(dua => {
@@ -920,24 +888,6 @@
       editCard.appendChild(editBtn);
       grid.appendChild(editCard);
 
-      // Audio cache
-      const audioCard = el('div', { class: 'settings-card' });
-      audioCard.appendChild(el('h3', null, 'Offline audio'));
-      audioCard.appendChild(el('p', null, 'Manage downloaded dua audio for offline use.'));
-      const downloaded = Object.keys(Store.get().audioCache || {}).length;
-      audioCard.appendChild(el('p', { class: 'text-mute', style: { fontSize: 'var(--fs-sm)' } },
-        `${downloaded} files downloaded.`
-      ));
-      const clearBtn = el('button', { class: 'btn btn--secondary' }, 'Clear cached audio');
-      clearBtn.addEventListener('click', async () => {
-        if (confirm('Remove all downloaded audio? You\'ll need to re-download for offline use.')) {
-          await AudioMod.clearAll();
-          this.render();
-        }
-      });
-      audioCard.appendChild(clearBtn);
-      grid.appendChild(audioCard);
-
       // Notes export
       const notesCard = el('div', { class: 'settings-card' });
       notesCard.appendChild(el('h3', null, 'Your notes'));
@@ -950,11 +900,12 @@
       // Reset
       const resetCard = el('div', { class: 'settings-card' });
       resetCard.appendChild(el('h3', null, 'Reset everything'));
-      resetCard.appendChild(el('p', null, 'Clear all your data — flights, notes, packing, downloaded audio. This cannot be undone.'));
+      resetCard.appendChild(el('p', null, 'Clear all your data — flights, notes, packing. This cannot be undone.'));
       const resetBtn = el('button', { class: 'btn btn--secondary', style: { color: 'var(--crimson)' } }, 'Reset all data');
       resetBtn.addEventListener('click', async () => {
         if (confirm('This will erase everything. Continue?')) {
           Store.reset();
+          if (window.Disclaimer && Disclaimer.reset) Disclaimer.reset();
           if ('caches' in window) {
             const keys = await caches.keys();
             await Promise.all(keys.map(k => caches.delete(k)));
@@ -1160,8 +1111,6 @@
       const card = el('div', { class: 'dua-card' });
       const head = el('div', { class: 'dua-card__header' });
       head.appendChild(el('h3', { class: 'dua-card__title' }, dua.title));
-      const audioHost = el('div');
-      head.appendChild(audioHost);
       card.appendChild(head);
 
       if (dua.context) {
@@ -1182,10 +1131,6 @@
         ));
       }
 
-      // Audio
-      if (window.AudioMod) {
-        AudioMod.renderPlayer(audioHost, dua);
-      }
       return card;
     },
 

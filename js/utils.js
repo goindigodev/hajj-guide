@@ -84,6 +84,81 @@
     },
 
     /**
+     * v2.2 — Convert a Gregorian Date to a Hijri date object using the
+     * Saudi Umm al-Qura calendar, via the browser's built-in Intl API.
+     * Returns { day, month, monthName, year } or null if the date is invalid
+     * or the browser doesn't support the calendar.
+     */
+    toHijri(date) {
+      try {
+        const d = (date instanceof Date) ? date : new Date(date);
+        if (isNaN(d.getTime())) return null;
+        const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+        // Returns parts like [day, month name, year]
+        const parts = fmt.formatToParts(d);
+        const get = (type) => {
+          const p = parts.find(x => x.type === type);
+          return p ? p.value : '';
+        };
+        const dayStr   = get('day');
+        const monthStr = get('month');     // e.g. "Dhuʻl-Hijjah"
+        const yearStr  = get('year').replace(/[^\d]/g, '');
+        return {
+          day: parseInt(dayStr, 10) || 0,
+          month: monthStr,
+          year: parseInt(yearStr, 10) || 0,
+        };
+      } catch (e) {
+        return null;
+      }
+    },
+
+    /**
+     * v2.2 — Format a Gregorian Date as a short Hijri string like
+     * "8 Dhul Hijjah 1447". The Intl API returns "Dhuʻl-Hijjah" with a
+     * curly ʻ which we replace with a plain apostrophe for readability.
+     */
+    formatHijri(date) {
+      const h = this.toHijri(date);
+      if (!h) return '';
+      // Normalise the ʻ ʼ characters that Intl returns
+      const month = h.month
+        .replace(/ʻ|ʼ|ʿ/g, '\u2019')
+        .replace(/Dhu\u2019l[- ]Hijjah/i, 'Dhul Hijjah')
+        .replace(/Dhu\u2019l[- ]Qa\u2019dah/i, "Dhul Qa'dah");
+      return `${h.day} ${month} ${h.year}`;
+    },
+
+    /**
+     * v2.2 — Are any of the given Gregorian dates within the 8-13 Dhul Hijjah window?
+     * Used to detect whether the user's flights actually contain the Hajj period.
+     */
+    containsHajjPeriod(startDate, endDate) {
+      try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+        // Walk day-by-day (max 60 days for sanity)
+        const oneDay = 86400000;
+        let d = new Date(start.getTime());
+        for (let i = 0; i < 60 && d <= end; i++) {
+          const h = this.toHijri(d);
+          if (h && /Hijjah/i.test(h.month) && h.day >= 8 && h.day <= 13) {
+            return true;
+          }
+          d = new Date(d.getTime() + oneDay);
+        }
+        return false;
+      } catch (e) {
+        return null;
+      }
+    },
+
+    /**
      * Debounce
      */
     debounce(fn, wait) {

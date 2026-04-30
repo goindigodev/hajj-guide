@@ -82,7 +82,7 @@
           <div class="feature">
             <span class="feature__num">iii.</span>
             <h3 class="feature__title">Works offline</h3>
-            <p class="feature__body">Once loaded, everything works without signal. Audio downloads on demand and is saved for the journey.</p>
+            <p class="feature__body">Once loaded, every section works without signal — useful in tents at Mina or in crowds at the Haram.</p>
           </div>
           <div class="feature">
             <span class="feature__num">iv.</span>
@@ -144,6 +144,7 @@
 <script src="./js/store.js"></script>
 <script src="./js/maps.js"></script>
 <script src="./js/fontsize.js"></script>
+<script src="./js/disclaimer.js"></script>
 <script src="./js/like.js"></script>
 <script src="./js/onboarding.js"></script>
 
@@ -162,6 +163,9 @@
 
   // v2.1 — wire up like button
   if (window.Like && Like.init) Like.init();
+
+  // v2.2 — first-visit disclaimer
+  if (window.Disclaimer && Disclaimer.init) Disclaimer.init();
 
   // If user already onboarded, allow them to go straight to the app
   if (Store.isOnboarded()) {
@@ -192,8 +196,9 @@
   // Reset
   document.getElementById('reset-link').addEventListener('click', function(e) {
     e.preventDefault();
-    if (confirm('This will clear all your saved data — flights, notes, packing list, downloaded audio. Continue?')) {
+    if (confirm('This will clear all your saved data — flights, notes, packing list. Continue?')) {
       Store.reset();
+      if (window.Disclaimer && Disclaimer.reset) Disclaimer.reset();
       // Also clear caches if available
       if ('caches' in window) {
         caches.keys().then(function(keys) {

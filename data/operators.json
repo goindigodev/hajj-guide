@@ -1,0 +1,20 @@
+{
+  "_note": "Authorized Saudi service providers for Hajj 1447 AH / 2026 AD as listed on hajj.nusuk.sa/ServiceProviders. Verify against the official list before each Hajj season — the list is updated annually by the Saudi Ministry of Hajj and Umrah.",
+  "_lastVerified": "2026-04-30",
+  "_source": "https://hajj.nusuk.sa/ServiceProviders",
+  "providers": [
+    { "id": "abdul-lateef-jameel",  "name": "Abdul Lateef Jameel" },
+    { "id": "al-bait-guests",       "name": "Al Bait Guests for Pilgrims Services" },
+    { "id": "al-rajhi",             "name": "AL RAJHI" },
+    { "id": "bushra-diafa",         "name": "BUSHRA DIAFA" },
+    { "id": "dur-hospitality",      "name": "Dur Hospitality" },
+    { "id": "holiday-in-bakkah",    "name": "Holiday In Bakkah" },
+    { "id": "ikram-aldeif",         "name": "Ikram Aldeif" },
+    { "id": "ithraa-alkhair",       "name": "Ithraa Alkhair" },
+    { "id": "mcdc",                 "name": "MCDC" },
+    { "id": "rawaf-mina",           "name": "Rawaf Mina" },
+    { "id": "saudia-hajj-umrah",    "name": "Saudia Hajj and Umrah" },
+    { "id": "seera-group",          "name": "Seera Group" },
+    { "id": "yosr-almashaer",       "name": "YOSR Almashaer" }
+  ]
+}

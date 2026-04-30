@@ -85,6 +85,23 @@
     init(container) {
       this.container = container;
       this.config = JSON.parse(JSON.stringify(Store.getConfig()));
+      // Defensive default for new operator fields (existing users haven't populated)
+      if (!this.config.operator) this.config.operator = {};
+      if (!('serviceProvider' in this.config.operator))      this.config.operator.serviceProvider = '';
+      if (!('serviceProviderOther' in this.config.operator)) this.config.operator.serviceProviderOther = '';
+
+      // Load Nusuk operator list (cached on window so multiple renders don't refetch)
+      if (!window._OPERATOR_LIST) {
+        Utils.fetchJSON('./data/operators.json')
+          .then(data => {
+            window._OPERATOR_LIST = data;
+            // If user is currently on the operator step, re-render so the dropdown populates
+            if (STEPS[this.currentStep] && STEPS[this.currentStep].id === 'operator') {
+              this.render();
+            }
+          })
+          .catch(() => { /* fail silently — dropdown shows just "Other" */ });
+      }
       this.render();
     },
 
@@ -383,8 +400,19 @@
         'Their details will appear on your emergency card. Keep this accessible offline.'
       ));
 
-      wrap.appendChild(this.buildField('Operator name', 'text', 'e.g. Al-Hidaya Tours', this.config.operator.name, v => { this.config.operator.name = v; }));
+      // 1. Local agency (the company you booked through, e.g. Adam Travel, Hisar, Dar El Salam)
+      wrap.appendChild(this.buildField(
+        'Local agency you booked through',
+        'text',
+        'e.g. Adam Travel, Hisar Tour, Dar El Salam',
+        this.config.operator.name,
+        v => { this.config.operator.name = v; }
+      ));
 
+      // 2. Saudi service provider (Nusuk-approved) — dropdown
+      wrap.appendChild(this._buildServiceProviderField());
+
+      // 3. Group leader + phone
       const row1 = el('div', { class: 'input-row' });
       row1.appendChild(this.buildField('Your group leader', 'text', 'Name', this.config.operator.contactName, v => { this.config.operator.contactName = v; }));
       row1.appendChild(this.buildField('Group leader phone', 'tel', '+966...', this.config.operator.contactPhone, v => { this.config.operator.contactPhone = v; }));
@@ -397,6 +425,66 @@
           el('strong', null, 'Tip: '), 'Save these in your phone contacts as well, in case the device is reset or the browser cache is cleared.'
         )
       ));
+      return wrap;
+    },
+
+    /**
+     * Build a select-with-fallback for the Saudi service provider.
+     * Reads the list from window._OPERATOR_LIST (loaded via fetchJSON in init).
+     */
+    _buildServiceProviderField() {
+      const wrap = el('div', { class: 'field' });
+      wrap.appendChild(el('label', { class: 'field__label' }, 'Saudi Service Provider (Nusuk-approved)'));
+      wrap.appendChild(el('div', { class: 'field__hint' },
+        'Optional. The Saudi company that operates your package on the ground. Different from your local agency.'
+      ));
+
+      const select = el('select', { class: 'field__input' });
+      select.appendChild(el('option', { value: '' }, '— select if known —'));
+
+      const list = (window._OPERATOR_LIST && window._OPERATOR_LIST.providers) || [];
+      list.forEach(p => {
+        const opt = el('option', { value: p.id }, p.name);
+        if (this.config.operator.serviceProvider === p.id) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      // Allow free text for "other" — append a special option, then reveal a text input
+      const otherOpt = el('option', { value: '__other__' }, 'Other (not on the Nusuk list)');
+      if (this.config.operator.serviceProvider === '__other__' ||
+          (this.config.operator.serviceProviderOther &&
+           !list.some(p => p.id === this.config.operator.serviceProvider))) {
+        otherOpt.selected = true;
+      }
+      select.appendChild(otherOpt);
+
+      const otherInput = el('input', {
+        type: 'text',
+        class: 'field__input',
+        placeholder: 'Provider name',
+        value: this.config.operator.serviceProviderOther || '',
+        style: { marginTop: '8px', display: select.value === '__other__' ? 'block' : 'none' },
+      });
+
+      select.addEventListener('change', () => {
+        const val = select.value;
+        if (val === '__other__') {
+          this.config.operator.serviceProvider = '__other__';
+          otherInput.style.display = 'block';
+          otherInput.focus();
+        } else {
+          this.config.operator.serviceProvider = val;
+          this.config.operator.serviceProviderOther = '';
+          otherInput.style.display = 'none';
+        }
+      });
+
+      otherInput.addEventListener('input', () => {
+        this.config.operator.serviceProviderOther = otherInput.value;
+      });
+
+      wrap.appendChild(select);
+      wrap.appendChild(otherInput);
       return wrap;
     },
 

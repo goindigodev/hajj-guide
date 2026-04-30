@@ -1,6 +1,6 @@
 /* =============================================================
    APP — Boot for app.html.
-   Initialises Store, FontSize, Maps, Audio, Notes, Guide,
+   Initialises Store, FontSize, Maps, Notes, Guide,
    builds tab nav, wires print + service worker.
    ============================================================= */
 
@@ -12,9 +12,11 @@
     if (window.FontSize)  FontSize.init();
     if (window.Maps)      Maps.init();
 
-    // v2.1 — feedback modal + like button (footer)
-    if (window.Feedback && Feedback.init) Feedback.init();
+    // v2.1 — like button (footer)
     if (window.Like && Like.init) Like.init();
+
+    // v2.2 — first-visit disclaimer
+    if (window.Disclaimer && Disclaimer.init) Disclaimer.init();
 
     // Render font-size control in header
     const fsHost = document.getElementById('fontsize-host');
