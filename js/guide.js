@@ -479,7 +479,32 @@
 
     tabItinerary() {
       const wrap = el('div');
-      wrap.appendChild(el('h1', null, 'Your Itinerary'));
+
+      // v2.9 — Header row: title on the left, "Print full itinerary" button on the right.
+      // Clean responsive flex layout — wraps on narrow screens.
+      const headerRow = el('div', {
+        class: 'tab-header-row',
+        style: {
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: 'var(--space-3)',
+          flexWrap: 'wrap',
+        },
+      });
+      headerRow.appendChild(el('h1', { style: { margin: 0 } }, 'Your Itinerary'));
+      const printBtn = el('button', {
+        class: 'btn btn--ghost no-print',
+        style: { fontSize: '13px' },
+        type: 'button',
+        title: 'Print a single document covering every day, with your custom stops',
+      }, '🖨 Print full itinerary');
+      printBtn.addEventListener('click', () => {
+        if (window.Print && Print.printFullItinerary) Print.printFullItinerary();
+      });
+      headerRow.appendChild(printBtn);
+      wrap.appendChild(headerRow);
+
       wrap.appendChild(el('p', { class: 'lead' },
         'A day-by-day plan personalised to your flight dates. Each card opens to show the day\'s rituals, prayers, and duas.'
       ));
@@ -1906,6 +1931,186 @@
       card.appendChild(foot);
 
       return card;
+    },
+
+    /**
+     * v2.9 — Build the PRINT-optimised full itinerary.
+     * Single document covering every day of the trip, with the user's stops,
+     * actions, notes. Designed for A4 portrait printing as a take-along document.
+     *
+     * What's included per day:
+     *  - Date header (Gregorian + Hijri)
+     *  - Title and location
+     *  - Description
+     *  - "What to do" actions list
+     *  - Custom stops (Ziyarat etc.) with times
+     *  - Day note callout (if any)
+     *  - Dua titles (compact list — full duas would balloon page count)
+     *
+     * What's NOT included:
+     *  - Reflection textareas (personal/empty at print time)
+     *  - Journey map (decorative)
+     *  - Phase pills (UI controls)
+     *  - Edit/delete affordances
+     *
+     * Used by Print.printFullItinerary().
+     */
+    renderItineraryPrintable() {
+      const cfg = this.config || {};
+      const root = el('div', { class: 'it-print' });
+
+      // ── Header ────────────────────────────────────────────
+      const head = el('div', { class: 'it-print__head' });
+      head.appendChild(el('div', { class: 'it-print__title' }, 'Hajj Itinerary'));
+      const subParts = [];
+      const name = (cfg.pilgrimName || '').trim();
+      if (name) subParts.push(name);
+      if (cfg.outboundFlight && cfg.outboundFlight.date) {
+        const out = new Date(cfg.outboundFlight.date);
+        const hijri = Utils.formatHijri(out) || '';
+        const m = hijri.match(/(\d{4})/);
+        if (m) subParts.push(`Hajj ${m[1]} AH`);
+      }
+      if (cfg.madhab) {
+        subParts.push(cfg.madhab.charAt(0).toUpperCase() + cfg.madhab.slice(1) + ' madhab');
+      }
+      if (subParts.length) {
+        head.appendChild(el('div', { class: 'it-print__subtitle' }, subParts.join(' · ')));
+      }
+
+      // Date range line
+      if (cfg.outboundFlight && cfg.outboundFlight.date && cfg.returnFlight && cfg.returnFlight.date) {
+        const fromStr = formatDate(cfg.outboundFlight.date, { day: 'numeric', month: 'short', year: 'numeric' });
+        const toStr   = formatDate(cfg.returnFlight.date,   { day: 'numeric', month: 'short', year: 'numeric' });
+        head.appendChild(el('div', { class: 'it-print__range' }, `${fromStr} → ${toStr}`));
+      }
+      root.appendChild(head);
+
+      // ── Trip summary strip (compact) ──────────────────────
+      const summary = el('div', { class: 'it-print__summary' });
+      const summaryRows = [];
+      if (cfg.operator && cfg.operator.name) {
+        summaryRows.push(['Operator', cfg.operator.name]);
+      }
+      if (cfg.operator && cfg.operator.contactPhone) {
+        summaryRows.push(['Group leader', `${cfg.operator.contactName || ''} · ${cfg.operator.contactPhone}`.trim().replace(/^· /, '')]);
+      }
+      if (cfg.operator && cfg.operator.emergencyPhone) {
+        summaryRows.push(['24-hr line', cfg.operator.emergencyPhone]);
+      }
+      const madinahHotels = this.getHotels('madinah').filter(h => h && h.name);
+      const makkahHotels  = this.getHotels('makkah').filter(h => h && h.name);
+      if (madinahHotels.length) summaryRows.push(['Madinah', madinahHotels.map(h => h.name).join(' · ')]);
+      if (makkahHotels.length)  summaryRows.push(['Makkah',  makkahHotels.map(h => h.name).join(' · ')]);
+      if (summaryRows.length) {
+        const grid = el('div', { class: 'it-print__summary-grid' });
+        summaryRows.forEach(([k, v]) => {
+          const row = el('div', { class: 'it-print__summary-row' });
+          row.appendChild(el('span', { class: 'it-print__summary-key' }, k));
+          row.appendChild(el('span', { class: 'it-print__summary-val' }, v));
+          grid.appendChild(row);
+        });
+        summary.appendChild(grid);
+        root.appendChild(summary);
+      }
+
+      // ── Day-by-day ────────────────────────────────────────
+      const days = this.buildItineraryDays();
+      const list = el('div', { class: 'it-print__days' });
+
+      days.forEach((day, idx) => {
+        const block = el('section', { class: 'it-print__day' });
+
+        // Day header line
+        const dayHead = el('div', { class: 'it-print__day-head' });
+        const dateLine = el('div', { class: 'it-print__day-date' });
+        dateLine.appendChild(el('span', { class: 'it-print__day-date-num' }, `Day ${idx + 1}`));
+        if (day.date) {
+          const greg = formatDate(day.date, { weekday: 'short', day: 'numeric', month: 'short' });
+          dateLine.appendChild(el('span', { class: 'it-print__day-date-greg' }, ' · ' + greg));
+          const hijri = Utils.formatHijri(day.date);
+          if (hijri) dateLine.appendChild(el('span', { class: 'it-print__day-date-hijri' }, ' · ' + hijri));
+        }
+        dayHead.appendChild(dateLine);
+        if (day.location) {
+          dayHead.appendChild(el('span', { class: 'it-print__day-location' }, day.location));
+        }
+        block.appendChild(dayHead);
+
+        // Title
+        block.appendChild(el('h2', { class: 'it-print__day-title' }, day.title || ''));
+
+        // Description
+        if (day.description) {
+          block.appendChild(el('p', { class: 'it-print__day-desc' }, day.description));
+        }
+
+        // What to do (actions)
+        if (day.actions && day.actions.length) {
+          const actionsWrap = el('div', { class: 'it-print__day-section' });
+          actionsWrap.appendChild(el('div', { class: 'it-print__day-section-label' }, 'What to do'));
+          const ul = el('ul', { class: 'it-print__day-actions' });
+          day.actions.forEach(a => ul.appendChild(el('li', null, a)));
+          actionsWrap.appendChild(ul);
+          block.appendChild(actionsWrap);
+        }
+
+        // Custom stops — only if this day has a real date
+        if (day.date && window.Stops) {
+          const dateIso = day.date.toISOString().slice(0, 10);
+          const stops = Stops.forDate(dateIso);
+          if (stops.length) {
+            const stopsWrap = el('div', { class: 'it-print__day-section it-print__day-section--stops' });
+            stopsWrap.appendChild(el('div', { class: 'it-print__day-section-label' }, 'Your stops'));
+            const stopList = el('ul', { class: 'it-print__day-stops' });
+            stops.forEach(s => {
+              const li = el('li', { class: 'it-print__day-stop' });
+              const time = Stops.formatTimeRange(s);
+              // Always render the time slot for column alignment, even when empty.
+              // Use a non-breaking space to preserve width when no time is set.
+              li.appendChild(el('span', { class: 'it-print__day-stop-time' }, time || '\u00A0'));
+              li.appendChild(el('span', { class: 'it-print__day-stop-place' }, s.place));
+              stopList.appendChild(li);
+            });
+            stopsWrap.appendChild(stopList);
+            block.appendChild(stopsWrap);
+          }
+        }
+
+        // Note (if any)
+        if (day.note) {
+          const noteWrap = el('div', { class: 'it-print__day-note' });
+          noteWrap.appendChild(el('span', { class: 'it-print__day-note-label' }, 'Note: '));
+          noteWrap.appendChild(document.createTextNode(day.note));
+          block.appendChild(noteWrap);
+        }
+
+        // Dua titles (compact — just titles, not full text)
+        if (day.duaIds && day.duaIds.length && this.data && this.data.duas) {
+          const titles = day.duaIds
+            .map(id => (this.data.duas.find(d => d.id === id) || {}).title)
+            .filter(Boolean);
+          if (titles.length) {
+            const duaWrap = el('div', { class: 'it-print__day-duas' });
+            duaWrap.appendChild(el('span', { class: 'it-print__day-duas-label' }, 'Duas: '));
+            duaWrap.appendChild(document.createTextNode(titles.join(' · ')));
+            block.appendChild(duaWrap);
+          }
+        }
+
+        list.appendChild(block);
+      });
+
+      root.appendChild(list);
+
+      // ── Footer ────────────────────────────────────────────
+      const foot = el('div', { class: 'it-print__foot' });
+      const today = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+      foot.appendChild(el('div', null, `Printed on ${today}. Confirm rulings with a qualified scholar of your madhab.`));
+      foot.appendChild(el('div', { class: 'it-print__foot-small' }, 'hajjguide.net — a free planning aid'));
+      root.appendChild(foot);
+
+      return root;
     },
 
     renderDuaCard(dua) {

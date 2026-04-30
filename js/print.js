@@ -88,6 +88,35 @@
     },
 
     /**
+     * v2.9 — Print the full itinerary as a single document.
+     * Same overlay pattern as printEmergencyCard. Hides the live UI completely
+     * and shows a print-only render with every day, the user's stops, and a
+     * trip summary at the top.
+     */
+    printFullItinerary() {
+      if (!window.Guide || !Guide.renderItineraryPrintable) {
+        console.warn('Print.printFullItinerary: Guide module unavailable');
+        window.print();
+        return;
+      }
+      const doc = Guide.renderItineraryPrintable();
+      const overlay = Utils.el('div', { id: 'it-print-overlay' });
+      overlay.appendChild(doc);
+      document.body.appendChild(overlay);
+      document.body.classList.add('is-printing-itinerary');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print();
+          setTimeout(() => {
+            overlay.remove();
+            document.body.classList.remove('is-printing-itinerary');
+          }, 600);
+        });
+      });
+    },
+
+    /**
      * Add a print button to a section.
      */
     addPrintButton(container, label) {

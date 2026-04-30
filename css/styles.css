@@ -3951,3 +3951,274 @@ body.is-printing-emergency #em-print-overlay {
     border: 0.5px solid #777;
   }
 }
+
+/* =============================================================
+   v2.9 — FULL ITINERARY (PRINTABLE)
+   Hidden by default; shown only when body.is-printing-itinerary.
+   Mirrors the emergency-card overlay pattern.
+   ============================================================= */
+
+#it-print-overlay {
+  display: none;
+}
+
+@media print {
+  body.is-printing-itinerary .site-header,
+  body.is-printing-itinerary .tab-nav,
+  body.is-printing-itinerary main,
+  body.is-printing-itinerary .site-footer,
+  body.is-printing-itinerary .notes-fab,
+  body.is-printing-itinerary .notes-panel,
+  body.is-printing-itinerary .disclaimer-modal,
+  body.is-printing-itinerary .share-modal,
+  body.is-printing-itinerary .no-print {
+    display: none !important;
+  }
+  body.is-printing-itinerary #it-print-overlay {
+    display: block !important;
+    position: static;
+    background: white;
+  }
+  body.is-printing-itinerary {
+    background: white !important;
+  }
+  /* A4 portrait with comfortable margins */
+  @page { size: A4 portrait; margin: 14mm 12mm; }
+}
+
+body.is-printing-itinerary #it-print-overlay {
+  display: block;
+}
+
+.it-print {
+  font-family: 'Inter', Arial, sans-serif;
+  color: #000;
+  background: #fff;
+  max-width: 190mm;
+  margin: 0 auto;
+  font-size: 10.5pt;
+  line-height: 1.5;
+}
+
+/* ── Header ────────────────────────────────────────── */
+.it-print__head {
+  text-align: center;
+  border-bottom: 2pt solid #000;
+  padding-bottom: 10pt;
+  margin-bottom: 12pt;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+.it-print__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+.it-print__subtitle {
+  font-size: 10.5pt;
+  color: #444;
+  margin-top: 3pt;
+  letter-spacing: 0.04em;
+}
+.it-print__range {
+  font-size: 10pt;
+  color: #555;
+  margin-top: 3pt;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ── Trip summary ──────────────────────────────────── */
+.it-print__summary {
+  margin-bottom: 14pt;
+  padding-bottom: 10pt;
+  border-bottom: 0.5pt solid #999;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+.it-print__summary-grid {
+  display: grid;
+  grid-template-columns: 100pt 1fr;
+  gap: 3pt 10pt;
+}
+.it-print__summary-row {
+  display: contents;
+}
+.it-print__summary-key {
+  font-size: 9pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+  font-weight: 500;
+}
+.it-print__summary-val {
+  font-size: 10.5pt;
+  color: #000;
+}
+
+/* ── Day blocks ────────────────────────────────────── */
+.it-print__day {
+  margin-bottom: 14pt;
+  padding-bottom: 10pt;
+  border-bottom: 0.5pt solid #ccc;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.it-print__day:last-child {
+  border-bottom: none;
+}
+
+.it-print__day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10pt;
+  margin-bottom: 2pt;
+}
+.it-print__day-date {
+  font-size: 9.5pt;
+  color: #555;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.it-print__day-date-num {
+  font-weight: 500;
+  color: #000;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 9pt;
+}
+.it-print__day-date-greg,
+.it-print__day-date-hijri {
+  color: #555;
+}
+.it-print__day-location {
+  font-size: 9.5pt;
+  color: #555;
+  font-style: italic;
+}
+
+.it-print__day-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 16pt;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.15;
+  margin: 2pt 0 6pt;
+  color: #000;
+}
+
+.it-print__day-desc {
+  font-size: 10.5pt;
+  line-height: 1.55;
+  margin: 0 0 8pt;
+  color: #222;
+}
+
+.it-print__day-section {
+  margin-top: 6pt;
+}
+.it-print__day-section-label {
+  font-size: 8.5pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #555;
+  font-weight: 500;
+  margin-bottom: 3pt;
+}
+
+.it-print__day-actions {
+  margin: 0;
+  padding-left: 18pt;
+  font-size: 10pt;
+  line-height: 1.5;
+}
+.it-print__day-actions li {
+  margin-bottom: 1pt;
+  color: #222;
+}
+
+/* User's custom stops — emphasised so they stand out from auto-generated content */
+.it-print__day-section--stops {
+  margin-top: 8pt;
+  padding: 6pt 10pt;
+  background: #f8f8f4;
+  border-left: 2.5pt solid #555;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.it-print__day-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 10pt;
+}
+.it-print__day-stop {
+  display: flex;
+  align-items: baseline;
+  gap: 8pt;
+  margin-bottom: 2pt;
+  line-height: 1.5;
+}
+.it-print__day-stop-time {
+  flex: 0 0 64pt;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: #000;
+  letter-spacing: 0.01em;
+}
+.it-print__day-stop-place {
+  flex: 1;
+  color: #000;
+}
+
+/* Day note — gentle callout */
+.it-print__day-note {
+  margin-top: 6pt;
+  padding: 5pt 8pt;
+  border-left: 2pt solid #888;
+  background: #fafafa;
+  font-size: 9.5pt;
+  line-height: 1.5;
+  color: #333;
+  font-style: italic;
+}
+.it-print__day-note-label {
+  font-style: normal;
+  font-weight: 500;
+  color: #000;
+  font-size: 9pt;
+  letter-spacing: 0.04em;
+}
+
+/* Dua titles — single line, compact */
+.it-print__day-duas {
+  margin-top: 4pt;
+  font-size: 9.5pt;
+  color: #555;
+  line-height: 1.4;
+}
+.it-print__day-duas-label {
+  font-weight: 500;
+  color: #000;
+  font-size: 9pt;
+  letter-spacing: 0.04em;
+}
+
+/* Footer */
+.it-print__foot {
+  margin-top: 14pt;
+  padding-top: 8pt;
+  border-top: 0.5pt solid #888;
+  text-align: center;
+  font-size: 8.5pt;
+  color: #666;
+  font-style: italic;
+}
+.it-print__foot-small {
+  margin-top: 2pt;
+  font-size: 8pt;
+  color: #888;
+}
