@@ -979,62 +979,60 @@ hr.rule {
   max-width: var(--maxw-wide);
   margin: 0 auto;
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: stretch;
+  gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 8px 4px;
+  padding: 10px 4px;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
 }
 .journey-strip__inner::-webkit-scrollbar { display: none; }
 
+/* v2.6 — bigger pills with visible borders, no separators.
+   The previous design (transparent border, comma separators) read as inline
+   metadata rather than tappable controls. */
 .journey-strip__pin {
   flex: 0 0 auto;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  padding: 6px 10px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 10px 16px;
   text-align: left;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   transition: background 0.18s ease, border-color 0.18s ease;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   min-width: 0;
 }
 .journey-strip__pin:hover {
-  background: rgba(74, 93, 74, 0.05);
-}
-.journey-strip__pin.is-active {
-  background: rgba(184, 149, 74, 0.08);
   border-color: var(--brass);
 }
+.journey-strip__pin.is-active {
+  background: rgba(143, 166, 143, 0.18);   /* sage tint */
+  border-color: var(--green);
+}
 .journey-strip__label {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: 0.005em;
   white-space: nowrap;
 }
 .journey-strip__sub {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-mute);
-  font-style: italic;
   white-space: nowrap;
-  margin-top: 1px;
 }
 .journey-strip__pin.is-active .journey-strip__label {
-  color: var(--brass-deep);
+  color: var(--green-deep);
 }
+/* Hide the inline · separators — pills now stand on their own borders. */
 .journey-strip__sep {
-  flex: 0 0 auto;
-  color: var(--ink-mute);
-  font-size: 14px;
-  user-select: none;
-  padding: 0 2px;
+  display: none;
 }
 
 @media (max-width: 720px) {
@@ -1042,12 +1040,16 @@ hr.rule {
     /* Slightly tighter to fit on narrow screens */
     top: calc(57px + 44px);
   }
-  .journey-strip__pin {
-    padding: 5px 8px;
+  .journey-strip__inner {
+    gap: 6px;
+    padding: 8px 4px;
   }
-  .journey-strip__label { font-size: 11px; }
-  .journey-strip__sub { display: none; }   /* hide subtitle on mobile to save space */
-  .journey-hero__inner { padding: var(--space-3) var(--space-2); }
+  .journey-strip__pin {
+    padding: 8px 12px;
+  }
+  .journey-strip__label { font-size: 13px; }
+  .journey-strip__sub   { font-size: 11px; }
+  .journey-hero__inner  { padding: var(--space-3) var(--space-2); }
 }
 
 /* =============================================================
@@ -1060,11 +1062,22 @@ hr.rule {
   border-radius: var(--radius);
   margin-bottom: var(--space-4);
   overflow: hidden;
-  transition: border-color 0.15s;
+  /* v2.6 — gentle elevation so cards read as cards, not list rows */
+  box-shadow: 0 1px 3px rgba(42, 38, 32, 0.06);
+  transition: border-color 0.15s, box-shadow 0.18s, background-color 0.18s;
+}
+
+.day-card:hover {
+  box-shadow: 0 2px 6px rgba(42, 38, 32, 0.09);
 }
 
 .day-card.is-open {
-  border-color: var(--brass);
+  /* v2.6 — sage tint + deeper shadow when expanded */
+  border-color: var(--green);
+  background:
+    linear-gradient(0deg, rgba(143, 166, 143, 0.06), rgba(143, 166, 143, 0.06)),
+    var(--paper);
+  box-shadow: 0 2px 8px rgba(42, 38, 32, 0.10);
 }
 
 .day-card__header {
@@ -1157,12 +1170,25 @@ hr.rule {
 }
 
 .day-card__chevron {
-  transition: transform 0.2s;
-  color: var(--ink-mute);
+  /* v2.6 — clearer affordance: small circular badge, brass when closed,
+     sage-tinted when open. Replaces the previous tiny grey glyph. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(184, 149, 74, 0.10);
+  color: var(--brass-deep);
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.25s ease, background-color 0.18s, color 0.18s;
 }
 
 .day-card.is-open .day-card__chevron {
   transform: rotate(180deg);
+  background: rgba(143, 166, 143, 0.20);
+  color: var(--green-deep);
 }
 
 .day-card__body {
@@ -1186,15 +1212,6 @@ hr.rule {
 }
 .day-card.is-open .day-card__inner {
   padding: var(--space-5);
-}
-
-/* Chevron rotation for open state */
-.day-card__chevron {
-  transition: transform 0.25s ease;
-  display: inline-block;
-}
-.day-card.is-open .day-card__chevron {
-  transform: rotate(180deg);
 }
 
 .timeline {
@@ -3171,3 +3188,169 @@ body.is-modal-open { overflow: hidden; }
   .today-hero__greg { font-size: 22px; }
   .today-section__heading { font-size: 12px; letter-spacing: 0.14em; }
 }
+
+/* =============================================================
+   v2.5 — LANGUAGE SWITCHER (header chip + popover)
+   ============================================================= */
+
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lang-switcher__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font: inherit;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.lang-switcher__btn:hover {
+  border-color: var(--brass);
+  color: var(--brass-deep);
+}
+
+.lang-switcher__globe {
+  font-size: 12px;
+  color: var(--brass);
+}
+
+.lang-switcher__current {
+  white-space: nowrap;
+}
+
+.lang-switcher__chev {
+  font-size: 10px;
+  color: var(--ink-mute);
+}
+
+.lang-switcher__popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  /* Position from end so it works in both LTR and RTL */
+  inset-inline-end: 0;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  z-index: 1200;
+  display: none;
+  overflow: hidden;
+}
+
+.lang-switcher__popover.is-open {
+  display: block;
+}
+
+.lang-switcher__opt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: start;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule-soft);
+  transition: background 0.12s;
+  color: var(--ink);
+}
+
+.lang-switcher__opt:last-child {
+  border-bottom: none;
+}
+
+.lang-switcher__opt:hover {
+  background: rgba(74, 93, 74, 0.06);
+}
+
+.lang-switcher__opt.is-current {
+  background: rgba(184, 149, 74, 0.08);
+}
+
+.lang-switcher__opt-native {
+  font-weight: 600;
+}
+
+.lang-switcher__opt-label {
+  color: var(--ink-mute);
+  font-size: 11px;
+  margin-inline-start: auto;
+}
+
+/* =============================================================
+   v2.5 — RTL OVERRIDES (Arabic + Urdu)
+   ============================================================= */
+
+[dir="rtl"] body {
+  /* Use serif fallback chain that includes Arabic-friendly fonts */
+  font-family: 'Amiri', 'Noto Sans Arabic', 'Lora', Georgia, serif;
+}
+
+/* Arabic-specific: use Amiri (already loaded for Quran text) */
+.locale-ar body { font-family: 'Amiri', 'Lora', Georgia, serif; }
+.locale-ar h1, .locale-ar h2, .locale-ar h3, .locale-ar h4 {
+  font-family: 'Amiri', 'Cormorant Garamond', serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Urdu-specific: prefer Noto Nastaliq if available, fall back gracefully */
+.locale-ur body { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Lora', serif; }
+.locale-ur h1, .locale-ur h2, .locale-ur h3, .locale-ur h4 {
+  font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+/* Flip directional arrow icons for RTL */
+[dir="rtl"] .countdown__sub strong { /* numbers should still read LTR within RTL prose */ }
+
+/* The journey map SVG has fixed positions — don't flip it; the geography is real */
+[dir="rtl"] .journey-hero svg { direction: ltr; }
+
+/* Date display in day cards: keep numbers LTR even in RTL UI */
+[dir="rtl"] .day-card__date,
+[dir="rtl"] .day-card__date-hijri,
+[dir="rtl"] .today-hero__greg,
+[dir="rtl"] .today-hero__hijri {
+  direction: ltr;
+  text-align: end;
+}
+
+/* The combobox dropdown chevron: in RTL, the SVG chevron should still point
+   downward; we just need to mirror the position from right to left edge. */
+[dir="rtl"] select.field__input,
+[dir="rtl"] select.select {
+  background-position: left 14px center;
+  padding-right: var(--space-4);
+  padding-left: 38px;
+}
+
+/* Footer flex is already RTL-friendly; just make sure separators don't look
+   wrong in RTL context. */
+[dir="rtl"] .site-footer__row { direction: rtl; }
+
+/* IATA codes inside text should always read LTR */
+.combobox__opt-iata { unicode-bidi: embed; direction: ltr; }
+
+/* Form labels and inputs should align to their text direction naturally;
+   most inputs already use start/end so no override needed. */
+
+/* Tab nav scrolls horizontally; ensure the new "Today" tab is visible
+   on the start side regardless of direction. */
+[dir="rtl"] .tab-nav { direction: rtl; }
