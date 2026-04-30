@@ -7,12 +7,6 @@
 
   const { $, $$, el } = Utils;
 
-  // v2.5 — i18n shortcut. Falls back to the English literal if the key is
-  // missing so the UI never shows a raw key. Resolves I18n at call time
-  // (not at module load) so order-of-load doesn't matter.
-  const t = (key, fallback, params) =>
-    (window.I18n ? window.I18n.t(key, params) : fallback) || fallback;
-
   const STEPS = [
     { id: 'welcome', title: 'Welcome' },
     { id: 'flights', title: 'Your Flights' },
@@ -170,17 +164,17 @@
         class: 'btn btn--ghost',
         onclick: () => this.prev(),
         style: { visibility: isFirst ? 'hidden' : 'visible' }
-      }, '← ' + t('common.back', 'Back'));
+      }, '← Back');
 
       const skip = el('button', {
         class: 'btn btn--ghost',
         onclick: () => this.skip(),
-      }, t('common.skipForNow', 'Skip for now'));
+      }, 'Skip for now');
 
       const next = el('button', {
         class: 'btn btn--primary',
         onclick: () => this.next(),
-      }, isLast ? (t('onboarding.group.finish', 'Begin Your Journey') + ' →') : (t('common.continue', 'Continue') + ' →'));
+      }, isLast ? 'Begin Your Journey →' : 'Continue →');
 
       nav.appendChild(back);
       nav.appendChild(skip);
@@ -204,29 +198,29 @@
 
     stepWelcome() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.welcome.bismillah', 'Bismillah')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.welcome.title', 'Welcome.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Bismillah'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Welcome.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.welcome.lead', 'This companion will become a personalised guide to your Hajj — your dates, your flights, your madhab, your accommodation. Everything is stored only on this device. Nothing is sent anywhere.')
+        'This companion will become a personalised guide to your Hajj — your dates, your flights, your madhab, your accommodation. Everything is stored only on this device. Nothing is sent anywhere.'
       ));
       wrap.appendChild(el('div', { class: 'callout callout--info' },
         el('p', { style: { margin: 0 } },
-          el('strong', null, t('onboarding.welcome.noteIntro', 'A note on what follows: ')),
-          t('onboarding.welcome.noteBody', 'This is a planning aid, not a fatwa. Always confirm rulings with a qualified scholar of your madhab. May Allah accept your Hajj and grant you ease.')
+          el('strong', null, 'A note on what follows: '),
+          'This is a planning aid, not a fatwa. Always confirm rulings with a qualified scholar of your madhab. May Allah accept your Hajj and grant you ease.'
         )
       ));
       wrap.appendChild(el('p', { class: 'text-mute italic', style: { marginTop: '32px' } },
-        t('onboarding.welcome.skipNote', 'You can skip any question and return later from settings.')
+        'You can skip any question and return later from settings.'
       ));
       return wrap;
     },
 
     stepFlights() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.flights.stepNum', 'Step 1 of 5')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.flights.title', 'Your flights.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 1 of 5'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Your flights.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.flights.lead', 'Add your flight numbers and dates so the guide can plan around them. Tick the road box if you\'re crossing by land.')
+        'Add your flight numbers and dates so the guide can plan around them. Tick the road box if you\'re crossing by land.'
       ));
 
       // Defensive defaults for byRoad fields (existing users from earlier versions)
@@ -236,14 +230,14 @@
       if (typeof this.config.returnFlight.byRoad   !== 'boolean') this.config.returnFlight.byRoad   = false;
 
       // ── Outbound ───────────────────────────────────────────
-      wrap.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.flights.outbound', 'Outbound')));
+      wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Outbound'));
       const outBlock = this._buildFlightLegBlock('outbound');
       wrap.appendChild(outBlock);
 
       wrap.appendChild(el('hr', { class: 'rule' }));
 
       // ── Return ─────────────────────────────────────────────
-      wrap.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.flights.return', 'Return')));
+      wrap.appendChild(el('h4', { class: 'eyebrow' }, 'Return'));
       const retBlock = this._buildFlightLegBlock('return');
       wrap.appendChild(retBlock);
 
@@ -283,9 +277,7 @@
       });
       modeRow.appendChild(checkbox);
       modeRow.appendChild(el('span', { class: 'travel-mode__label' },
-        isOutbound
-          ? t('onboarding.flights.byRoadOutbound', 'Entry by road (no flight)')
-          : t('onboarding.flights.byRoadReturn',   'Exit by road (no flight)')
+        isOutbound ? 'Entry by road (no flight)' : 'Exit by road (no flight)'
       ));
       block.appendChild(modeRow);
 
@@ -294,30 +286,26 @@
         const row1 = el('div', { class: 'input-row' });
 
         if (isOutbound) {
-          row1.appendChild(this.buildFlightField(
-            t('onboarding.flights.flightNumber', 'Flight number'),
-            t('onboarding.flights.flightNumberPlaceholderOut', 'e.g. SV124'),
+          row1.appendChild(this.buildFlightField('Flight number', 'e.g. SV124',
             flight.number,
             v => { this.config[cfgKey].number = v; },
             'flight-hint-' + leg
           ));
           // Departure airport — combobox (worldwide)
           row1.appendChild(this._buildAirportCombobox(
-            t('onboarding.flights.departureAirport', 'Departure airport'), flight.from || '',
+            'Departure airport', flight.from || '',
             v => { this.config[cfgKey].from = v; },
             'departure'
           ));
         } else {
-          row1.appendChild(this.buildFlightField(
-            t('onboarding.flights.flightNumber', 'Flight number'),
-            t('onboarding.flights.flightNumberPlaceholderRet', 'e.g. SV123'),
+          row1.appendChild(this.buildFlightField('Flight number', 'e.g. SV123',
             flight.number,
             v => { this.config[cfgKey].number = v; },
             'flight-hint-' + leg
           ));
           // From: Saudi airports only on return leg
           row1.appendChild(this._buildAirportCombobox(
-            t('onboarding.flights.fromAirport', 'From'), flight.from || '',
+            'From', flight.from || '',
             v => { this.config[cfgKey].from = v; },
             'saudi'
           ));
@@ -327,11 +315,11 @@
 
       // ── Date + time (always shown) ────────────────
       const row2 = el('div', { class: 'input-row' });
-      row2.appendChild(this.buildField(t('onboarding.flights.date', 'Date'), 'date', '', flight.date, v => {
+      row2.appendChild(this.buildField('Date', 'date', '', flight.date, v => {
         this.config[cfgKey].date = v;
         this._updateFlightDateWarning();
       }));
-      row2.appendChild(this.buildField(t('onboarding.flights.time', 'Time'), 'time', '', flight.time, v => {
+      row2.appendChild(this.buildField('Time', 'time', '', flight.time, v => {
         this.config[cfgKey].time = v;
       }));
       block.appendChild(row2);
@@ -341,14 +329,14 @@
         if (isOutbound) {
           // Arrival airport — Saudi only
           block.appendChild(this._buildAirportCombobox(
-            t('onboarding.flights.arrivalAirport', 'Arrival airport'), flight.to || '',
+            'Arrival airport', flight.to || '',
             v => { this.config[cfgKey].to = v; },
             'saudi'
           ));
         } else {
           // Home airport — worldwide
           block.appendChild(this._buildAirportCombobox(
-            t('onboarding.flights.homeAirport', 'Home airport'), flight.to || '',
+            'Home airport', flight.to || '',
             v => { this.config[cfgKey].to = v; },
             'departure'
           ));
@@ -381,9 +369,7 @@
       const input = el('input', {
         type: 'text',
         class: 'field__input combobox__input',
-        placeholder: dataset === 'saudi'
-          ? t('onboarding.flights.airportSearchPlaceholderSaudi', 'Type city or IATA (e.g. Jeddah, JED)')
-          : t('onboarding.flights.airportSearchPlaceholderWorld', 'Type city or IATA (e.g. London, LHR)'),
+        placeholder: dataset === 'saudi' ? 'Type city or IATA (e.g. Jeddah, JED)' : 'Type city or IATA (e.g. London, LHR)',
         value: initialDisplay,
         autocomplete: 'off',
         spellcheck: 'false',
@@ -403,7 +389,7 @@
         if (!matches.length) {
           dropdown.classList.add('is-open');
           dropdown.appendChild(el('div', { class: 'combobox__empty' },
-            t('onboarding.flights.airportNoMatch', 'No match — type the IATA code if your airport isn\'t listed.')
+            'No match — type the IATA code if your airport isn\'t listed.'
           ));
           return;
         }
@@ -541,10 +527,10 @@
       // Compare as ISO strings (YYYY-MM-DD sorts correctly)
       if (ret < out) {
         warn.classList.remove('hidden');
-        warn.textContent = t('onboarding.flights.warnReturnBeforeOutbound', 'Heads up — your return date is before your outbound date. Double-check.');
+        warn.textContent = 'Heads up — your return date is before your outbound date. Double-check.';
       } else if (ret === out) {
         warn.classList.remove('hidden');
-        warn.textContent = t('onboarding.flights.warnSameDay', 'Heads up — return and outbound are the same day. Double-check.');
+        warn.textContent = 'Heads up — return and outbound are the same day. Double-check.';
       } else {
         warn.classList.add('hidden');
         warn.textContent = '';
@@ -553,18 +539,18 @@
 
     stepMadhab() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.madhab.stepNum', 'Step 2 of 5')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.madhab.title', 'Your madhab.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 2 of 5'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Your madhab.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.madhab.lead', 'Rulings throughout the guide will reflect the school you choose. You can switch any time.')
+        'Rulings throughout the guide will reflect the school you choose. You can switch any time.'
       ));
 
       const grid = el('div', { class: 'option-grid' });
       const madhabs = [
-        { id: 'hanafi',  title: t('onboarding.madhab.hanafi',  'Hanafi'),   hint: t('onboarding.madhab.hanafiHint',  'School of Imam Abu Hanifa') },
-        { id: 'shafi',   title: t('onboarding.madhab.shafii',  'Shafi\'i'), hint: t('onboarding.madhab.shafiHint',   'School of Imam ash-Shafi\'i') },
-        { id: 'maliki',  title: t('onboarding.madhab.maliki',  'Maliki'),   hint: t('onboarding.madhab.malikiHint',  'School of Imam Malik') },
-        { id: 'hanbali', title: t('onboarding.madhab.hanbali', 'Hanbali'),  hint: t('onboarding.madhab.hanbaliHint', 'School of Imam Ahmad') },
+        { id: 'hanafi', title: 'Hanafi', hint: 'School of Imam Abu Hanifa' },
+        { id: 'shafi', title: 'Shafi\'i', hint: 'School of Imam ash-Shafi\'i' },
+        { id: 'maliki', title: 'Maliki', hint: 'School of Imam Malik' },
+        { id: 'hanbali', title: 'Hanbali', hint: 'School of Imam Ahmad' },
       ];
       madhabs.forEach(m => {
         const card = el('label', {
@@ -586,7 +572,7 @@
 
       wrap.appendChild(el('div', { class: 'callout' },
         el('p', { style: { margin: 0 } },
-          t('onboarding.madhab.unsureCallout', 'If you are unsure, choose the school followed by the majority in your community or by the scholar you usually consult.')
+          'If you are unsure, choose the school followed by the majority in your community or by the scholar you usually consult.'
         )
       ));
       return wrap;
@@ -594,17 +580,17 @@
 
     stepOperator() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.operator.stepNum', 'Step 3 of 5')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.operator.title', 'Your Hajj operator.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 3 of 5'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Your Hajj operator.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.operator.lead', 'Their details will appear on your emergency card. Keep this accessible offline.')
+        'Their details will appear on your emergency card. Keep this accessible offline.'
       ));
 
       // 1. Local agency (the company you booked through, e.g. Adam Travel, Hisar, Dar El Salam)
       wrap.appendChild(this.buildField(
-        t('onboarding.operator.localAgency', 'Local agency you booked through'),
+        'Local agency you booked through',
         'text',
-        t('onboarding.operator.localAgencyPlaceholder', 'e.g. Adam Travel, Hisar Tour, Dar El Salam'),
+        'e.g. Adam Travel, Hisar Tour, Dar El Salam',
         this.config.operator.name,
         v => { this.config.operator.name = v; }
       ));
@@ -614,25 +600,15 @@
 
       // 3. Group leader + phone
       const row1 = el('div', { class: 'input-row' });
-      row1.appendChild(this.buildField(
-        t('onboarding.operator.groupLeader', 'Your group leader'), 'text',
-        t('onboarding.operator.groupLeaderName', 'Name'),
-        this.config.operator.contactName, v => { this.config.operator.contactName = v; }));
-      row1.appendChild(this.buildField(
-        t('onboarding.operator.groupLeaderPhone', 'Group leader phone'), 'tel',
-        t('onboarding.operator.groupLeaderPhonePlaceholder', '+966...'),
-        this.config.operator.contactPhone, v => { this.config.operator.contactPhone = v; }));
+      row1.appendChild(this.buildField('Your group leader', 'text', 'Name', this.config.operator.contactName, v => { this.config.operator.contactName = v; }));
+      row1.appendChild(this.buildField('Group leader phone', 'tel', '+966...', this.config.operator.contactPhone, v => { this.config.operator.contactPhone = v; }));
       wrap.appendChild(row1);
 
-      wrap.appendChild(this.buildField(
-        t('onboarding.operator.emergencyLine', '24-hr emergency line'), 'tel',
-        t('onboarding.operator.emergencyLinePlaceholder', 'Operator emergency contact'),
-        this.config.operator.emergencyPhone, v => { this.config.operator.emergencyPhone = v; }));
+      wrap.appendChild(this.buildField('24-hr emergency line', 'tel', 'Operator emergency contact', this.config.operator.emergencyPhone, v => { this.config.operator.emergencyPhone = v; }));
 
       wrap.appendChild(el('div', { class: 'callout callout--info' },
         el('p', { style: { margin: 0 } },
-          el('strong', null, t('onboarding.operator.tipTitle', 'Tip: ')),
-          t('onboarding.operator.tipBody', 'Save these in your phone contacts as well, in case the device is reset or the browser cache is cleared.')
+          el('strong', null, 'Tip: '), 'Save these in your phone contacts as well, in case the device is reset or the browser cache is cleared.'
         )
       ));
       return wrap;
@@ -644,13 +620,13 @@
      */
     _buildServiceProviderField() {
       const wrap = el('div', { class: 'field' });
-      wrap.appendChild(el('label', { class: 'field__label' }, t('onboarding.operator.saudiProvider', 'Saudi Service Provider (Nusuk-approved)')));
+      wrap.appendChild(el('label', { class: 'field__label' }, 'Saudi Service Provider (Nusuk-approved)'));
       wrap.appendChild(el('div', { class: 'field__hint' },
-        t('onboarding.operator.saudiProviderHint', 'Optional. The Saudi company that operates your package on the ground. Different from your local agency.')
+        'Optional. The Saudi company that operates your package on the ground. Different from your local agency.'
       ));
 
       const select = el('select', { class: 'field__input' });
-      select.appendChild(el('option', { value: '' }, t('common.selectIfKnown', '— select if known —')));
+      select.appendChild(el('option', { value: '' }, '— select if known —'));
 
       const list = (window._OPERATOR_LIST && window._OPERATOR_LIST.providers) || [];
       list.forEach(p => {
@@ -660,7 +636,7 @@
       });
 
       // Allow free text for "other" — append a special option, then reveal a text input
-      const otherOpt = el('option', { value: '__other__' }, t('onboarding.operator.providerOther', 'Other (not on the Nusuk list)'));
+      const otherOpt = el('option', { value: '__other__' }, 'Other (not on the Nusuk list)');
       if (this.config.operator.serviceProvider === '__other__' ||
           (this.config.operator.serviceProviderOther &&
            !list.some(p => p.id === this.config.operator.serviceProvider))) {
@@ -671,7 +647,7 @@
       const otherInput = el('input', {
         type: 'text',
         class: 'field__input',
-        placeholder: t('onboarding.operator.providerOtherPlaceholder', 'Provider name'),
+        placeholder: 'Provider name',
         value: this.config.operator.serviceProviderOther || '',
         style: { marginTop: '8px', display: select.value === '__other__' ? 'block' : 'none' },
       });
@@ -700,20 +676,20 @@
 
     stepAccommodation() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.accommodation.stepNum', 'Step 4 of 5')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.accommodation.title', 'Where you will stay.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 4 of 5'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Where you will stay.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.accommodation.lead', 'If you stay in different hotels (e.g. shifting packages), add each one with its date range.')
+        'If you stay in different hotels (e.g. shifting packages), add each one with its date range.'
       ));
 
       // Madinah hotels list
-      wrap.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.accommodation.inMadinah', 'In Madinah')));
+      wrap.appendChild(el('h4', { class: 'eyebrow' }, 'In Madinah'));
       wrap.appendChild(this._buildHotelList('madinah'));
 
       wrap.appendChild(el('hr', { class: 'rule' }));
 
       // Makkah hotels list
-      wrap.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.accommodation.inMakkah', 'In Makkah')));
+      wrap.appendChild(el('h4', { class: 'eyebrow' }, 'In Makkah'));
       wrap.appendChild(this._buildHotelList('makkah'));
 
       // v2.4 — Trip-wide coverage warning (any night not covered by any hotel)
@@ -733,7 +709,7 @@
       const apiKey = (window.APP_CONFIG && window.APP_CONFIG.googleMapsApiKey) || '';
       if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
         wrap.appendChild(el('div', { class: 'callout' },
-          el('p', { style: { margin: 0 }, html: t('onboarding.accommodation.placesApiDisabled', 'Address autocomplete is currently disabled. Type your hotel name manually — it will still appear in the guide. Site owner: configure your Google Maps API key in <code>js/config.js</code> to enable autocomplete.') })
+          el('p', { style: { margin: 0 }, html: 'Address autocomplete is currently disabled. Type your hotel name manually — it will still appear in the guide. Site owner: configure your Google Maps API key in <code>js/config.js</code> to enable autocomplete.' })
         ));
       }
       return wrap;
@@ -765,7 +741,7 @@
       const addBtn = el('button', {
         type: 'button',
         class: 'btn btn--ghost hotel-list__add',
-      }, t('onboarding.accommodation.addAnotherHotel', '+ Add another hotel'));
+      }, '+ Add another hotel');
       addBtn.addEventListener('click', () => {
         this.config[arrayKey].push({ name: '', address: '', placeId: '', lat: null, lng: null, fromDate: '', toDate: '' });
         // Re-render this hotel list section in place
@@ -868,20 +844,11 @@
       if (!missing.length) return;
 
       const previewDates = missing.slice(0, 3).join(', ');
-      const moreCount = missing.length > 3 ? (missing.length - 3) : 0;
-      const more = moreCount
-        ? t('onboarding.validation.moreCount', ` (+${moreCount} more)`, { n: moreCount })
-        : '';
+      const more = missing.length > 3 ? ` (+${missing.length - 3} more)` : '';
       const item = el('div', { class: 'hotel-warnings__item hotel-warnings__item--info' });
       item.appendChild(el('span', { class: 'hotel-warnings__icon', 'aria-hidden': 'true' }, 'ℹ'));
-      const key = missing.length === 1
-        ? 'onboarding.validation.infoCoverage'
-        : 'onboarding.validation.infoCoveragePlural';
       item.appendChild(el('span', { class: 'hotel-warnings__text' },
-        t(key,
-          `${missing.length} night${missing.length === 1 ? '' : 's'} between your flights have no hotel: ${previewDates}${more}. Are you in Mina/Aziziyah those nights?`,
-          { n: missing.length, dates: previewDates, more: more }
-        )
+        `${missing.length} night${missing.length === 1 ? '' : 's'} between your flights have no hotel: ${previewDates}${more}. Are you in Mina/Aziziyah those nights?`
       ));
       panel.appendChild(item);
     },
@@ -899,13 +866,13 @@
 
       // Header row: "Hotel 1" + remove button (hidden if only one)
       const head = el('div', { class: 'hotel-entry__head' });
-      head.appendChild(el('span', { class: 'hotel-entry__num' }, t('onboarding.accommodation.hotelN', `Hotel ${idx + 1}`, { n: idx + 1 })));
+      head.appendChild(el('span', { class: 'hotel-entry__num' }, `Hotel ${idx + 1}`));
       if (!isOnly) {
         const remove = el('button', {
           type: 'button',
           class: 'hotel-entry__remove',
-          'aria-label': t('onboarding.accommodation.removeHotel', 'Remove this hotel'),
-        }, t('onboarding.accommodation.removeHotel', '× Remove'));
+          'aria-label': 'Remove this hotel',
+        }, '× Remove');
         remove.addEventListener('click', () => {
           this.config[arrayKey].splice(idx, 1);
           const next = this._buildHotelList(city);
@@ -921,8 +888,8 @@
       // calls our callback with the place data, which we copy into the entry
       // (preserving existing dates).
       const placesField = this.buildPlacesField(
-        t('onboarding.accommodation.hotelName', 'Hotel or building name'),
-        t('onboarding.accommodation.hotelNamePlaceholder', 'Start typing to search'),
+        'Hotel or building name',
+        'Start typing to search',
         hotel,
         city + '-' + idx,  // unique key for the autocomplete element
         (place) => {
@@ -943,14 +910,14 @@
       // Date range row
       const dateRow = el('div', { class: 'input-row' });
       dateRow.appendChild(this.buildField(
-        t('onboarding.accommodation.fromDate', 'From date'), 'date', '', hotel.fromDate || '',
+        'From date', 'date', '', hotel.fromDate || '',
         v => {
           this.config[arrayKey][idx].fromDate = v;
           this._refreshHotelWarnings(city);
         }
       ));
       dateRow.appendChild(this.buildField(
-        t('onboarding.accommodation.toDate', 'To date'), 'date', '', hotel.toDate || '',
+        'To date', 'date', '', hotel.toDate || '',
         v => {
           this.config[arrayKey][idx].toDate = v;
           this._refreshHotelWarnings(city);
@@ -969,39 +936,38 @@
     _buildMinaCampSection() {
       const cfg = this.config.minaCamp;
       const section = el('div');
-      section.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.accommodation.duringHajj', 'During the days of Hajj')));
+      section.appendChild(el('h4', { class: 'eyebrow' }, 'During the days of Hajj'));
       section.appendChild(el('p', { class: 'onboarding__step-desc', style: { marginTop: '4px', marginBottom: '12px' } },
-        t('onboarding.accommodation.duringHajjLead', 'Where will you sleep on the nights of 8th, 11th, 12th of Dhul Hijjah? Skip if not sure — your operator will confirm.')
+        'Where will you sleep on the nights of 8th, 11th, 12th of Dhul Hijjah? Skip if not sure — your operator will confirm.'
       ));
 
-      // Type: radio-style cards.
-      // Note: avoid using `t` as the loop variable since it shadows our i18n helper.
+      // Type: radio-style cards
       const typeWrap = el('div', { class: 'mina-camp-types' });
       const types = [
-        { id: 'mina',     label: t('onboarding.accommodation.minaInside',  'Inside Mina valley'),   desc: t('onboarding.accommodation.minaInsideDesc', 'Tent in Mina (any zone)') },
-        { id: 'aziziyah', label: t('onboarding.accommodation.aziziyah',    'In Aziziyah'),          desc: t('onboarding.accommodation.aziziyahDesc',   'Residential district adjacent to Mina ("shifting" package)') },
-        { id: 'unsure',   label: t('onboarding.accommodation.minaUnsure',  "I'm not sure yet"),     desc: t('onboarding.accommodation.minaUnsureDesc', 'Confirm with your operator before travelling') },
+        { id: 'mina',      label: 'Inside Mina valley',     desc: 'Tent in Mina (any zone)' },
+        { id: 'aziziyah',  label: 'In Aziziyah',            desc: 'Residential district adjacent to Mina ("shifting" package)' },
+        { id: 'unsure',    label: "I'm not sure yet",       desc: 'Confirm with your operator before travelling' },
       ];
-      types.forEach(opt => {
+      types.forEach(t => {
         const card = el('label', {
-          class: 'mina-camp-type' + (cfg.type === opt.id ? ' is-selected' : ''),
+          class: 'mina-camp-type' + (cfg.type === t.id ? ' is-selected' : ''),
         });
         const radio = el('input', {
           type: 'radio',
           name: 'mina-camp-type',
-          value: opt.id,
+          value: t.id,
         });
-        if (cfg.type === opt.id) radio.checked = true;
+        if (cfg.type === t.id) radio.checked = true;
         radio.addEventListener('change', () => {
-          this.config.minaCamp.type = opt.id;
+          this.config.minaCamp.type = t.id;
           // Re-render this section so zone field shows/hides properly
           const next = this._buildMinaCampSection();
           section.replaceWith(next);
         });
         card.appendChild(radio);
         const text = el('span', { class: 'mina-camp-type__text' });
-        text.appendChild(el('strong', null, opt.label));
-        text.appendChild(el('span', { class: 'mina-camp-type__desc' }, opt.desc));
+        text.appendChild(el('strong', null, t.label));
+        text.appendChild(el('span', { class: 'mina-camp-type__desc' }, t.desc));
         card.appendChild(text);
         typeWrap.appendChild(card);
       });
@@ -1010,15 +976,15 @@
       // Zone (only when type === 'mina')
       if (cfg.type === 'mina') {
         const zoneRow = el('div', { class: 'field', style: { marginTop: '12px' } });
-        zoneRow.appendChild(el('label', { class: 'field__label' }, t('onboarding.accommodation.minaZone', 'Mina zone (if known)')));
+        zoneRow.appendChild(el('label', { class: 'field__label' }, 'Mina zone (if known)'));
         zoneRow.appendChild(el('div', { class: 'field__hint' },
-          t('onboarding.accommodation.minaZoneHint', 'Zone A is closest to Jamarat (~300–700m); Zone D is furthest (~3–4km). Premium packages tend to be A; standard B/C; economy D and beyond.')
+          'Zone A is closest to Jamarat (~300–700m); Zone D is furthest (~3–4km). Premium packages tend to be A; standard B/C; economy D and beyond.'
         ));
         const select = el('select', { class: 'field__input' });
         ['', 'A', 'B', 'C', 'D', 'unknown'].forEach(z => {
-          const label = z === '' ? t('common.selectIfKnown', '— select if known —')
-                      : z === 'unknown' ? t('onboarding.accommodation.zoneOptionDontKnow', "Don't know")
-                      : t('onboarding.accommodation.zoneOption', `Zone ${z}`, { letter: z });
+          const label = z === '' ? '— select if known —'
+                      : z === 'unknown' ? "Don't know"
+                      : `Zone ${z}`;
           const opt = el('option', { value: z }, label);
           if (cfg.zone === z) opt.selected = true;
           select.appendChild(opt);
@@ -1033,13 +999,11 @@
       // Area / camp number free text (always shown if type is mina or aziziyah)
       if (cfg.type === 'mina' || cfg.type === 'aziziyah') {
         const placeholder = cfg.type === 'mina'
-          ? t('onboarding.accommodation.minaSubAreaPlaceholder', 'e.g. Muaisim, Al-Kabsh, Camp 12B')
-          : t('onboarding.accommodation.aziziyahLocationPlaceholder', 'e.g. building name, Aziziyah block');
+          ? 'e.g. Muaisim, Al-Kabsh, Camp 12B'
+          : 'e.g. building name, Aziziyah block';
         const fieldWrap = el('div', { class: 'field', style: { marginTop: '12px' } });
         fieldWrap.appendChild(el('label', { class: 'field__label' },
-          cfg.type === 'mina'
-            ? t('onboarding.accommodation.minaSubArea', 'Sub-area or camp number (optional)')
-            : t('onboarding.accommodation.aziziyahLocation', 'Aziziyah location (optional)')
+          cfg.type === 'mina' ? 'Sub-area or camp number (optional)' : 'Aziziyah location (optional)'
         ));
         const input = el('input', {
           type: 'text', class: 'field__input', placeholder,
@@ -1055,14 +1019,14 @@
 
     stepGroup() {
       const wrap = el('div');
-      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, t('onboarding.group.stepNum', 'Step 5 of 5')));
-      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, t('onboarding.group.title', 'Your travel companions.')));
+      wrap.appendChild(el('div', { class: 'onboarding__step-num' }, 'Step 5 of 5'));
+      wrap.appendChild(el('h2', { class: 'onboarding__step-title' }, 'Your travel companions.'));
       wrap.appendChild(el('p', { class: 'onboarding__step-desc' },
-        t('onboarding.group.lead', 'For the lost-group emergency card. Useful if you become separated in the crowds.')
+        'For the lost-group emergency card. Useful if you become separated in the crowds.'
       ));
 
       wrap.appendChild(this.buildField(
-        t('onboarding.group.totalPeople', 'Total people in your party (including you)'),
+        'Total people in your party (including you)',
         'number', '1', String(this.config.groupSize || 1),
         v => { this.config.groupSize = Math.max(1, parseInt(v) || 1); }
       ));
@@ -1070,12 +1034,12 @@
       const contacts = el('div', { class: 'group-contacts' });
       const renderContacts = () => {
         contacts.innerHTML = '';
-        contacts.appendChild(el('h4', { class: 'eyebrow' }, t('onboarding.group.contactsHeading', 'Contacts (companions or family back home)')));
+        contacts.appendChild(el('h4', { class: 'eyebrow' }, 'Contacts (companions or family back home)'));
 
         (this.config.groupContacts || []).forEach((c, i) => {
           const row = el('div', { class: 'input-row', style: { marginBottom: '8px' } });
-          row.appendChild(this.buildField(t('onboarding.group.contactName', 'Name'), 'text', '', c.name || '', v => { this.config.groupContacts[i].name = v; }, true));
-          row.appendChild(this.buildField(t('onboarding.group.contactPhone', 'Phone'), 'tel', '', c.phone || '', v => { this.config.groupContacts[i].phone = v; }, true));
+          row.appendChild(this.buildField('Name', 'text', '', c.name || '', v => { this.config.groupContacts[i].name = v; }, true));
+          row.appendChild(this.buildField('Phone', 'tel', '', c.phone || '', v => { this.config.groupContacts[i].phone = v; }, true));
           contacts.appendChild(row);
           const remove = el('button', {
             class: 'btn btn--ghost',
@@ -1085,7 +1049,7 @@
               this.config.groupContacts.splice(i, 1);
               renderContacts();
             }
-          }, t('onboarding.group.removeContact', '× Remove'));
+          }, '× Remove');
           contacts.appendChild(remove);
         });
 
@@ -1097,7 +1061,7 @@
             this.config.groupContacts.push({ name: '', phone: '' });
             renderContacts();
           }
-        }, t('onboarding.group.addContact', '+ Add a contact'));
+        }, '+ Add a contact');
         contacts.appendChild(add);
       };
       renderContacts();

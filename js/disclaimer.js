@@ -41,26 +41,28 @@
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
       overlay.setAttribute('aria-labelledby', 'disclaimer-title');
-      // v2.5 — pull strings from I18n with English fallback
-      const t = (k, fallback) => (window.I18n ? I18n.t(k) : fallback);
-      const title = t('disclaimer.title', 'Before you begin.');
-      const lead  = t('disclaimer.lead',  'Hajj Guide is a planning aid, not a fatwa.');
-      const body1 = t('disclaimer.body1', 'Rulings shown reflect commonly-held positions in each madhab but individual scholars may differ. Times, distances and logistical details are approximate. For anything that affects whether your Hajj is valid, confirm with a qualified scholar.');
-      const body2 = t('disclaimer.body2', 'Your data stays on your device — no account, no tracking.');
-      const accept  = t('disclaimer.accept',  'I understand');
-      const caption = t('disclaimer.caption', 'May Allah accept your Hajj.');
       overlay.innerHTML = `
         <div class="disclaimer-modal__backdrop"></div>
         <div class="disclaimer-modal__panel">
           <div class="disclaimer-modal__ornament" aria-hidden="true"></div>
-          <h2 id="disclaimer-title" class="disclaimer-modal__title">${title}</h2>
-          <p class="disclaimer-modal__lead">${lead}</p>
-          <p class="disclaimer-modal__body">${body1}</p>
-          <p class="disclaimer-modal__body">${body2}</p>
+          <h2 id="disclaimer-title" class="disclaimer-modal__title">Before you begin.</h2>
+          <p class="disclaimer-modal__lead">
+            Hajj Guide is a planning aid, not a fatwa.
+          </p>
+          <p class="disclaimer-modal__body">
+            Rulings shown reflect commonly-held positions in each madhab but individual scholars may differ.
+            Times, distances and logistical details are approximate.
+            For anything that affects whether your Hajj is valid, confirm with a qualified scholar.
+          </p>
+          <p class="disclaimer-modal__body">
+            Your data stays on your device — no account, no tracking.
+          </p>
           <div class="disclaimer-modal__actions">
-            <button type="button" class="btn btn--primary" id="disclaimer-accept">${accept}</button>
+            <button type="button" class="btn btn--primary" id="disclaimer-accept">I understand</button>
           </div>
-          <p class="disclaimer-modal__caption">${caption}</p>
+          <p class="disclaimer-modal__caption">
+            May Allah accept your Hajj.
+          </p>
         </div>
       `;
       document.body.appendChild(overlay);

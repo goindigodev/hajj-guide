@@ -31,50 +31,38 @@
       overlay.setAttribute('aria-modal', 'true');
       overlay.setAttribute('aria-labelledby', 'share-title');
 
-      // v2.5 — translate via I18n with English fallback
-      const t = (k, f) => (window.I18n ? I18n.t(k) : f);
-      // The share text used in deep links uses the localised tagline
-      const shareText = t('share.shareText', SHARE_TEXT);
       const encUrl  = encodeURIComponent(SHARE_URL);
-      const encText = encodeURIComponent(shareText + ' — ' + SHARE_URL);
-      const encMsg  = encodeURIComponent(shareText);
-
-      const ariaClose  = t('share.ariaClose',     'Close');
-      const title      = t('share.title',         'Share this guide');
-      const lead       = t('share.lead',          'Help another pilgrim plan their Hajj.');
-      const tWhatsapp  = t('share.tileWhatsapp',  'WhatsApp');
-      const tTelegram  = t('share.tileTelegram',  'Telegram');
-      const tEmail     = t('share.tileEmail',     'Email');
-      const tCopy      = t('share.tileCopy',      'Copy link');
+      const encText = encodeURIComponent(SHARE_TEXT + ' — ' + SHARE_URL);
+      const encMsg  = encodeURIComponent(SHARE_TEXT);
 
       overlay.innerHTML = `
         <div class="share-modal__backdrop" data-share-close></div>
         <div class="share-modal__panel">
-          <button type="button" class="share-modal__close" data-share-close aria-label="${ariaClose}">×</button>
-          <h2 id="share-title" class="share-modal__title">${title}</h2>
-          <p class="share-modal__lead">${lead}</p>
+          <button type="button" class="share-modal__close" data-share-close aria-label="Close">×</button>
+          <h2 id="share-title" class="share-modal__title">Share this guide</h2>
+          <p class="share-modal__lead">Help another pilgrim plan their Hajj.</p>
 
           <div class="share-modal__grid">
             <a class="share-tile share-tile--whatsapp" data-share-channel="whatsapp"
                href="https://wa.me/?text=${encText}"
                target="_blank" rel="noopener noreferrer">
               <span class="share-tile__icon">WA</span>
-              <span class="share-tile__label">${tWhatsapp}</span>
+              <span class="share-tile__label">WhatsApp</span>
             </a>
             <a class="share-tile share-tile--telegram" data-share-channel="telegram"
                href="https://t.me/share/url?url=${encUrl}&text=${encMsg}"
                target="_blank" rel="noopener noreferrer">
               <span class="share-tile__icon">TG</span>
-              <span class="share-tile__label">${tTelegram}</span>
+              <span class="share-tile__label">Telegram</span>
             </a>
             <a class="share-tile share-tile--email" data-share-channel="email"
                href="mailto:?subject=${encMsg}&body=${encText}">
               <span class="share-tile__icon">@</span>
-              <span class="share-tile__label">${tEmail}</span>
+              <span class="share-tile__label">Email</span>
             </a>
             <button type="button" class="share-tile share-tile--copy" data-share-channel="copy" id="share-copy">
               <span class="share-tile__icon">⧉</span>
-              <span class="share-tile__label">${tCopy}</span>
+              <span class="share-tile__label">Copy link</span>
             </button>
           </div>
 
@@ -147,10 +135,7 @@
       const el = document.getElementById('share-count-display');
       if (!el) return;
       if (typeof count === 'number' && count > 0) {
-        const t = (k, f) => (window.I18n ? I18n.t(k, { n: this._format(count) }) : f);
-        el.textContent = count === 1
-          ? t('share.countOne',  `Shared ${this._format(count)} time`)
-          : t('share.countMany', `Shared ${this._format(count)} times`);
+        el.textContent = `Shared ${this._format(count)} time${count === 1 ? '' : 's'}`;
       } else {
         el.textContent = '';
       }
@@ -164,13 +149,10 @@
 
     /** Copy URL to clipboard, give visual feedback on the button. */
     async _copyLink(buttonEl) {
-      const t = (k, f) => (window.I18n ? I18n.t(k) : f);
-      const copied = t('share.copied', 'Copied ✓');
-      const failed = t('share.copyFailed', 'Copy failed');
       const orig = buttonEl.querySelector('.share-tile__label').textContent;
       try {
         await navigator.clipboard.writeText(SHARE_URL);
-        buttonEl.querySelector('.share-tile__label').textContent = copied;
+        buttonEl.querySelector('.share-tile__label').textContent = 'Copied ✓';
         buttonEl.classList.add('is-copied');
       } catch (e) {
         // Fallback: select + copy via legacy method
@@ -183,10 +165,10 @@
           ta.select();
           document.execCommand('copy');
           document.body.removeChild(ta);
-          buttonEl.querySelector('.share-tile__label').textContent = copied;
+          buttonEl.querySelector('.share-tile__label').textContent = 'Copied ✓';
           buttonEl.classList.add('is-copied');
         } catch (err) {
-          buttonEl.querySelector('.share-tile__label').textContent = failed;
+          buttonEl.querySelector('.share-tile__label').textContent = 'Copy failed';
         }
       }
       setTimeout(() => {
