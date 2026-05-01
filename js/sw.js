@@ -13,7 +13,7 @@
 // ─── Bump this on every release ──────────────────────────────────
 // Format: 'major.minor' (e.g. '3.6'). The cache names below derive
 // from this value, so changing it triggers reinstall of all assets.
-const BUILD_VERSION = '3.6';
+const BUILD_VERSION = '3.7';
 
 // Cache names — derive from BUILD_VERSION so they auto-bump together
 const STATIC_CACHE = `hajj-static-${BUILD_VERSION}`;

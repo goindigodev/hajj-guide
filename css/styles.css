@@ -500,10 +500,12 @@ section + section {
   font-family: 'Lora', serif;
   font-size: var(--fs-base);
   color: var(--ink);
-  background: var(--paper);
+  /* v3.7 — white background so input fields are clearly distinguishable from
+     the cream page background. Previously used --paper which blended in. */
+  background: #ffffff;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
   /* Make sure the box-sizing is consistent across all inputs */
   box-sizing: border-box;
 }
@@ -514,7 +516,9 @@ section + section {
 .field__input:focus {
   outline: none;
   border-color: var(--green-deep);
-  background: var(--bg);
+  background: #ffffff;
+  /* v3.7 — subtle focus ring for clear keyboard accessibility */
+  box-shadow: 0 0 0 3px rgba(74, 93, 74, 0.12);
 }
 
 .textarea {
@@ -2708,7 +2712,7 @@ body.is-disclaimer-open {
   left: 0;
   right: 0;
   top: calc(100% + 4px);
-  background: var(--paper);
+  background: #ffffff;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
@@ -3435,7 +3439,7 @@ body.is-modal-open { overflow: hidden; }
   width: 100%;
   min-height: 80px;
   padding: 10px 12px;
-  background: rgba(143, 166, 143, 0.04);
+  background: #ffffff;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -3443,12 +3447,13 @@ body.is-modal-open { overflow: hidden; }
   line-height: 1.6;
   color: var(--ink);
   resize: vertical;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
 }
 .day-card__reflection-textarea:focus {
   outline: none;
   border-color: var(--green);
-  background: rgba(143, 166, 143, 0.07);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(74, 93, 74, 0.12);
 }
 .day-card__reflection-textarea::placeholder {
   color: var(--ink-mute);
