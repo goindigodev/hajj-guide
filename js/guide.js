@@ -565,7 +565,7 @@
         txt.appendChild(el('strong', { class: 'itinerary-cta__title' },
           'Make this itinerary yours'));
         txt.appendChild(el('p', { class: 'itinerary-cta__body' },
-          'The plan below is a generic Hajj reference. Add your accommodation check-in and check-out dates and the Madinah/Makkah days will reshape around your actual stay. Hajj days (8–12 Dhul Hijjah) stay fixed regardless.'
+          'The plan below is a generic Hajj reference. Add your accommodation check-in and check-out dates and the Madinah/Makkah days will reshape around your actual stay. Setting trip dates also unlocks the journal and custom Ziyarat stops on each day. Hajj days (8–12 Dhul Hijjah) stay fixed regardless.'
         ));
         inner.appendChild(txt);
 
@@ -1402,17 +1402,38 @@
       wrap.appendChild(header);
 
       if (!entries.length) {
-        // Empty state
+        // v3.9 — Empty state that adapts to whether the user has flight dates set.
+        // Without dates, the day cards have no anchor to attach reflections to,
+        // so directing the user to Itinerary is a dead-end. Instead, ask them
+        // to add flight dates first.
+        const hasDates = !!(this.config && this.config.outboundFlight && this.config.outboundFlight.date);
+
         const empty = el('div', { class: 'journal-empty' });
-        empty.appendChild(el('p', { class: 'journal-empty__lead' },
-          'Open any day in the Itinerary tab and write a reflection. Your entries will collect here.'
-        ));
-        empty.appendChild(el('p', { class: 'journal-empty__hint text-mute italic' },
-          'A small written reflection each day — even a sentence — becomes a precious record after the trip is over.'
-        ));
-        const goBtn = el('button', { class: 'btn btn--primary' }, 'Open Itinerary →');
-        goBtn.addEventListener('click', () => this.switchTab('itinerary'));
-        empty.appendChild(goBtn);
+
+        if (hasDates) {
+          // Standard empty state — direct user to Itinerary
+          empty.appendChild(el('p', { class: 'journal-empty__lead' },
+            'Open any day in the Itinerary tab and write a reflection. Your entries will collect here.'
+          ));
+          empty.appendChild(el('p', { class: 'journal-empty__hint text-mute italic' },
+            'A small written reflection each day — even a sentence — becomes a precious record after the trip is over.'
+          ));
+          const goBtn = el('button', { class: 'btn btn--primary' }, 'Open Itinerary →');
+          goBtn.addEventListener('click', () => this.switchTab('itinerary'));
+          empty.appendChild(goBtn);
+        } else {
+          // No dates yet — direct user to add flight dates first
+          empty.appendChild(el('p', { class: 'journal-empty__lead' },
+            'Add your flight dates to enable the journal.'
+          ));
+          empty.appendChild(el('p', { class: 'journal-empty__hint text-mute italic' },
+            'Once your trip dates are set, each day in the Itinerary tab gets a reflection space. Write a sentence or two each day; entries collect here and can be exported as a text file after the trip.'
+          ));
+          const goBtn = el('button', { class: 'btn btn--primary' }, 'Add flight dates →');
+          goBtn.addEventListener('click', () => this.switchTab('settings'));
+          empty.appendChild(goBtn);
+        }
+
         wrap.appendChild(empty);
         return wrap;
       }
@@ -1582,7 +1603,7 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · v3.8'));
+      }, 'Hajj Guide · v3.9'));
 
       return wrap;
     },
