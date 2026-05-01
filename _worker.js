@@ -167,3 +167,4 @@ function pickCacheControl(pathname) {
   }
   return null; // no override — let Cloudflare's default apply
 }
+
