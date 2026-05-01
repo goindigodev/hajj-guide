@@ -7,43 +7,6 @@
 (function () {
   'use strict';
 
-  /**
-   * v3.6 — Show a small "update available" toast at the bottom of the
-   * screen when a new service-worker version has installed. The user
-   * can click "Refresh" to apply it immediately, or dismiss for now
-   * (the new SW will activate on the next natural full reload).
-   */
-  function showUpdateToast(newWorker) {
-    // Don't show twice
-    if (document.getElementById('sw-update-toast')) return;
-
-    const toast = document.createElement('div');
-    toast.id = 'sw-update-toast';
-    toast.setAttribute('role', 'status');
-    toast.setAttribute('aria-live', 'polite');
-    toast.innerHTML = `
-      <span class="sw-toast__msg">A new version of Hajj Guide is available.</span>
-      <button type="button" class="sw-toast__btn sw-toast__btn--primary" id="sw-toast-refresh">Refresh</button>
-      <button type="button" class="sw-toast__btn sw-toast__btn--ghost" id="sw-toast-dismiss" aria-label="Dismiss">×</button>
-    `;
-    document.body.appendChild(toast);
-
-    // Animate in
-    requestAnimationFrame(() => toast.classList.add('is-visible'));
-
-    document.getElementById('sw-toast-refresh').addEventListener('click', () => {
-      // Tell the waiting SW to activate. The 'controllerchange' listener
-      // installed at registration time will reload the page automatically
-      // once the new SW takes control.
-      newWorker.postMessage({ type: 'SKIP_WAITING' });
-    });
-
-    document.getElementById('sw-toast-dismiss').addEventListener('click', () => {
-      toast.classList.remove('is-visible');
-      setTimeout(() => toast.remove(), 250);
-    });
-  }
-
   function boot() {
     // Initialise core modules
     if (window.FontSize)  FontSize.init();
@@ -219,43 +182,19 @@
       userGuideBtn.addEventListener('click', () => UserGuide.open());
     }
 
-    // Service worker — v3.6: register and watch for updates so users
-    // running an older cached version get prompted to refresh.
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./js/sw.js').then(registration => {
-        // When a new SW is found and starts installing, watch its state.
-        // Once it reaches 'installed' AND there's an existing controller
-        // (i.e. the user already had an older SW running), the new code
-        // is waiting in the wings — show a non-intrusive "refresh to update"
-        // toast.
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showUpdateToast(newWorker);
-            }
-          });
-        });
-        // Periodically check for updates while the tab is open. The browser
-        // also checks on its own, but explicitly polling once an hour means
-        // long-lived sessions get updates promptly without a refresh.
-        setInterval(() => {
-          registration.update().catch(() => {});
-        }, 60 * 60 * 1000);
-      }).catch(err => {
-        console.log('SW registration failed:', err);
-      });
-
-      // If the SW notifies us that a new version has activated and taken
-      // control, reload once so the page is using the new code.
-      let reloading = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (reloading) return;
-        reloading = true;
-        window.location.reload();
-      });
-    }
+    // v3.8 — Service worker REMOVED.
+    //
+    // Hajj Guide previously used a service worker for offline support, but it
+    // proved unreliable for the trade-off: every release fought against stale
+    // caches, and offline access wasn't critical (pilgrims have Saudi mobile
+    // signal). Now we rely purely on Cloudflare's Cache-Control headers
+    // (max-age=300 on JS/CSS, no-cache on HTML) so updates reach users within
+    // 5 minutes flat, the standard way the web works.
+    //
+    // The one-time cleanup of legacy SW registrations is done as an INLINE
+    // script in the HTML <head> (see index.html / app.html). That runs
+    // before any other JS, including any old cached copies of this file,
+    // so existing users get unstuck reliably.
 
     // Listen for store changes (e.g. madhab change in rulings tab triggers re-render in other tabs)
     Store.on('change', () => {

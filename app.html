@@ -36,6 +36,37 @@
 
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="./css/print.css" media="print">
+
+<!--
+  v3.8 — INLINE service-worker cleanup.
+  This script runs before any other JS, including any old cached app.js.
+  HTML is served network-first by the old SW (or no-cache by the worker
+  when the SW is gone), so this inline script always reflects the latest
+  version. It unregisters any existing SW and clears its caches, then
+  reloads once. On the second load there's no SW intercepting requests,
+  so all assets come fresh from Cloudflare.
+  Once everyone has visited at least once after this release, the cleanup
+  becomes a no-op and just exits.
+-->
+<script>
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    if (regs.length === 0) return;
+    Promise.all(regs.map(function(r) { return r.unregister(); })).then(function() {
+      if (typeof caches === 'undefined') { location.reload(); return; }
+      caches.keys().then(function(keys) {
+        var ours = keys.filter(function(k) { return k.indexOf('hajj-') === 0; });
+        Promise.all(ours.map(function(k) { return caches.delete(k); })).then(function() {
+          // Reload once with cache bypass so the new (uncached) assets load.
+          location.reload();
+        });
+      });
+    });
+  }).catch(function(){});
+})();
+</script>
+
 </head>
 <body class="app-page">
 

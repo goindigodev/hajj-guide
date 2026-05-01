@@ -1568,11 +1568,11 @@
         )
       ));
 
-      // v3.6 — Version footer. Small, unobtrusive, useful for debugging
-      // ("what version am I on?"). Asks the active service worker for
-      // its BUILD_VERSION; falls back to a hardcoded label if SW isn't
-      // controlling the page yet (first visit before SW activates).
-      const versionFooter = el('div', {
+      // v3.8 — Static version footer. The previous SW-based version query
+      // was removed alongside the service worker. The version label is now
+      // hardcoded — bump it on each release if you want it to reflect the
+      // shipped version. Useful for support: "what version are you seeing?"
+      wrap.appendChild(el('div', {
         class: 'settings-version',
         style: {
           marginTop: 'var(--space-5)',
@@ -1582,47 +1582,9 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · checking version…');
-      wrap.appendChild(versionFooter);
-      // Async-fetch version from SW (no-op if SW isn't ready)
-      this._fetchSWVersion().then(v => {
-        if (v) versionFooter.textContent = `Hajj Guide · v${v}`;
-        else   versionFooter.textContent = 'Hajj Guide';
-      }).catch(() => {
-        versionFooter.textContent = 'Hajj Guide';
-      });
+      }, 'Hajj Guide · v3.8'));
 
       return wrap;
-    },
-
-    /**
-     * v3.6 — Ask the active service worker for its BUILD_VERSION.
-     * Returns a promise that resolves to a string version like "3.6"
-     * or null if SW is not available / not yet controlling the page.
-     */
-    _fetchSWVersion() {
-      return new Promise(resolve => {
-        if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
-          resolve(null);
-          return;
-        }
-        // 800ms timeout in case the SW doesn't respond
-        const timeout = setTimeout(() => resolve(null), 800);
-        const channel = new MessageChannel();
-        channel.port1.onmessage = (event) => {
-          clearTimeout(timeout);
-          resolve(event.data && event.data.version ? event.data.version : null);
-        };
-        try {
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'GET_VERSION' },
-            [channel.port2]
-          );
-        } catch (e) {
-          clearTimeout(timeout);
-          resolve(null);
-        }
-      });
     },
 
     /* ─── Renderers ──────────────────────────────────────── */

@@ -142,6 +142,26 @@
 
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="./css/print.css" media="print">
+
+<!-- v3.8 — Inline SW cleanup (see app.html for full explanation) -->
+<script>
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    if (regs.length === 0) return;
+    Promise.all(regs.map(function(r) { return r.unregister(); })).then(function() {
+      if (typeof caches === 'undefined') { location.reload(); return; }
+      caches.keys().then(function(keys) {
+        var ours = keys.filter(function(k) { return k.indexOf('hajj-') === 0; });
+        Promise.all(ours.map(function(k) { return caches.delete(k); })).then(function() {
+          location.reload();
+        });
+      });
+    });
+  }).catch(function(){});
+})();
+</script>
+
 </head>
 <body class="onboarding-page">
 
