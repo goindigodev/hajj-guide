@@ -173,6 +173,7 @@
     </a>
     <div class="site-header__actions">
       <div id="fontsize-host" aria-label="Text size"></div>
+      <button class="header-refresh-link" id="btn-refresh-content" type="button" title="Force-refresh the page, bypassing all caches">Update content</button>
     </div>
   </div>
 </header>
@@ -349,6 +350,24 @@
 
   // v2.2 — first-visit disclaimer
   if (window.Disclaimer && Disclaimer.init) Disclaimer.init();
+
+  // v3.10 — "Update content" link in header. Force-refreshes the page,
+  // bypassing all caches, by adding a unique query param to the URL.
+  var refreshBtn = document.getElementById('btn-refresh-content');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      if (typeof caches !== 'undefined') {
+        caches.keys().then(function(keys) {
+          keys.filter(function(k) { return k.indexOf('hajj-') === 0; })
+              .forEach(function(k) { caches.delete(k); });
+        }).catch(function(){});
+      }
+      var u = new URL(window.location.href);
+      u.searchParams.delete('_r');
+      u.searchParams.set('_r', Date.now().toString());
+      window.location.replace(u.toString());
+    });
+  }
 
   // If user already onboarded, allow them to go straight to the app
   if (Store.isOnboarded()) {

@@ -182,6 +182,32 @@
       userGuideBtn.addEventListener('click', () => UserGuide.open());
     }
 
+    // v3.10 — "Update content" link in the header. Force-refreshes the page
+    // bypassing all browser caches. Useful when a fresh deploy has gone out
+    // and the user wants to see it immediately without waiting for any
+    // remaining cache layer to expire.
+    //
+    // Strategy: append a unique query string to the URL so the browser
+    // treats it as a brand-new resource (no cache key match), and ALSO use
+    // location.reload — modern browsers ignore reload(true), so we rely on
+    // the cache-busting URL change.
+    const refreshBtn = document.getElementById('btn-refresh-content');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        // Best-effort: clear any leftover SW caches first
+        if (typeof caches !== 'undefined') {
+          caches.keys().then(keys => {
+            keys.filter(k => k.indexOf('hajj-') === 0).forEach(k => caches.delete(k));
+          }).catch(() => {});
+        }
+        // Strip any existing _r= param, then add a new one and navigate
+        const u = new URL(window.location.href);
+        u.searchParams.delete('_r');
+        u.searchParams.set('_r', Date.now().toString());
+        window.location.replace(u.toString());
+      });
+    }
+
     // v3.8 — Service worker REMOVED.
     //
     // Hajj Guide previously used a service worker for offline support, but it

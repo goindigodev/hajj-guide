@@ -4690,3 +4690,55 @@ body.userguide-open {
 @media print {
   .itinerary-cta { display: none !important; }
 }
+
+/* =============================================================
+   v3.10 — Header "Update content" link
+   Subtle text-style link in the site header. Lets the user force
+   a fresh fetch when they suspect they're seeing stale content.
+   Not a prominent button — sits modestly between the (i) icon
+   and the print icon.
+   ============================================================= */
+
+.header-refresh-link {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-mute);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.header-refresh-link:hover {
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.header-refresh-link:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* On narrow screens, hide the text and rely on the (i) icon's tooltip
+   to surface the function. Saves space in a busy header. */
+@media (max-width: 540px) {
+  .header-refresh-link {
+    /* Show only an icon-style indicator on small screens — a circular
+       arrow Unicode glyph. Keeps the action accessible without crowding. */
+    font-size: 0;
+    padding: 6px 8px;
+  }
+  .header-refresh-link::before {
+    content: '↻';
+    font-size: 18px;
+    line-height: 1;
+  }
+}
+
+@media print {
+  .header-refresh-link { display: none !important; }
+}

@@ -156,15 +156,20 @@ function pickCacheControl(pathname) {
   if (pathname.endsWith('.html') || pathname === '/' || pathname === '') {
     return 'no-cache, must-revalidate';
   }
-  // JSON data — short cache + revalidate
+  // v3.10 — JS / CSS / JSON / data files now use no-cache too, so the browser
+  // sends a conditional request on every reload. With Cloudflare's edge cache
+  // still in front (returning 304 Not Modified for unchanged assets), the cost
+  // is a tiny header-only response per file. The benefit: code pushes reach
+  // every browser on the very next reload, no waiting for cache to expire.
+  // Images get a longer cache since they rarely change.
   if (pathname.endsWith('.json')) {
-    return 'public, max-age=300, must-revalidate';
+    return 'no-cache, must-revalidate';
   }
-  // JS / CSS / images — short browser cache; the service worker is the
-  // primary cache layer and it's invalidated on each release.
-  if (/\.(js|css|png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(pathname)) {
-    return 'public, max-age=300';
+  if (/\.(js|css)$/i.test(pathname)) {
+    return 'no-cache, must-revalidate';
+  }
+  if (/\.(png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(pathname)) {
+    return 'public, max-age=86400'; // 1 day for images/fonts
   }
   return null; // no override — let Cloudflare's default apply
 }
-
