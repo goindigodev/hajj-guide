@@ -942,16 +942,78 @@ hr.rule {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   text-align: center;
-  font-size: 14px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-  margin: var(--space-3) auto 0;
+  /* v3.12 — More readable: bigger, darker, more line-height. Previous
+     14px / --ink-soft was too pale on the cream card — easy to miss. */
+  font-size: 16px;
+  color: var(--ink);
+  opacity: 0.78;
+  line-height: 1.6;
+  margin: var(--space-4) auto 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
   max-width: 560px;
 }
 .journey-hero__caption em {
   color: var(--ink);
+  opacity: 1;
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* v3.12 — Refreshed SVG-internal text classes for the new graphic.
+   Bigger, darker, more breathing room. */
+.jh-title-v2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  fill: #1a1d1a;
+  letter-spacing: 0.01em;
+}
+.jh-subtitle-v2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  fill: #8a8d85;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.jh-region-v2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  fill: #1a1d1a;
+}
+.jh-pin-v2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  fill: #2d322d;
+}
+.jh-pin-sub-v2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  fill: #6e716a;
+}
+.jh-path-label-v2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 14px;
   font-style: italic;
   font-weight: 500;
+  fill: #8c6f33;
+}
+.jh-path-sublabel-v2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-style: italic;
+  fill: #b8954a;
+  letter-spacing: 0.04em;
+}
+.jh-day-v2 text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 600;
+  fill: #a85d3c;
 }
 
 /* SVG-internal text classes used by renderJourneyMapHero() */

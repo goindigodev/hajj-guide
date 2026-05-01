@@ -676,129 +676,167 @@
 
       const host = el('div', { class: 'journey-hero' });
 
-      // The SVG itself, hand-tuned so the geography reads as map-like
-      // (Madinah top-right, Makkah cluster bottom-left, Hajj sites east).
-      // viewBox is fixed; the host scales responsively.
+      // v3.12 — Refreshed graphic.
+      // - Title "Your Journey" (no "from X to Y" — that's now data-driven
+      //   in the journey-strip pills above this card)
+      // - Larger pins with stronger silhouettes
+      // - No baked-in "Days N–M" subtitles (those would go stale; the
+      //   journey strip handles that)
+      // - No legend (visual is self-explanatory; legend was crowding)
+      // - Hajj day medallions (8 · 9 · 10) preserved — they tie to
+      //   immovable Hajj rites, not user dates
       host.innerHTML = `
         <div class="journey-hero__inner">
-          <svg viewBox="0 0 680 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the Hajj journey from Madinah to Makkah and the holy sites">
+          <svg viewBox="0 0 680 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the Hajj journey from Madinah to Makkah and the holy sites">
             <defs>
-              <pattern id="hd-dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
-                <circle cx="7" cy="7" r="0.4" fill="#d8cfb8"/>
+              <pattern id="hd-dots-v2" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                <circle cx="8" cy="8" r="0.5" fill="#d8cfb8" opacity="0.6"/>
               </pattern>
+              <linearGradient id="hd-fade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fdfbf6" stop-opacity="0"/>
+                <stop offset="1" stop-color="#fdfbf6" stop-opacity="0.85"/>
+              </linearGradient>
+              <!-- Reusable pin shadow for soft elevation -->
+              <filter id="hd-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#1a1d1a" flood-opacity="0.10"/>
+              </filter>
             </defs>
-            <rect x="0" y="0" width="680" height="460" fill="url(#hd-dots)" opacity="0.5"/>
-            <text x="32" y="34" class="jh-title">From Madinah to Makkah · your journey</text>
-            <line x1="32" y1="42" x2="200" y2="42" stroke="#b8954a" stroke-width="0.5"/>
 
-            <!-- Madinah cluster -->
-            <circle cx="540" cy="100" r="60" fill="#4a5d4a" opacity="0.05"/>
-            <text x="540" y="50" class="jh-region" text-anchor="middle">Madinah</text>
-            <text x="540" y="65" class="jh-region-sub" text-anchor="middle">DAYS 1–4</text>
-            <g transform="translate(540, 105)">
-              <circle r="14" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
-              <path d="M -7 4 L -7 -2 Q -7 -8 -3 -9 Q 0 -11 3 -9 Q 7 -8 7 -2 L 7 4 Z" fill="#2f3d2f"/>
-              <circle cx="0" cy="-12" r="1.2" fill="#b8954a"/>
+            <!-- Subtle background texture, fading to bottom -->
+            <rect x="0" y="0" width="680" height="420" fill="url(#hd-dots-v2)"/>
+            <rect x="0" y="320" width="680" height="100" fill="url(#hd-fade)"/>
+
+            <!-- Title -->
+            <text x="340" y="42" class="jh-title-v2" text-anchor="middle">Your Journey</text>
+            <text x="340" y="62" class="jh-subtitle-v2" text-anchor="middle">Madinah · Makkah · the holy sites</text>
+
+            <!-- ── Madinah cluster (top-right) ─────────────── -->
+            <circle cx="540" cy="140" r="68" fill="#4a5d4a" opacity="0.05"/>
+            <circle cx="540" cy="140" r="48" fill="#4a5d4a" opacity="0.04"/>
+
+            <!-- Pin: Masjid an-Nabawi (green-domed mosque silhouette) -->
+            <g transform="translate(540, 140)" filter="url(#hd-shadow)">
+              <circle r="22" fill="#fdfbf6" stroke="#2f3d2f" stroke-width="1.5"/>
+              <!-- Dome -->
+              <path d="M -10 6 Q -10 -6 0 -10 Q 10 -6 10 6 Z" fill="#3d5141"/>
+              <!-- Spire on top of dome -->
+              <line x1="0" y1="-10" x2="0" y2="-14" stroke="#b8954a" stroke-width="1.2" stroke-linecap="round"/>
+              <circle cx="0" cy="-15" r="1.4" fill="#b8954a"/>
+              <!-- Base line -->
+              <line x1="-12" y1="6" x2="12" y2="6" stroke="#3d5141" stroke-width="1"/>
             </g>
-            <text x="540" y="138" class="jh-pin-sub" text-anchor="middle">Masjid an-Nabawi</text>
+            <text x="540" y="92" class="jh-region-v2" text-anchor="middle">Madinah</text>
+            <text x="540" y="184" class="jh-pin-v2" text-anchor="middle">Masjid an-Nabawi</text>
 
-            <!-- Travel path Madinah → Makkah -->
-            <path d="M 510 130 Q 380 230 240 240" fill="none" stroke="#b8954a" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>
-            <text x="380" y="200" class="jh-path-label" text-anchor="middle">~440 km · Day 5</text>
+            <!-- Travel path: Madinah → Makkah -->
+            <path d="M 502 162 Q 380 250 222 250" fill="none" stroke="#b8954a" stroke-width="1.4" stroke-dasharray="4 5" stroke-linecap="round" opacity="0.7"/>
+            <!-- Path label, positioned above the curve to avoid colliding with Jamarat marker -->
+            <text x="430" y="195" class="jh-path-label-v2" text-anchor="middle">~440 km</text>
+            <text x="430" y="208" class="jh-path-sublabel-v2" text-anchor="middle">via Bir Ali · miqat</text>
 
-            <!-- Makkah cluster -->
-            <circle cx="180" cy="280" r="120" fill="#4a5d4a" opacity="0.04"/>
-            <text x="80" y="220" class="jh-region">Makkah</text>
-            <text x="80" y="234" class="jh-region-sub">DAYS 5–14</text>
+            <!-- ── Makkah cluster (bottom-left) ─────────────── -->
+            <circle cx="180" cy="280" r="78" fill="#4a5d4a" opacity="0.06"/>
+            <circle cx="180" cy="280" r="58" fill="#4a5d4a" opacity="0.04"/>
 
-            <g transform="translate(180, 280)">
-              <circle r="18" fill="#fff" stroke="#2f3d2f" stroke-width="1.5"/>
-              <rect x="-7" y="-7" width="14" height="14" fill="#1a1d1a"/>
-              <line x1="-7" y1="-2" x2="7" y2="-2" stroke="#b8954a" stroke-width="1"/>
+            <!-- Pin: Masjid al-Haram (Ka'bah silhouette) -->
+            <g transform="translate(180, 280)" filter="url(#hd-shadow)">
+              <circle r="26" fill="#fdfbf6" stroke="#2f3d2f" stroke-width="1.8"/>
+              <!-- Ka'bah cube -->
+              <rect x="-10" y="-10" width="20" height="20" fill="#1a1d1a" rx="0.5"/>
+              <!-- Kiswah gold band -->
+              <line x1="-10" y1="-3" x2="10" y2="-3" stroke="#b8954a" stroke-width="1.3"/>
+              <!-- Door hint -->
+              <rect x="-1" y="-1" width="2" height="6" fill="#b8954a"/>
             </g>
-            <text x="180" y="322" class="jh-pin" text-anchor="middle">Masjid al-Haram</text>
-            <text x="180" y="336" class="jh-pin-sub" text-anchor="middle">Day 5: Umrah · Day 13: Wada</text>
+            <text x="180" y="232" class="jh-region-v2" text-anchor="middle">Makkah</text>
+            <text x="180" y="328" class="jh-pin-v2" text-anchor="middle">Masjid al-Haram</text>
 
-            <g transform="translate(290, 250)" class="${minaClass}">
-              <circle r="11" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
-              <path d="M -5 4 L 0 -5 L 5 4 Z" fill="#2f3d2f"/>
-              <line x1="-5" y1="4" x2="5" y2="4" stroke="#2f3d2f" stroke-width="0.5"/>
+            <!-- ── Mina (tents) ─────────────── -->
+            <g transform="translate(290, 250)" class="${minaClass}" filter="url(#hd-shadow)">
+              <circle r="15" fill="#fdfbf6" stroke="#2f3d2f" stroke-width="1.2"/>
+              <!-- Three tent peaks -->
+              <path d="M -8 5 L -5 -3 L -2 5 Z" fill="#3d5141"/>
+              <path d="M -2 5 L 1 -5 L 4 5 Z" fill="#2f3d2f"/>
+              <path d="M 4 5 L 7 -2 L 10 5 Z" fill="#3d5141"/>
+              <!-- Ground line -->
+              <line x1="-9" y1="5" x2="11" y2="5" stroke="#3d5141" stroke-width="0.7"/>
             </g>
-            <text x="290" y="232" class="jh-pin ${minaClass}" text-anchor="middle">Mina</text>
-            <text x="290" y="280" class="jh-pin-sub ${minaClass}" text-anchor="middle">Days 8 · 10 · 11 · 12</text>
+            <text x="290" y="225" class="jh-pin-v2 ${minaClass}" text-anchor="middle">Mina</text>
+            <text x="290" y="284" class="jh-pin-sub-v2 ${minaClass}" text-anchor="middle">tent city</text>
 
             ${showAziziyah ? `
-            <!-- Aziziyah — residential district between Makkah and Mina, used for shifting packages -->
-            <g transform="translate(232, 218)" class="jh-aziziyah-marker ${aziziyahClass}">
-              <circle r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1.2"/>
-              <!-- Building silhouette to differentiate from Mina's tent -->
-              <rect x="-4" y="-4" width="8" height="8" fill="#a85d3c"/>
-              <rect x="-3" y="-2" width="1" height="1" fill="#fdfbf6"/>
-              <rect x="-1" y="-2" width="1" height="1" fill="#fdfbf6"/>
-              <rect x="1" y="-2" width="1" height="1" fill="#fdfbf6"/>
-              <rect x="-3" y="0" width="1" height="1" fill="#fdfbf6"/>
-              <rect x="-1" y="0" width="1" height="1" fill="#fdfbf6"/>
-              <rect x="1" y="0" width="1" height="1" fill="#fdfbf6"/>
+            <!-- Aziziyah — residential district between Makkah and Mina -->
+            <g transform="translate(232, 218)" class="jh-aziziyah-marker ${aziziyahClass}" filter="url(#hd-shadow)">
+              <circle r="11" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1.4"/>
+              <!-- Building silhouette -->
+              <rect x="-5" y="-5" width="10" height="10" fill="#a85d3c" rx="0.5"/>
+              <rect x="-3.5" y="-3" width="1.2" height="1.2" fill="#fdfbf6"/>
+              <rect x="-1.2" y="-3" width="1.2" height="1.2" fill="#fdfbf6"/>
+              <rect x="1" y="-3" width="1.2" height="1.2" fill="#fdfbf6"/>
+              <rect x="-3.5" y="0" width="1.2" height="1.2" fill="#fdfbf6"/>
+              <rect x="-1.2" y="0" width="1.2" height="1.2" fill="#fdfbf6"/>
+              <rect x="1" y="0" width="1.2" height="1.2" fill="#fdfbf6"/>
             </g>
-            <text x="232" y="200" class="jh-pin jh-pin-aziziyah" text-anchor="middle">Aziziyah</text>
-            <text x="232" y="240" class="jh-pin-sub" text-anchor="middle" font-style="italic">your camp</text>
+            <text x="232" y="200" class="jh-pin-v2 jh-pin-aziziyah" text-anchor="middle">Aziziyah</text>
+            <text x="232" y="240" class="jh-pin-sub-v2" text-anchor="middle">your camp</text>
             ` : ''}
 
-            <g transform="translate(380, 290)">
-              <circle r="9" fill="#fff" stroke="#2f3d2f" stroke-width="1"/>
-              <circle cx="-3" cy="0" r="1" fill="#2f3d2f"/>
-              <circle cx="0" cy="0" r="1" fill="#2f3d2f"/>
-              <circle cx="3" cy="0" r="1" fill="#2f3d2f"/>
+            <!-- ── Muzdalifah (open plain, dots = pebbles) ─── -->
+            <g transform="translate(380, 290)" filter="url(#hd-shadow)">
+              <circle r="13" fill="#fdfbf6" stroke="#2f3d2f" stroke-width="1.2"/>
+              <!-- Pebbles to collect -->
+              <circle cx="-4" cy="0" r="1.4" fill="#2f3d2f"/>
+              <circle cx="0" cy="-1" r="1.4" fill="#2f3d2f"/>
+              <circle cx="4" cy="1" r="1.4" fill="#2f3d2f"/>
+              <circle cx="-2" cy="3" r="1.2" fill="#2f3d2f"/>
+              <circle cx="3" cy="-3" r="1.2" fill="#2f3d2f"/>
             </g>
-            <text x="380" y="313" class="jh-pin" text-anchor="middle">Muzdalifah</text>
-            <text x="380" y="325" class="jh-pin-sub" text-anchor="middle">Night of 9th</text>
+            <text x="380" y="318" class="jh-pin-v2" text-anchor="middle">Muzdalifah</text>
+            <text x="380" y="332" class="jh-pin-sub-v2" text-anchor="middle">night of 9th</text>
 
-            <g transform="translate(490, 320)">
-              <circle r="13" fill="#fff" stroke="#2f3d2f" stroke-width="1.5"/>
-              <path d="M -7 4 L -3 -4 L 0 -2 L 3 -5 L 7 4 Z" fill="#2f3d2f"/>
+            <!-- ── Arafah (mountain) ─────────────── -->
+            <g transform="translate(490, 320)" filter="url(#hd-shadow)">
+              <circle r="17" fill="#fdfbf6" stroke="#2f3d2f" stroke-width="1.5"/>
+              <!-- Mountain peaks -->
+              <path d="M -9 5 L -4 -5 L 0 -1 L 4 -7 L 9 5 Z" fill="#3d5141"/>
+              <!-- Sun above -->
+              <circle cx="0" cy="-9" r="1.4" fill="#b8954a"/>
             </g>
-            <text x="490" y="345" class="jh-pin" text-anchor="middle">Arafah</text>
-            <text x="490" y="358" class="jh-pin-sub" text-anchor="middle">Day 9 · Wuquf</text>
+            <text x="490" y="350" class="jh-pin-v2" text-anchor="middle">Arafah</text>
+            <text x="490" y="364" class="jh-pin-sub-v2" text-anchor="middle">Wuquf · 9th</text>
 
+            <!-- Jamarat marker (small, between Mina and Aziziyah) -->
             <g transform="translate(310, 234)">
-              <circle r="6" fill="#b8954a"/>
-              <circle r="3" fill="#fff"/>
+              <circle r="7" fill="#b8954a" filter="url(#hd-shadow)"/>
+              <circle r="3.5" fill="#fdfbf6"/>
+              <circle r="1.5" fill="#a85d3c"/>
             </g>
-            <text x="335" y="225" class="jh-pin-sub" font-style="italic">Jamarat</text>
+            <text x="320" y="252" class="jh-pin-sub-v2" font-style="italic">Jamarat</text>
 
-            <!-- Hajj day path -->
-            <path d="M 200 270 Q 250 258 280 252" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M 300 250 Q 380 270 478 318" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M 478 318 Q 430 305 388 292" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2"/>
-            <path d="M 372 286 Q 340 268 300 252" fill="none" stroke="#a85d3c" stroke-width="1.2" stroke-linecap="round"/>
-            <path d="M 280 250 Q 230 260 198 268" fill="none" stroke="#a85d3c" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="1 3" opacity="0.6"/>
+            <!-- ── Hajj ritual path ──────────────── -->
+            <!-- Day 8: Makkah → Mina -->
+            <path d="M 200 268 Q 240 260 275 252" fill="none" stroke="#a85d3c" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- Day 9: Mina → Arafah -->
+            <path d="M 305 250 Q 380 270 478 318" fill="none" stroke="#a85d3c" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- Night of 9th: Arafah → Muzdalifah -->
+            <path d="M 478 318 Q 430 305 388 292" fill="none" stroke="#a85d3c" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2 3"/>
+            <!-- Day 10: Muzdalifah → Mina (rami) → Makkah (tawaf) -->
+            <path d="M 372 286 Q 340 268 305 252" fill="none" stroke="#a85d3c" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M 275 252 Q 230 260 200 268" fill="none" stroke="#a85d3c" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 4" opacity="0.65"/>
 
-            <!-- Day-number medallions along the ritual path -->
-            <g class="jh-day">
-              <circle cx="248" cy="262" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
-              <text x="248" y="266" text-anchor="middle">8</text>
-              <circle cx="395" cy="288" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
+            <!-- Day-number medallions on the ritual path -->
+            <g class="jh-day-v2">
+              <circle cx="240" cy="262" r="11" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1"/>
+              <text x="240" y="266" text-anchor="middle">8</text>
+              <circle cx="395" cy="288" r="11" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1"/>
               <text x="395" y="292" text-anchor="middle">9</text>
-              <circle cx="335" cy="280" r="9" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
-              <text x="335" y="284" text-anchor="middle">10</text>
-            </g>
-
-            <!-- Legend -->
-            <g transform="translate(32, 400)">
-              <text class="jh-legend-title">LEGEND</text>
-              <line x1="0" y1="14" x2="200" y2="14" stroke="#ede4d3" stroke-width="0.5"/>
-              <line x1="0" y1="28" x2="20" y2="28" stroke="#b8954a" stroke-width="1" stroke-dasharray="3 4"/>
-              <text x="26" y="32" class="jh-legend">Inter-city travel</text>
-              <line x1="0" y1="44" x2="20" y2="44" stroke="#a85d3c" stroke-width="1.2"/>
-              <text x="26" y="48" class="jh-legend">Hajj rituals path</text>
-              <circle cx="220" cy="28" r="6" fill="#fdfbf6" stroke="#a85d3c" stroke-width="0.8"/>
-              <text x="220" y="31" class="jh-legend-day" text-anchor="middle">9</text>
-              <text x="232" y="32" class="jh-legend">Day of Dhul Hijjah</text>
+              <circle cx="335" cy="278" r="11" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1"/>
+              <text x="335" y="282" text-anchor="middle">10</text>
             </g>
           </svg>
         </div>
         <p class="journey-hero__caption">
-          From <em>${this.escapeHtmlSafe(madinahHotelName)}</em> to <em>${this.escapeHtmlSafe(makkahHotelName)}</em>, with the five days of Hajj at the eastern sites. Geography is stylised — the real Mina is just minutes from the Haram by foot.
+          From <em>${this.escapeHtmlSafe(madinahHotelName)}</em> to <em>${this.escapeHtmlSafe(makkahHotelName)}</em>, with the five days of Hajj at the eastern sites. Geography is stylised — Mina is in fact just minutes from the Haram by foot.
         </p>
       `;
       return host;
@@ -1703,7 +1741,7 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · v3.11'));
+      }, 'Hajj Guide · v3.12'));
 
       return wrap;
     },
