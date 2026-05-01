@@ -234,4 +234,20 @@
   } else {
     boot();
   }
+
+  // v3.11 — Handle the back-forward cache (bfcache).
+  //
+  // When the user navigates from app.html → index.html (Edit setup) → back to
+  // app.html via the wizard's redirect, Chrome/Safari may serve a cached
+  // version of the original app.html page state without re-running boot().
+  // That would leave Guide showing the OLD config in memory while
+  // localStorage has the user's new dates.
+  //
+  // The pageshow event fires whenever the page is displayed, including
+  // bfcache restores. We detect bfcache by checking event.persisted.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted && window.Guide && Guide.refresh) {
+      Guide.refresh();
+    }
+  });
 })();

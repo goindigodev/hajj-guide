@@ -329,12 +329,51 @@
       const row2 = el('div', { class: 'input-row' });
       row2.appendChild(this.buildField('Date', 'date', '', flight.date, v => {
         this.config[cfgKey].date = v;
+        // v3.11 — Auto-fill arrivalDate to date+1 if user hasn't set it explicitly,
+        // since most flights from Europe to KSA are overnight. User can override.
+        if (isOutbound && (!this.config[cfgKey].arrivalDate || this.config[cfgKey]._arrivalAutoFilled)) {
+          if (v) {
+            const d = new Date(v + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            this.config[cfgKey].arrivalDate = d.toISOString().slice(0, 10);
+            this.config[cfgKey]._arrivalAutoFilled = true;
+            // Re-render the flight section so the new arrivalDate shows in its field
+            this.render();
+          }
+        }
         this._updateFlightDateWarning();
       }));
       row2.appendChild(this.buildField('Time', 'time', '', flight.time, v => {
         this.config[cfgKey].time = v;
       }));
       block.appendChild(row2);
+
+      // ── v3.11 — Arrival date in Saudi Arabia (outbound only, non-byRoad).
+      //    The trip's "Day 1" is anchored to this date, not the flight
+      //    departure date, since most pilgrims fly overnight and land
+      //    the day after departure. Defaults to date+1; user can adjust.
+      if (isOutbound && !byRoad) {
+        const arrivalRow = el('div', { class: 'input-row' });
+        arrivalRow.appendChild(this.buildField(
+          'Arrival date in Saudi Arabia',
+          'date',
+          '',
+          flight.arrivalDate || '',
+          v => {
+            this.config[cfgKey].arrivalDate = v;
+            this.config[cfgKey]._arrivalAutoFilled = false;
+          }
+        ));
+        // Hint
+        arrivalRow.appendChild(el('div', { class: 'field' },
+          el('label', { class: 'field__label' }, ' '),
+          el('p', {
+            class: 'field__hint',
+            style: { fontSize: '12px', color: 'var(--ink-mute)', margin: '4px 0 0', fontStyle: 'italic' },
+          }, 'When you actually land in Madinah/Jeddah. Day 1 of your trip starts here.')
+        ));
+        block.appendChild(arrivalRow);
+      }
 
       // ── Arrival / Home airport (hidden when byRoad) ─
       if (!byRoad) {
