@@ -811,7 +811,46 @@
      * the user scrolls.
      */
     renderJourneyStrip() {
-      const stops = [
+      // v3.11 — Compute strip segments from the actual itinerary days,
+      // not hardcoded labels. Each segment groups consecutive days that
+      // map to the same stop type. Sub-label shows the trip-day range.
+      //
+      // Pre/post-Hajj distinction: classifyDayLocation returns 'makkah'
+      // for all Makkah days; this pass promotes Makkah days that come
+      // AFTER any Hajj day to 'makkah-post'.
+      const days = this.buildItineraryDays();
+      const segs = [];
+      let current = null;
+      let pastHajj = false;
+
+      days.forEach((day, idx) => {
+        let stopId = this.classifyDayLocation(day);
+        if (!stopId) return;
+        if (stopId === 'hajj') pastHajj = true;
+        // Promote 'makkah' to 'makkah-post' if we've already been through Hajj
+        if (stopId === 'makkah' && pastHajj) stopId = 'makkah-post';
+        const tripDay = idx + 1;
+        if (!current || current.id !== stopId) {
+          if (current) segs.push(current);
+          current = {
+            id: stopId,
+            label: this._stopLabel(stopId),
+            firstDay: tripDay,
+            lastDay: tripDay,
+          };
+        } else {
+          current.lastDay = tripDay;
+        }
+      });
+      if (current) segs.push(current);
+
+      // If no segments could be derived (e.g. user has no flights/hotels and
+      // we're showing the default itinerary), fall back to the static labels.
+      const stops = segs.length ? segs.map(s => ({
+        id: s.id,
+        label: s.label,
+        sub: s.firstDay === s.lastDay ? `Day ${s.firstDay}` : `Days ${s.firstDay}–${s.lastDay}`,
+      })) : [
         { id: 'madinah',     label: 'Madinah',    sub: 'Days 1–4' },
         { id: 'makkah',      label: 'Makkah',     sub: 'Day 5' },
         { id: 'hajj',        label: '5 Days',     sub: 'Mina · Arafah · Muzdalifah' },
@@ -843,25 +882,63 @@
     },
 
     /**
+     * v3.11 — Get the display label for a stop type ID.
+     */
+    _stopLabel(id) {
+      switch (id) {
+        case 'madinah':     return 'Madinah';
+        case 'makkah':      return 'Makkah';
+        case 'hajj':        return '5 Days';
+        case 'makkah-post': return 'Makkah';
+        default:            return '';
+      }
+    },
+
+    /**
      * Map a day object to one of the strip's stops. Reads the day's
      * dateLabel/title/location to figure out which segment of the trip
      * it belongs to. Returns null if a day shouldn't trigger highlighting
      * (e.g. flight days).
+     *
+     * v3.11 — Updated regexes for the new "Day N · …" title format.
      */
     classifyDayLocation(day) {
       if (!day) return null;
       const t = (day.title || '').toLowerCase();
       const loc = (day.location || '').toLowerCase();
 
-      // Hajj days share the "5 Days" segment — keyed off Hijri label
+      // Hajj days share the "5 Days" segment — keyed off Hijri label.
+      // (v3.11 titles include "Day N · K Dhul Hijjah · …".)
       if (/dhul hijjah|tarwiyah|arafah|nahr|tashreeq/i.test(t)) return 'hajj';
       if (loc.includes('mina') || loc.includes('arafah') || loc.includes('muzdalifah')) return 'hajj';
 
-      if (t.startsWith('arrive in madinah') || t.startsWith('in madinah')) return 'madinah';
-      if (t.includes('travel to makkah') || t.startsWith('umrah')) return 'makkah';
-      if (t.startsWith('rest in makkah')) return 'makkah';
-      if (t.startsWith('recovery in makkah') || t.startsWith('in makkah') ||
-          t.includes('tawaf al-wada')) return 'makkah-post';
+      // Madinah: "Day N · Arrive in Madinah" or "Day N · In Madinah · …".
+      // Last-day-in-Madinah handover is also a Madinah day (Travel to Makkah
+      // happens at end of day, last meal is in Madinah).
+      if (/arrive in madinah|in madinah/.test(t)) return 'madinah';
+      if (/last day in madinah/.test(t)) return 'madinah';
+
+      // Going-to-Makkah moment: travel-to-Makkah card (with Umrah). Counts
+      // as the start of the Makkah leg.
+      if (/travel to makkah|arrive in makkah/.test(t)) return 'makkah';
+
+      // Makkah-first handover (last Makkah day, includes Wada): Madinah leg.
+      if (/last day in makkah/.test(t)) return 'makkah-post';
+
+      // Pre-Hajj Makkah days
+      if (/in makkah|rest in makkah/.test(t)) {
+        // If a Hajj day has already appeared in this itinerary, this is post-Hajj.
+        // We can't easily tell here — punt: pre-Hajj or post-Hajj both go to "makkah" /
+        // "makkah-post" via the segment grouping, which sorts by adjacency. We
+        // return 'makkah' here; the segment compactor handles ordering naturally.
+        return 'makkah';
+      }
+
+      // Tawaf al-Wada is the close of the Makkah leg
+      if (/tawaf al-wada/.test(t)) return 'makkah-post';
+
+      // Recovery is post-Hajj Makkah
+      if (/recovery in makkah/.test(t)) return 'makkah-post';
 
       // Departure / Return don't get highlighted in the strip
       return null;
