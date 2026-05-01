@@ -108,6 +108,62 @@ export default {
     if (url.pathname === '/api/like')     return handleLike(request, env);
     if (url.pathname === '/api/share')    return handleShare(request, env);
 
-    return env.ASSETS.fetch(request);
+    // v3.6 — Pass to static asset handler, then add cache-control headers
+    // appropriate for the file type so updates propagate to users promptly.
+    const assetResponse = await env.ASSETS.fetch(request);
+
+    // Don't add headers to redirects or error responses
+    if (!assetResponse.ok && assetResponse.status !== 304) {
+      return assetResponse;
+    }
+
+    const cacheControl = pickCacheControl(url.pathname);
+    if (!cacheControl) return assetResponse;
+
+    // Clone the response so we can modify headers (Response is immutable by default)
+    const headers = new Headers(assetResponse.headers);
+    headers.set('Cache-Control', cacheControl);
+    return new Response(assetResponse.body, {
+      status: assetResponse.status,
+      statusText: assetResponse.statusText,
+      headers,
+    });
   },
 };
+
+/**
+ * v3.6 — Pick the right Cache-Control header for a given asset.
+ *
+ * - `sw.js`           : no-cache. The browser revalidates on every load
+ *                       so SW updates are detected immediately.
+ * - HTML              : no-cache. Always send a conditional request so
+ *                       the user gets the latest page shell. The SW also
+ *                       does network-first for HTML, so this aligns.
+ * - JSON data files   : short max-age (5 min) + must-revalidate. Updates
+ *                       to duas/rulings propagate within a few minutes,
+ *                       even past the SW's network-first behaviour.
+ * - JS/CSS/images     : 5-min cache for repeat-visit speed; the SW handles
+ *                       offline access. When code changes, the SW's
+ *                       cache-bump (BUILD_VERSION) forces re-download.
+ * - Other (icons, manifest): same 5-min default.
+ */
+function pickCacheControl(pathname) {
+  // Service worker file — must always be revalidated
+  if (pathname === '/js/sw.js') {
+    return 'no-cache, no-store, must-revalidate';
+  }
+  // HTML files — always revalidate so updated wrappers reach users
+  if (pathname.endsWith('.html') || pathname === '/' || pathname === '') {
+    return 'no-cache, must-revalidate';
+  }
+  // JSON data — short cache + revalidate
+  if (pathname.endsWith('.json')) {
+    return 'public, max-age=300, must-revalidate';
+  }
+  // JS / CSS / images — short browser cache; the service worker is the
+  // primary cache layer and it's invalidated on each release.
+  if (/\.(js|css|png|jpg|jpeg|webp|svg|ico|woff2?)$/i.test(pathname)) {
+    return 'public, max-age=300';
+  }
+  return null; // no override — let Cloudflare's default apply
+}
