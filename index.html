@@ -41,10 +41,34 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "Organization",
+      "@id": "https://hajjguide.net/#organization",
+      "name": "Hajj Guide",
+      "url": "https://hajjguide.net/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://hajjguide.net/icons/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "description": "A free, non-commercial Hajj companion for Muslim pilgrims, built and maintained as sadaqah jariyah."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://hajjguide.net/#website",
+      "url": "https://hajjguide.net/",
+      "name": "Hajj Guide",
+      "description": "Free personalised Hajj companion: day-by-day itinerary, duas, rulings by madhab, packing checklist.",
+      "publisher": { "@id": "https://hajjguide.net/#organization" },
+      "inLanguage": "en"
+    },
+    {
       "@type": "WebApplication",
       "@id": "https://hajjguide.net/#webapp",
       "name": "Hajj Guide",
       "url": "https://hajjguide.net/",
+      "publisher": { "@id": "https://hajjguide.net/#organization" },
+      "isPartOf": { "@id": "https://hajjguide.net/#website" },
       "description": "A free, personalised Hajj companion built around your flight dates and madhab. Day-by-day itinerary, duas with audio, rulings, packing checklist, journal, printable emergency card. Works offline.",
       "applicationCategory": "TravelApplication",
       "operatingSystem": "Any",
@@ -191,7 +215,7 @@
     <!-- Pre-onboarding intro (hidden once user clicks Begin) -->
     <section id="intro" class="intro">
       <div class="intro__inner">
-        <span class="eyebrow">A planning aid for the pilgrim</span>
+        <span class="eyebrow">Hajj Guide · A planning aid for the pilgrim</span>
         <h1 class="display-1">A companion<br><em>for the journey of a lifetime.</em></h1>
         <p class="lead">
           A personalised guide to your Hajj — built around your dates, your flights, your madhab, your accommodation. Comprehensive duas with audio, day-by-day itinerary, packing checklist and notes. Everything works offline once loaded.

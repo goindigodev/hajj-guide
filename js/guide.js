@@ -1765,7 +1765,7 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · v3.15'));
+      }, 'Hajj Guide · v3.16'));
 
       return wrap;
     },
