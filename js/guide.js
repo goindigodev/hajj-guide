@@ -1765,7 +1765,7 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · v3.13'));
+      }, 'Hajj Guide · v3.14'));
 
       return wrap;
     },
@@ -2388,6 +2388,15 @@
       const card = el('div', { class: 'dua-card' });
       const head = el('div', { class: 'dua-card__header' });
       head.appendChild(el('h3', { class: 'dua-card__title' }, dua.title));
+
+      // v3.14 — Audio playback button. Appears only when this dua has an
+      // audioUrl set in data/duas.json. The DuaAudio module returns null
+      // if there's no audio, so we can append unconditionally.
+      if (window.DuaAudio) {
+        const audioBtn = DuaAudio.createButton(dua);
+        if (audioBtn) head.appendChild(audioBtn);
+      }
+
       card.appendChild(head);
 
       if (dua.context) {

@@ -1,218 +1,195 @@
-/* =============================================================
-   AUDIO — Player + per-file download for offline use
-   Uses Cache API to store downloaded audio files.
-   ============================================================= */
-
-(function (global) {
+/**
+ * Audio module — simple playback manager for dua audio clips.
+ *
+ * Design notes:
+ * - Single shared HTMLAudioElement (one instance, reused). Cheaper than
+ *   creating a new Audio() per dua and avoids overlapping playback.
+ * - Click-to-play only. No auto-play. Clicking another dua's button while
+ *   one is playing stops the first and starts the second.
+ * - Each rendered button registers itself so the module can update its
+ *   visual state (idle / loading / playing / paused / error) when playback
+ *   transitions on the underlying element.
+ * - No persistent state across page loads. Each session starts fresh.
+ *
+ * Usage from guide.js:
+ *
+ *   const btn = Audio.createButton(dua);  // returns a DOM element or null
+ *   if (btn) cardEl.appendChild(btn);
+ *
+ * The button element auto-cleans listeners when removed via DOM mutation.
+ */
+(function () {
   'use strict';
 
-  const CACHE_NAME = 'hajj-audio-v1';
-  const cacheAvailable = 'caches' in window;
+  // Capture the browser's native Audio constructor BEFORE we publish our
+  // own global, so our internal use of new Audio() doesn't recurse into
+  // our own module.
+  const NativeAudio = window.Audio;
 
-  const Audio = {
-    activePlayer: null,
+  // The single shared audio element used for all playback. Created lazily
+  // so we don't initialise audio infrastructure unless a dua actually
+  // tries to play.
+  let mediaEl = null;
 
-    /**
-     * Render a small player UI for a single dua.
-     */
-    renderPlayer(container, dua) {
-      container.innerHTML = '';
-      if (!dua.audioUrl) {
-        container.appendChild(Utils.el('span', { class: 'text-mute italic', style: { fontSize: '12px' } },
-          'Audio coming soon'
-        ));
-        return;
-      }
+  // The button currently driving playback. We track it so we can update
+  // its visual state when the audio element fires events.
+  let activeButton = null;
 
-      const wrap = Utils.el('div', { class: 'audio-controls' });
+  // Set of all known buttons, used to reset others when a new one starts.
+  const knownButtons = new WeakSet();
 
-      // Play button
-      const playBtn = Utils.el('button', {
-        class: 'btn btn--icon',
-        'aria-label': 'Play audio',
-        title: 'Play',
-      }, '▶');
+  function ensureMedia() {
+    if (mediaEl) return mediaEl;
+    // Use the browser's native Audio constructor (via window.Audio reference
+    // captured at module load, before we shadow it below).
+    mediaEl = new NativeAudio();
+    mediaEl.preload = 'none'; // Don't fetch until user clicks play
 
-      // Download button
-      const dlBtn = Utils.el('button', {
-        class: 'btn btn--icon',
-        'aria-label': 'Download for offline',
-        title: 'Download for offline',
-      });
-      this.updateDownloadIcon(dlBtn, dua.id);
+    // When playback ends naturally, reset the active button to idle.
+    mediaEl.addEventListener('ended', () => {
+      setButtonState(activeButton, 'idle');
+      activeButton = null;
+    });
 
-      // Audio element (hidden)
-      const audio = Utils.el('audio', { preload: 'none' });
-      const source = Utils.el('source', { src: dua.audioUrl, type: 'audio/mpeg' });
-      audio.appendChild(source);
+    // Handle network/decode errors with a visible state on the button.
+    mediaEl.addEventListener('error', () => {
+      setButtonState(activeButton, 'error');
+      activeButton = null;
+    });
 
-      // Play/pause logic
-      let playing = false;
-      playBtn.addEventListener('click', async () => {
-        if (this.activePlayer && this.activePlayer !== audio) {
-          this.activePlayer.pause();
-          this.activePlayer.currentTime = 0;
-        }
-        if (playing) {
-          audio.pause();
-          playing = false;
-          playBtn.textContent = '▶';
-        } else {
-          // Try cached version first
-          const cached = await this.getCachedUrl(dua.audioUrl);
-          if (cached) {
-            audio.src = cached;
-          }
-          try {
-            await audio.play();
-            playing = true;
-            playBtn.textContent = '❚❚';
-            this.activePlayer = audio;
-          } catch (e) {
-            Utils.toast('Could not play audio. Check your connection.', 'warn');
-          }
-        }
-      });
+    // While the file is being fetched, show a loading state. Once playback
+    // actually begins (the 'play' event), switch to playing.
+    mediaEl.addEventListener('waiting', () => setButtonState(activeButton, 'loading'));
+    mediaEl.addEventListener('play',     () => setButtonState(activeButton, 'playing'));
+    mediaEl.addEventListener('pause',    () => {
+      // Distinguish user pause (still active button) from end-of-stream
+      // (handled by 'ended' above). After 'pause', the user can press play
+      // again and resume.
+      if (activeButton) setButtonState(activeButton, 'paused');
+    });
 
-      audio.addEventListener('ended', () => {
-        playing = false;
-        playBtn.textContent = '▶';
-      });
+    return mediaEl;
+  }
 
-      // Download logic
-      dlBtn.addEventListener('click', async () => {
-        const isCached = await this.isCached(dua.audioUrl);
-        if (isCached) {
-          // Already cached — option to remove
-          if (confirm(`"${dua.title}" is already downloaded. Remove from offline cache?`)) {
-            await this.removeFromCache(dua.audioUrl);
-            this.updateDownloadIcon(dlBtn, dua.id);
-            Utils.toast('Removed from offline cache');
-          }
-          return;
-        }
-        dlBtn.disabled = true;
-        dlBtn.textContent = '⏳';
-        try {
-          await this.downloadOne(dua.audioUrl);
-          Store.markAudioDownloaded(dua.id);
-          this.updateDownloadIcon(dlBtn, dua.id);
-          Utils.toast('Saved for offline use');
-        } catch (e) {
-          Utils.toast('Download failed', 'warn');
-          this.updateDownloadIcon(dlBtn, dua.id);
-        } finally {
-          dlBtn.disabled = false;
-        }
-      });
+  /**
+   * Set a button's visual state. We use data-state on the element so CSS
+   * can style each state, plus a screen-reader label so the action is
+   * always meaningful.
+   */
+  function setButtonState(button, state) {
+    if (!button) return;
+    button.dataset.state = state;
+    const labels = {
+      idle:    'Play audio',
+      loading: 'Loading audio…',
+      playing: 'Pause audio',
+      paused:  'Resume audio',
+      error:   'Audio unavailable — tap to retry',
+    };
+    button.setAttribute('aria-label', labels[state] || 'Play audio');
+    button.title = labels[state] || 'Play audio';
+  }
 
-      wrap.appendChild(playBtn);
-      wrap.appendChild(dlBtn);
-      wrap.appendChild(audio);
-      container.appendChild(wrap);
-    },
-
-    async updateDownloadIcon(btn, duaId) {
-      const audioUrl = btn.dataset.url;
-      const cached = await this.isCachedById(duaId);
-      btn.textContent = cached ? '✓' : '⬇';
-      btn.style.color = cached ? 'var(--green-deep)' : '';
-    },
-
-    async isCached(url) {
-      if (!cacheAvailable) return false;
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        const match = await cache.match(url);
-        return !!match;
-      } catch (e) {
-        return false;
-      }
-    },
-
-    async isCachedById(duaId) {
-      // Check via Store flag — simpler than re-checking cache
-      return !!(Store.get().audioCache && Store.get().audioCache[duaId]);
-    },
-
-    async getCachedUrl(originalUrl) {
-      if (!cacheAvailable) return null;
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        const match = await cache.match(originalUrl);
-        if (match) {
-          const blob = await match.blob();
-          return URL.createObjectURL(blob);
-        }
-      } catch (e) {}
-      return null;
-    },
-
-    async downloadOne(url) {
-      if (!cacheAvailable) throw new Error('Cache API unavailable');
-      const cache = await caches.open(CACHE_NAME);
-      const res = await fetch(url, { mode: 'cors' });
-      if (!res.ok) throw new Error('Fetch failed');
-      await cache.put(url, res);
-    },
-
-    async removeFromCache(url) {
-      if (!cacheAvailable) return;
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        await cache.delete(url);
-      } catch (e) {}
-    },
-
-    /**
-     * Download all duas for offline use. Shows progress.
-     */
-    async downloadAll(duas, onProgress) {
-      if (!cacheAvailable) {
-        Utils.toast('Offline cache not supported on this browser', 'warn');
-        return;
-      }
-      const withAudio = duas.filter(d => d.audioUrl);
-      let done = 0;
-      const failures = [];
-      for (const dua of withAudio) {
-        try {
-          await this.downloadOne(dua.audioUrl);
-          Store.markAudioDownloaded(dua.id);
-        } catch (e) {
-          failures.push(dua.title);
-        }
-        done++;
-        if (onProgress) onProgress(done, withAudio.length);
-      }
-      if (failures.length === 0) {
-        Utils.toast(`All ${done} audio files saved offline`);
-      } else {
-        Utils.toast(`Saved ${done - failures.length} of ${withAudio.length} (some failed)`, 'warn');
-      }
-    },
-
-    async clearAll() {
-      if (!cacheAvailable) return;
-      try {
-        await caches.delete(CACHE_NAME);
-        const s = Store.get();
-        s.audioCache = {};
-        Store.set(s);
-        Utils.toast('Audio cache cleared');
-      } catch (e) {
-        Utils.toast('Failed to clear cache', 'warn');
-      }
-    },
-
-    async getCacheSize() {
-      if (!('storage' in navigator) || !navigator.storage.estimate) return null;
-      try {
-        const est = await navigator.storage.estimate();
-        return est.usage || 0;
-      } catch (e) { return null; }
+  /**
+   * Stop whatever is currently playing and clear the active button.
+   * Called when a new button is activated.
+   */
+  function stopActive() {
+    if (mediaEl) {
+      mediaEl.pause();
+      // Reset position so the next play() starts from the top.
+      try { mediaEl.currentTime = 0; } catch (e) { /* some sources don't support seek */ }
     }
-  };
+    if (activeButton) {
+      setButtonState(activeButton, 'idle');
+      activeButton = null;
+    }
+  }
 
-  global.AudioMod = Audio;
-})(window);
+  /**
+   * Toggle a button: if it's the active one, pause; otherwise start it.
+   */
+  function toggle(button, audioUrl) {
+    const m = ensureMedia();
+
+    // Same button as active → pause/resume in place.
+    if (activeButton === button) {
+      if (m.paused) {
+        m.play().catch(() => setButtonState(button, 'error'));
+      } else {
+        m.pause();
+      }
+      return;
+    }
+
+    // Different button (or none active) → stop current, switch source, play.
+    stopActive();
+    activeButton = button;
+    setButtonState(button, 'loading');
+
+    // Setting src triggers a fresh load. Some browsers ignore identical
+    // src reassignment, so we always set it explicitly here.
+    m.src = audioUrl;
+    m.play().catch(() => {
+      // Common causes: invalid URL, CORS rejection, codec unsupported,
+      // user gesture missing. We treat all as a generic error state and
+      // let the user retry by clicking again.
+      setButtonState(button, 'error');
+      activeButton = null;
+    });
+  }
+
+  /**
+   * Build a play-button element for a given dua. Returns null if the dua
+   * has no audioUrl (so callers can append unconditionally).
+   *
+   * The button is a small circular icon. State drives its appearance via
+   * data-state and CSS in styles.css (see .dua-audio-btn rules).
+   */
+  function createButton(dua) {
+    if (!dua || !dua.audioUrl) return null;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'dua-audio-btn';
+    setButtonState(button, 'idle');
+
+    // Inline SVG so the button has no external dependencies and can be
+    // restyled via currentColor.
+    button.innerHTML = `
+      <svg class="dua-audio-btn__play" width="14" height="14" viewBox="0 0 24 24"
+           fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      <svg class="dua-audio-btn__pause" width="14" height="14" viewBox="0 0 24 24"
+           fill="currentColor" aria-hidden="true">
+        <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+      </svg>
+      <span class="dua-audio-btn__spinner" aria-hidden="true"></span>
+    `;
+
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle(button, dua.audioUrl);
+    });
+
+    knownButtons.add(button);
+    return button;
+  }
+
+  /**
+   * Halt all playback. Useful when the user navigates away from a tab
+   * or closes a card containing audio.
+   */
+  function stopAll() {
+    stopActive();
+  }
+
+  // Publish under DuaAudio so we don't shadow the browser's built-in Audio
+  // constructor. Other modules read this as window.DuaAudio.createButton(...).
+  window.DuaAudio = {
+    createButton,
+    stopAll,
+  };
+})();

@@ -4775,3 +4775,96 @@ body.userguide-open {
 @media print {
   .itinerary-cta { display: none !important; }
 }
+
+/* =============================================================
+   v3.14 — DUA AUDIO BUTTON
+   Tiny circular play button shown inline next to a dua's
+   transliteration line, when the dua has audioUrl set in data.
+   States are driven by data-state= set by the DuaAudio module.
+   ============================================================= */
+
+.dua-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  /* Within .dua-card__header (align-items: flex-start), nudge the button
+     down a touch so its centre aligns with the title's text baseline. */
+  margin: 2px 0 0 8px;
+  vertical-align: middle;
+  flex: 0 0 auto;
+  background: var(--paper);
+  color: var(--green-deep);
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+  position: relative;
+}
+
+.dua-audio-btn:hover {
+  background: var(--green-deep);
+  color: var(--paper);
+  border-color: var(--green-deep);
+}
+.dua-audio-btn:active {
+  transform: scale(0.94);
+}
+.dua-audio-btn:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Show only the right SVG for the current state. The other is hidden. */
+.dua-audio-btn .dua-audio-btn__pause,
+.dua-audio-btn .dua-audio-btn__spinner {
+  display: none;
+}
+
+/* Playing → show pause icon, hide play */
+.dua-audio-btn[data-state="playing"] {
+  background: var(--green-deep);
+  color: var(--paper);
+  border-color: var(--green-deep);
+}
+.dua-audio-btn[data-state="playing"] .dua-audio-btn__play     { display: none; }
+.dua-audio-btn[data-state="playing"] .dua-audio-btn__pause    { display: inline-block; }
+
+/* Paused → also show pause-state visual but with original idle background */
+.dua-audio-btn[data-state="paused"] {
+  background: var(--paper);
+  color: var(--green-deep);
+}
+.dua-audio-btn[data-state="paused"] .dua-audio-btn__play   { display: inline-block; }
+.dua-audio-btn[data-state="paused"] .dua-audio-btn__pause  { display: none; }
+
+/* Loading → spinner, no play/pause icon */
+.dua-audio-btn[data-state="loading"] .dua-audio-btn__play    { display: none; }
+.dua-audio-btn[data-state="loading"] .dua-audio-btn__pause   { display: none; }
+.dua-audio-btn[data-state="loading"] .dua-audio-btn__spinner { display: inline-block; }
+
+.dua-audio-btn__spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.6px solid var(--rule);
+  border-top-color: var(--green-deep);
+  border-radius: 50%;
+  animation: duaAudioSpin 0.8s linear infinite;
+}
+
+@keyframes duaAudioSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error state — soft crimson hint, doesn't shout */
+.dua-audio-btn[data-state="error"] {
+  color: var(--crimson, #a85d3c);
+  border-color: var(--crimson, #a85d3c);
+  background: var(--paper);
+}
+
+@media print {
+  .dua-audio-btn { display: none !important; }
+}
