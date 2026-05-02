@@ -824,6 +824,30 @@
             <path d="M 372 286 Q 340 268 305 252" fill="none" stroke="#a85d3c" stroke-width="1.4" stroke-linecap="round"/>
             <path d="M 275 252 Q 230 260 200 268" fill="none" stroke="#a85d3c" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 4" opacity="0.65"/>
 
+            <!-- v3.13b — Distances panel. Lists the Hajj-rite walking distances
+                 in one consolidated reference, sitting in the empty top-left
+                 quadrant of the canvas where there are no pins or paths. The
+                 inter-city distance (~440 km, Madinah↔Makkah) stays inline on
+                 the curve since it's a different scale and shown only there. -->
+            <g class="jh-distances-panel">
+              <rect x="32" y="84" width="200" height="120" rx="6" ry="6"
+                    fill="#fdfbf6" stroke="#d8cfb8" stroke-width="1"/>
+              <text x="48" y="106" class="jh-panel-title">DISTANCES · HAJJ SITES</text>
+              <line x1="48" y1="114" x2="216" y2="114" stroke="#d8cfb8" stroke-width="0.6"/>
+
+              <text x="48" y="132" class="jh-panel-row">Makkah ↔ Mina</text>
+              <text x="216" y="132" class="jh-panel-val" text-anchor="end">~8 km</text>
+
+              <text x="48" y="150" class="jh-panel-row">Mina ↔ Arafah</text>
+              <text x="216" y="150" class="jh-panel-val" text-anchor="end">~14 km</text>
+
+              <text x="48" y="168" class="jh-panel-row">Arafah ↔ Muzdalifah</text>
+              <text x="216" y="168" class="jh-panel-val" text-anchor="end">~9 km</text>
+
+              <text x="48" y="186" class="jh-panel-row">Muzdalifah ↔ Mina</text>
+              <text x="216" y="186" class="jh-panel-val" text-anchor="end">~5 km</text>
+            </g>
+
             <!-- Day-number medallions on the ritual path -->
             <g class="jh-day-v2">
               <circle cx="240" cy="262" r="11" fill="#fdfbf6" stroke="#a85d3c" stroke-width="1"/>
@@ -1741,7 +1765,7 @@
           fontFamily: 'Inter, sans-serif',
           letterSpacing: '0.04em',
         },
-      }, 'Hajj Guide · v3.12'));
+      }, 'Hajj Guide · v3.13'));
 
       return wrap;
     },
